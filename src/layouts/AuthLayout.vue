@@ -4,38 +4,37 @@ import leasybackLogo from '@/assets/logo/leasyback-logo.svg'
 
 <template>
   <div class="relative flex min-h-screen overflow-hidden">
+    <!-- Left-side background (below paths so they show through) -->
+    <div
+      class="absolute left-0 top-0 z-0 h-full w-1/2"
+      style="background-color: #fafafa"
+    />
+
     <!--
       Decorative dashed paths from Figma.
-      Positioned relative to the FULL page (not just right panel)
-      since they span across both sides.
+      z-10: above the left background, but below the form card (z-20).
+      Visible on both sides, hidden only behind the form.
     -->
     <!-- Green dashed path — Figma: (-86, 93), 1601×1039, opacity 0.54 -->
     <img
       src="@/assets/logo/path-green.svg"
       alt=""
       class="pointer-events-none absolute z-10"
-      style="
-        left: -6%;
-        top: 9%;
-        width: 111%;
-        height: auto;
-        opacity: 0.54;
-      "
+      style="left: -5.97vw; top: 1vw; width: 111.18vw; height: auto; opacity: 0.54"
     >
     <!-- Orange dashed path — Figma: (-280, -92), 1493×839 -->
     <img
       src="@/assets/logo/path-orange.svg"
       alt=""
       class="pointer-events-none absolute z-10"
-      style="left: -19.4%; top: -9%; width: 103.7%; height: auto"
+      style="left: -19.44vw; top: -11.85vw; width: 103.68vw; height: auto"
     >
 
-    <!-- Left side — form area -->
+    <!-- Left side — form area (transparent bg, card has z-20 to cover paths) -->
     <div
-      class="relative z-20 flex w-1/2 items-center justify-center px-6 py-12"
-      style="background-color: #fafafa"
+      class="relative flex w-1/2 items-center justify-center px-6 py-12"
     >
-      <div class="w-full max-w-[420px]">
+      <div class="relative z-20 w-full max-w-[420px]">
         <div
           class="rounded-[10px] bg-white p-10 "
           style="box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1)"
@@ -49,31 +48,27 @@ import leasybackLogo from '@/assets/logo/leasyback-logo.svg'
     <div
       class="
         relative z-0 hidden w-1/2 items-center justify-center overflow-hidden
-        px-16
+        px-12
         lg:flex
       "
       style="background-color: #10393b"
     >
-      <div class="relative z-10 max-w-xl">
+      <div class="relative z-20 w-full max-w-[565px]">
         <!-- Logo from Figma — natural size 565×238 -->
         <img
           :src="leasybackLogo"
           alt="LeasyBack"
-          class="mb-14"
-          style="width: 565px; height: auto"
+          class="mb-20 w-full"
         >
 
-        <!-- Marketing text — Figma: 533×274 -->
+        <!-- Marketing text -->
         <p
-          class="font-bold leading-snug text-white"
-          style="font-size: 1.75rem; max-width: 533px"
+          class="mt-36 font-normal text-white"
+          style="font-size: 32px; line-height: 100%"
         >
           Sicher dir jetzt dein kostenloses Minderwert-Gutachten, erhalte
           günstige
-          <span
-            style="color: #ef8450"
-            class="font-bold"
-          >Reparaturangebote</span>
+          <span style="color: #ef8450">Reparaturangebote</span>
           und gib dein Leasingfahrzeug mit bis zu 42% Ersparnis stressfrei
           zurück!
         </p>
