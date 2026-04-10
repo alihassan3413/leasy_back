@@ -1,173 +1,105 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useForm, useField } from 'vee-validate'
+import { ref } from 'vue'
+import { useField, useForm } from 'vee-validate'
 import * as yup from 'yup'
+
 import { useAuth } from '@/composables/useAuth'
 import type { RegisterPayload, UserRole } from '@/types'
 
 const { register, status, error } = useAuth()
+const router = useRouter()
 
-// ── Role selection ────────────────────────────────────────────────────────────
-// Admin accounts are provisioned internally — they are not shown here.
+// ── Role options ─────────────────────────────────────────────────────────────
 type PublicRole = Extract<UserRole, 'B2C' | 'B2B' | 'WORKSHOP'>
 
-const ROLE_OPTIONS: { value: PublicRole; label: string; description: string }[] = [
-  { value: 'B2C', label: 'Private person', description: 'I lease a vehicle personally' },
-  { value: 'B2B', label: 'Company', description: 'I manage vehicles for my business' },
-  { value: 'WORKSHOP', label: 'Workshop', description: 'I inspect returned vehicles' },
+const ROLE_OPTIONS: { value: PublicRole; label: string }[] = [
+  { value: 'B2C', label: 'Privatkunde' },
+  { value: 'B2B', label: 'Firmenkunde' },
+  { value: 'WORKSHOP', label: 'Werkstatt' },
 ]
 
-const selectedRole = ref<PublicRole>('B2C')
+// ── Validation schema ────────────────────────────────────────────────────────
+const schema = yup.object({
+  role: yup.string().required('Please select a role'),
+  email: yup
+    .string()
+    .email('Enter a valid email address')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .matches(/[A-Z]/, 'Password must contain at least 1 uppercase letter')
+    .matches(
+      /[^a-zA-Z0-9]/,
+      'Password must contain at least 1 special character',
+    )
+    .required('Password is required'),
+})
 
-// ── Validation schema (role-aware) ────────────────────────────────────────────
-const schema = computed(() =>
-  yup.object({
-    firstName: yup.string().trim().required('First name is required'),
-    lastName: yup.string().trim().required('Last name is required'),
-    email: yup.string().email('Enter a valid email address').required('Email is required'),
-    phone: yup.string().optional(),
-    password: yup
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .required('Password is required'),
-    confirmPassword: yup
-      .string()
-      .oneOf([yup.ref('password')], 'Passwords do not match')
-      .required('Please confirm your password'),
-    // B2B-specific
-    companyName: yup.string().when([], {
-      is: () => selectedRole.value === 'B2B',
-      then: (s) => s.trim().required('Company name is required'),
-      otherwise: (s) => s.optional(),
-    }),
-    companyRegistrationNumber: yup.string().when([], {
-      is: () => selectedRole.value === 'B2B',
-      then: (s) => s.trim().required('Registration number is required'),
-      otherwise: (s) => s.optional(),
-    }),
-    // Workshop-specific
-    workshopName: yup.string().when([], {
-      is: () => selectedRole.value === 'WORKSHOP',
-      then: (s) => s.trim().required('Workshop name is required'),
-      otherwise: (s) => s.optional(),
-    }),
-    address: yup.string().when([], {
-      is: () => selectedRole.value === 'WORKSHOP',
-      then: (s) => s.trim().required('Address is required'),
-      otherwise: (s) => s.optional(),
-    }),
-  }),
-)
-
-// ── Form ──────────────────────────────────────────────────────────────────────
-// Explicit generic gives `handleSubmit` a typed `values` — without it,
-// vee-validate infers `any` from the dynamic computed schema.
 interface RegisterFormValues {
-  firstName: string
-  lastName: string
+  role: string
   email: string
-  phone?: string
   password: string
-  confirmPassword: string
-  companyName?: string
-  companyRegistrationNumber?: string
-  workshopName?: string
-  address?: string
 }
 
-const { handleSubmit, resetForm } = useForm<RegisterFormValues>({ validationSchema: schema })
+const { handleSubmit } = useForm<RegisterFormValues>({
+  validationSchema: schema,
+})
 
-const { value: firstName, errorMessage: firstNameError } = useField<string>('firstName')
-const { value: lastName, errorMessage: lastNameError } = useField<string>('lastName')
+const { value: role, errorMessage: roleError } = useField<string>('role')
 const { value: email, errorMessage: emailError } = useField<string>('email')
-const { value: phone } = useField<string>('phone')
-const { value: password, errorMessage: passwordError } = useField<string>('password')
-const { value: confirmPassword, errorMessage: confirmPasswordError } = useField<string>('confirmPassword')
-const { value: companyName, errorMessage: companyNameError } = useField<string>('companyName')
-const { value: companyRegistrationNumber, errorMessage: companyRegError } = useField<string>('companyRegistrationNumber')
-const { value: workshopName, errorMessage: workshopNameError } = useField<string>('workshopName')
-const { value: address, errorMessage: addressError } = useField<string>('address')
+const { value: password, errorMessage: passwordError } =
+  useField<string>('password')
 
-// Reset role-specific fields when the role changes so stale values don't
-// bleed into the payload or trigger phantom validation errors.
-function selectRole(role: PublicRole): void {
-  selectedRole.value = role
-  resetForm({
-    values: {
-      firstName: firstName.value,
-      lastName: lastName.value,
-      email: email.value,
-      phone: phone.value,
-      password: password.value,
-      confirmPassword: confirmPassword.value,
-    },
-  })
-}
+// ── Password visibility toggle ───────────────────────────────────────────────
+const showPassword = ref(false)
 
-// ── Styling helper ────────────────────────────────────────────────────────────
-function inputClass(hasError: boolean): string {
-  const base = 'w-full rounded-lg border px-3.5 py-2.5 text-sm shadow-xs outline-none transition focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
-  return hasError ? `${base} border-red-400 bg-red-50` : `${base} border-gray-300 bg-white`
-}
+// ── Success modal ────────────────────────────────────────────────────────────
+const showSuccess = ref(false)
 
-// ── Submit ────────────────────────────────────────────────────────────────────
+// ── Submit ───────────────────────────────────────────────────────────────────
 const onSubmit = handleSubmit(async (values) => {
-  const base = {
-    firstName: values.firstName,
-    lastName: values.lastName,
+  const payload: RegisterPayload = {
+    role: values.role as PublicRole,
     email: values.email,
-    phone: values.phone || undefined,
     password: values.password,
   }
 
-  let payload: RegisterPayload
-
-  if (selectedRole.value === 'B2B') {
-    payload = {
-      ...base,
-      role: 'B2B',
-      companyName: values.companyName as string,
-      companyRegistrationNumber: values.companyRegistrationNumber as string,
-    }
-  } else if (selectedRole.value === 'WORKSHOP') {
-    payload = {
-      ...base,
-      role: 'WORKSHOP',
-      workshopName: values.workshopName as string,
-      address: values.address as string,
-    }
-  } else {
-    payload = { ...base, role: 'B2C' }
-  }
-
   await register(payload)
+
+  if (status.value !== 'error') {
+    showSuccess.value = true
+  }
 })
+
+function onSuccessOk(): void {
+  showSuccess.value = false
+  void router.push('/auth/login')
+}
 </script>
 
 <template>
-  <div>
-    <h2 class="text-xl font-semibold text-gray-900 mb-1">
-      Create your account
-    </h2>
-    <p class="text-sm text-gray-500 mb-6">
-      Already have an account?
-      <RouterLink
-        to="/auth/login"
-        class="
-          text-indigo-600
-          hover:underline
-          font-medium
-        "
-      >
-        Sign in
-      </RouterLink>
+  <div class="flex min-h-[580px] flex-col">
+    <!-- Heading — top of card -->
+    <p
+      class="text-xl font-bold leading-snug"
+      style="color: #10393b"
+    >
+      Sie können sich als Werkstatt, als Firmenkunde oder auch als Privatkunde
+      registrieren
     </p>
 
-    <!-- Server-level error -->
+    <!-- Spacer pushes form toward bottom half of card -->
+    <div class="flex-1" />
+
+    <!-- Server error -->
     <div
       v-if="error"
-      class="
-        mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm
+      class="mb-4 rounded-[5px] border p-3 text-sm"
+      style="
+        background-color: #fef2f2;
+        border-color: #fca5a5;
+        color: #b91c1c;
       "
     >
       {{ error }}
@@ -178,98 +110,88 @@ const onSubmit = handleSubmit(async (values) => {
       class="space-y-5"
       @submit.prevent="onSubmit"
     >
-      <!-- ── Role selector ────────────────────────────────────────────── -->
-      <fieldset>
-        <legend class="block text-sm font-medium text-gray-700 mb-2">
-          I am a…
-        </legend>
-        <div class="grid grid-cols-3 gap-2">
-          <button
-            v-for="option in ROLE_OPTIONS"
-            :key="option.value"
-            type="button"
-            :class="[
-              `
-                flex flex-col items-start rounded-lg border p-3 text-left
-                transition
-              `,
-              selectedRole === option.value
-                ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
-                : `
-                  border-gray-200
-                  hover:border-gray-300
-                `,
-            ]"
-            @click="selectRole(option.value)"
+      <!-- Role dropdown -->
+      <div>
+        <label
+          for="role"
+          class="mb-1.5 block text-sm font-bold"
+          style="color: #2e3e3f"
+        >
+          Jetzt registrieren als
+        </label>
+        <div class="relative">
+          <select
+            id="role"
+            v-model="role"
+            class="
+              w-full appearance-none rounded-[5px] border bg-white px-3 py-2.5
+              text-sm outline-none transition
+            "
+            :class="roleError ? 'border-red-400 bg-red-50' : ''"
+            :style="{ borderColor: roleError ? undefined : '#B7C2C2' }"
           >
-            <span class="text-xs font-semibold text-gray-900">{{ option.label }}</span>
-            <span class="text-xs text-gray-500 mt-0.5">{{ option.description }}</span>
-          </button>
+            <option
+              value=""
+              disabled
+              selected
+            >
+              Auswählen
+            </option>
+            <option
+              v-for="opt in ROLE_OPTIONS"
+              :key="opt.value"
+              :value="opt.value"
+            >
+              {{ opt.label }}
+            </option>
+          </select>
+          <!-- Chevron -->
+          <svg
+            class="
+              pointer-events-none absolute right-3 top-1/2 -translate-y-1/2
+            "
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+          >
+            <path
+              d="M4 6L8 10L12 6"
+              stroke="#B7C2C2"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
         </div>
-      </fieldset>
-
-      <!-- ── Common fields ────────────────────────────────────────────── -->
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label
-            for="firstName"
-            class="block text-sm font-medium text-gray-700 mb-1"
-          >
-            First name
-          </label>
-          <input
-            id="firstName"
-            v-model="firstName"
-            type="text"
-            autocomplete="given-name"
-            :class="inputClass(!!firstNameError)"
-            placeholder="Jane"
-          >
-          <p
-            v-if="firstNameError"
-            class="mt-1 text-xs text-red-600"
-          >
-            {{ firstNameError }}
-          </p>
-        </div>
-        <div>
-          <label
-            for="lastName"
-            class="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Last name
-          </label>
-          <input
-            id="lastName"
-            v-model="lastName"
-            type="text"
-            autocomplete="family-name"
-            :class="inputClass(!!lastNameError)"
-            placeholder="Doe"
-          >
-          <p
-            v-if="lastNameError"
-            class="mt-1 text-xs text-red-600"
-          >
-            {{ lastNameError }}
-          </p>
-        </div>
+        <p
+          v-if="roleError"
+          class="mt-1 text-xs text-red-600"
+        >
+          {{ roleError }}
+        </p>
       </div>
 
+      <!-- Email -->
       <div>
         <label
           for="reg-email"
-          class="block text-sm font-medium text-gray-700 mb-1"
+          class="mb-1.5 block text-sm font-bold"
+          style="color: #2e3e3f"
         >
-          Email address
+          E-Mail-Adresse
         </label>
         <input
           id="reg-email"
           v-model="email"
           type="email"
           autocomplete="email"
-          :class="inputClass(!!emailError)"
-          placeholder="you@company.com"
+          class="
+            w-full rounded-[5px] border bg-white px-3 py-2.5 text-sm
+            outline-none transition
+          "
+          :class="emailError ? 'border-red-400 bg-red-50' : ''"
+          :style="{ borderColor: emailError ? undefined : '#B7C2C2' }"
         >
         <p
           v-if="emailError"
@@ -279,131 +201,79 @@ const onSubmit = handleSubmit(async (values) => {
         </p>
       </div>
 
-      <div>
-        <label
-          for="phone"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Phone <span class="text-gray-400 font-normal">(optional)</span>
-        </label>
-        <input
-          id="phone"
-          v-model="phone"
-          type="tel"
-          autocomplete="tel"
-          :class="inputClass(false)"
-          placeholder="+49 170 0000000"
-        >
-      </div>
-
-      <!-- ── B2B fields ────────────────────────────────────────────────── -->
-      <template v-if="selectedRole === 'B2B'">
-        <div>
-          <label
-            for="companyName"
-            class="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Company name
-          </label>
-          <input
-            id="companyName"
-            v-model="companyName"
-            type="text"
-            :class="inputClass(!!companyNameError)"
-            placeholder="Acme GmbH"
-          >
-          <p
-            v-if="companyNameError"
-            class="mt-1 text-xs text-red-600"
-          >
-            {{ companyNameError }}
-          </p>
-        </div>
-        <div>
-          <label
-            for="companyReg"
-            class="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Company registration number
-          </label>
-          <input
-            id="companyReg"
-            v-model="companyRegistrationNumber"
-            type="text"
-            :class="inputClass(!!companyRegError)"
-            placeholder="HRB 123456"
-          >
-          <p
-            v-if="companyRegError"
-            class="mt-1 text-xs text-red-600"
-          >
-            {{ companyRegError }}
-          </p>
-        </div>
-      </template>
-
-      <!-- ── Workshop fields ───────────────────────────────────────────── -->
-      <template v-if="selectedRole === 'WORKSHOP'">
-        <div>
-          <label
-            for="workshopName"
-            class="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Workshop name
-          </label>
-          <input
-            id="workshopName"
-            v-model="workshopName"
-            type="text"
-            :class="inputClass(!!workshopNameError)"
-            placeholder="Müller KFZ GmbH"
-          >
-          <p
-            v-if="workshopNameError"
-            class="mt-1 text-xs text-red-600"
-          >
-            {{ workshopNameError }}
-          </p>
-        </div>
-        <div>
-          <label
-            for="address"
-            class="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Address
-          </label>
-          <input
-            id="address"
-            v-model="address"
-            type="text"
-            :class="inputClass(!!addressError)"
-            placeholder="Musterstraße 1, 80331 München"
-          >
-          <p
-            v-if="addressError"
-            class="mt-1 text-xs text-red-600"
-          >
-            {{ addressError }}
-          </p>
-        </div>
-      </template>
-
-      <!-- ── Password ──────────────────────────────────────────────────── -->
+      <!-- Password -->
       <div>
         <label
           for="reg-password"
-          class="block text-sm font-medium text-gray-700 mb-1"
+          class="mb-1.5 block text-sm font-bold"
+          style="color: #2e3e3f"
         >
-          Password
+          Passwort
         </label>
-        <input
-          id="reg-password"
-          v-model="password"
-          type="password"
-          autocomplete="new-password"
-          :class="inputClass(!!passwordError)"
-          placeholder="Min. 8 characters"
+        <div class="relative">
+          <input
+            id="reg-password"
+            v-model="password"
+            :type="showPassword ? 'text' : 'password'"
+            autocomplete="new-password"
+            class="
+              w-full rounded-[5px] border bg-white px-3 py-2.5 pr-10 text-sm
+              outline-none transition
+            "
+            :class="passwordError ? 'border-red-400 bg-red-50' : ''"
+            :style="{ borderColor: passwordError ? undefined : '#B7C2C2' }"
+          >
+          <!-- Eye toggle -->
+          <button
+            type="button"
+            class="absolute right-3 top-1/2 -translate-y-1/2"
+            @click="showPassword = !showPassword"
+          >
+            <svg
+              v-if="!showPassword"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#B7C2C2"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle
+                cx="12"
+                cy="12"
+                r="3"
+              />
+            </svg>
+            <svg
+              v-else
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#B7C2C2"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+              <line
+                x1="1"
+                y1="1"
+                x2="23"
+                y2="23"
+              />
+            </svg>
+          </button>
+        </div>
+        <p
+          class="mt-1.5 text-xs"
+          style="color: #b7c2c2"
         >
+          Min. 8 Zeichen, mind. 1 Großbuchstabe, mind. 1 Sonderzeichen
+        </p>
         <p
           v-if="passwordError"
           class="mt-1 text-xs text-red-600"
@@ -412,52 +282,103 @@ const onSubmit = handleSubmit(async (values) => {
         </p>
       </div>
 
-      <div>
-        <label
-          for="confirmPassword"
-          class="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Confirm password
-        </label>
-        <input
-          id="confirmPassword"
-          v-model="confirmPassword"
-          type="password"
-          autocomplete="new-password"
-          :class="inputClass(!!confirmPasswordError)"
-          placeholder="••••••••"
-        >
-        <p
-          v-if="confirmPasswordError"
-          class="mt-1 text-xs text-red-600"
-        >
-          {{ confirmPasswordError }}
-        </p>
-      </div>
-
       <!-- Submit -->
-      <button
-        type="submit"
-        :disabled="status === 'loading'"
-        class="
-          w-full flex justify-center items-center gap-2 rounded-lg bg-indigo-600
-          px-4 py-2.5 text-sm font-semibold text-white shadow-xs
-          hover:bg-indigo-700
-          focus-visible:outline focus-visible:outline-2
-          focus-visible:outline-offset-2 focus-visible:outline-indigo-600
-          disabled:opacity-60 disabled:cursor-not-allowed
-          transition
-        "
-      >
-        <span
-          v-if="status === 'loading'"
+      <div class="pt-6">
+        <button
+          type="submit"
+          :disabled="status === 'loading'"
           class="
-            size-4 animate-spin rounded-full border-2 border-white
-            border-t-transparent
+            flex w-full items-center justify-center gap-2 rounded-[5px] px-4
+            py-3 text-sm font-bold text-white transition
+            disabled:cursor-not-allowed disabled:opacity-60
           "
-        />
-        {{ status === 'loading' ? 'Creating account…' : 'Create account' }}
-      </button>
+          style="background-color: #ef8450"
+          @mouseenter="
+            ($event.target as HTMLElement).style.backgroundColor = '#e0743f'
+          "
+          @mouseleave="
+            ($event.target as HTMLElement).style.backgroundColor = '#ef8450'
+          "
+        >
+          <span
+            v-if="status === 'loading'"
+            class="
+              size-4 animate-spin rounded-full border-2 border-white
+              border-t-transparent
+            "
+          />
+          {{ status === 'loading' ? 'Registrieren…' : 'Registrieren' }}
+        </button>
+      </div>
     </form>
+
+    <!-- Login link -->
+    <p
+      class="mt-5 text-center text-sm font-medium"
+      style="color: #2e3e3f"
+    >
+      Sind Sie schon Kunde bei uns?
+      <RouterLink
+        to="/auth/login"
+        class="font-medium"
+        style="color: #01b990"
+      >
+        Zum Login
+      </RouterLink>
+    </p>
+
+    <!-- Success modal overlay -->
+    <Teleport to="body">
+      <div
+        v-if="showSuccess"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      >
+        <div
+          class="w-full max-w-sm rounded-[5px] p-8 text-center"
+          style="background-color: #ececec"
+        >
+          <div
+            class="
+              mx-auto mb-4 flex size-14 items-center justify-center rounded-full
+            "
+            style="background-color: #01b990"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+
+          <h3
+            class="mb-2 text-xl font-bold"
+            style="color: #2e3e3f"
+          >
+            Vielen Dank!
+          </h3>
+          <p
+            class="mb-6 text-base"
+            style="color: #2e3e3f"
+          >
+            Ihre Registrierung war erfolgreich. Sie können sich jetzt anmelden.
+          </p>
+
+          <button
+            class="rounded-[5px] px-8 py-2 text-sm font-bold text-white"
+            style="background-color: #01b990"
+            @click="onSuccessOk"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
