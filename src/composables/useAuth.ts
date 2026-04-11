@@ -1,6 +1,6 @@
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth.store'
 import type { LoginPayload, RegisterPayload, ForgotPasswordPayload } from '@/types'
 
 /**

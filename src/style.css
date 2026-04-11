@@ -1,5 +1,11 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@theme {
+  --color-custom-orange: #ef8450;
+  --color-primary: #10393b;
+  --color-green-gray: #B7C2C2;
+  --color-custom-black: #2e3e3f;
+}
 
 *,
 *::before,
@@ -13,3 +19,4 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+

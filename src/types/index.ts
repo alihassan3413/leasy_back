@@ -8,13 +8,12 @@ export interface User {
   id: string
   email: string
   role: UserRole
-  firstName: string
-  lastName: string
+  firstName?: string
+  lastName?: string
   phone?: string
-  // Bank data lives in profile, NOT in payment methods (privacy decision)
   bankData?: BankData
-  companyId?: string       // only for B2B users
-  workshopId?: string      // only for WORKSHOP users
+  companyId?: string
+  workshopId?: string
 }
 
 export interface BankData {
@@ -26,7 +25,7 @@ export interface BankData {
 export interface AuthTokens {
   accessToken: string
   refreshToken: string
-  expiresAt: number        // Unix timestamp (seconds)
+  expiresAt: number
 }
 
 export interface AuthResponse {
@@ -35,41 +34,36 @@ export interface AuthResponse {
 }
 
 // ─────────────────────────────────────────────
-// AUTH PAYLOADS
+// AUTH API TYPES
 // ─────────────────────────────────────────────
+
+export type RegisterUserType =
+  | 'Privatkunde'
+  | 'Firmenkunde'
+  | 'Werksatatt'
+  | 'Admin'
 
 export interface LoginPayload {
   email: string
   password: string
 }
 
-interface BaseRegisterPayload {
-  role: UserRole
-  email: string
+export interface RegisterPayload {
+  user_email: string
   password: string
-  firstName?: string
-  lastName?: string
-  phone?: string
+  user_type: RegisterUserType
 }
 
-export interface B2CRegisterPayload extends BaseRegisterPayload {
-  role: 'B2C'
+export interface RegisterResponse {
+  ok: boolean
+  data: {
+    created_at: string
+    user_email: string
+    user_id: string
+    user_type: RegisterUserType
+  }
+  message: string
 }
-
-export interface B2BRegisterPayload extends BaseRegisterPayload {
-  role: 'B2B'
-  companyName: string
-  companyRegistrationNumber: string
-}
-
-export interface WorkshopRegisterPayload extends BaseRegisterPayload {
-  role: 'WORKSHOP'
-  workshopName: string
-  address: string
-}
-
-// Admin accounts are provisioned internally — no public registration
-export type RegisterPayload = B2CRegisterPayload | B2BRegisterPayload | WorkshopRegisterPayload
 
 export interface ForgotPasswordPayload {
   email: string

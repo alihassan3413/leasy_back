@@ -11,6 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    Button: typeof import('./../components/ui/Button.vue')['default']
+    DropDown: typeof import('./../components/ui/form/DropDown.vue')['default']
     FormLabel: typeof import('./../components/ui/form/FormLabel.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

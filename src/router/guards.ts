@@ -1,5 +1,5 @@
 import type { Router } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth.store'
 
 export function registerGuards(router: Router): void {
   router.beforeEach((to) => {
