@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --color-custom-orange: #ef8450;
+  --color-primary: #10393b;
+  --color-green-gray: #B7C2C2;
+  --color-custom-black: #2e3e3f;
+}
+
 *,
 *::before,
 *::after {
@@ -8,7 +15,8 @@
 
 body {
   margin: 0;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Manrope', system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+

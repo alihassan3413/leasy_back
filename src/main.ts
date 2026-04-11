@@ -3,7 +3,7 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import router from './router'
 import App from './App.vue'
-import { useAuthStore } from './stores/auth'
+import { useAuthStore } from '@/stores/auth.store'
 import './style.css'
 
 // ── Bootstrap ──────────────────────────────────────────────────────────────
@@ -22,6 +22,7 @@ app.use(router)
 
 // Wire the Axios client to the auth store's token state.
 // Must be called after Pinia is mounted so the store can be instantiated.
-useAuthStore().bootstrap()
+const authStore = useAuthStore();
+authStore.initAuthClient();
 
 app.mount('#app')

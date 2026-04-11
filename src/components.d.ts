@@ -11,11 +11,11 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    Button: typeof import('./../components/ui/Button.vue')['default']
-    DropDown: typeof import('./../components/ui/form/DropDown.vue')['default']
-    FormLabel: typeof import('./../components/ui/form/FormLabel.vue')['default']
+    AppLayout: typeof import('./layouts/AppLayout.vue')['default']
+    AuthLayout: typeof import('./layouts/AuthLayout.vue')['default']
+    FormLabel: typeof import('./components/ui/form/FormLabel.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TextInput: typeof import('./../components/ui/form/TextInput.vue')['default']
+    TextInput: typeof import('./components/ui/form/TextInput.vue')['default']
   }
 }
