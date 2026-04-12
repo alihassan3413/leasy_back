@@ -1,43 +1,41 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
 import { useField, useForm } from 'vee-validate'
-import * as yup from 'yup'
 
 import Button from '@/components/ui/Button.vue'
 import TextInput from '@/components/ui/form/TextInput.vue'
-import { useAuth } from '@/composables/useAuth'
+import { useAuthStore } from '@/stores/auth.store'
+import { loginSchema } from '@/validations/auth/login.schema'
+import type { LoginPayload } from '@/types'
 
 interface LoginFormValues {
-  user_email: string
+  email: string
   password: string
 }
 
-// ── Composable (IMPORTANT) ──
-const { login, status, error } = useAuth()
-
-// ── Validation ──
-const schema = yup.object({
-  user_email: yup
-    .string()
-    .email('Bitte gültige E-Mail eingeben')
-    .required('E-Mail ist erforderlich'),
-
-  password: yup
-    .string()
-    .min(8, 'Mindestens 8 Zeichen')
-    .required('Passwort ist erforderlich'),
-})
+const authStore = useAuthStore()
+const { status, error } = storeToRefs(authStore)
+const router = useRouter()
 
 const { handleSubmit, setErrors } = useForm<LoginFormValues>({
-  validationSchema: schema,
+  validationSchema: loginSchema,
 })
 
-const { value: email, errorMessage: emailError } = useField<string>('user_email')
+const { value: email, errorMessage: emailError } = useField<string>('email')
 const { value: password, errorMessage: passwordError } = useField<string>('password')
 
-// ── Submit ──
 const onSubmit = handleSubmit(async (values) => {
+  console.log('Alliiiiiiiiiiiiii');
+  
+  const payload: LoginPayload = {
+    user_email: values.email,
+    password: values.password,
+  }
+
   try {
-    await login(values) // ✅ clean (mapping already handled in API)
+    await authStore.login(payload)
+    void router.push('/')
   } catch (err) {
     const apiError = err as {
       message: string
@@ -46,17 +44,16 @@ const onSubmit = handleSubmit(async (values) => {
 
     if (apiError.errors) {
       setErrors({
-        user_email: apiError.errors.user_email?.[0],
+        email: apiError.errors.user_email?.[0],
         password: apiError.errors.password?.[0],
       })
     }
   }
 })
 </script>
+
 <template>
   <div class="flex min-h-[580px] flex-col">
-
-    <!-- Title -->
     <p
       class="mx-auto mt-[65px] mb-[100px] max-w-[292px] text-left text-lg font-bold text-primary xl:mt-[91px] xl:mb-[140px] xl:text-xl"
     >
@@ -65,7 +62,6 @@ const onSubmit = handleSubmit(async (values) => {
 
     <div class="flex-1" />
 
-    <!-- Error -->
     <div
       v-if="error"
       class="mb-4 rounded-[5px] border border-red-300 bg-red-50 p-3 text-sm text-red-700"
@@ -73,9 +69,7 @@ const onSubmit = handleSubmit(async (values) => {
       {{ error }}
     </div>
 
-    <!-- Form -->
     <form class="space-y-5" @submit.prevent="onSubmit">
-
       <TextInput
         v-model="email"
         label="E-Mail-Adresse"

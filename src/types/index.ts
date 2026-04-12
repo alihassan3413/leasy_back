@@ -24,8 +24,6 @@ export interface BankData {
 
 export interface AuthTokens {
   accessToken: string
-  refreshToken: string | null
-  expiresAt?: number
 }
 
 export interface AuthResponse {
@@ -46,6 +44,16 @@ export type RegisterUserType =
 export interface LoginPayload {
   user_email: string
   password: string
+}
+
+export interface RawLoginResponse {
+  ok: boolean
+  data: {
+    token: string
+    user_type: RegisterUserType | 'Werkstatt'
+    user_id: string
+  }
+  message: string
 }
 
 export interface RegisterPayload {
@@ -72,6 +80,16 @@ export interface ForgotPasswordPayload {
 export interface ResetPasswordPayload {
   token: string
   password: string
+}
+
+// ─────────────────────────────────────────────
+// API ERROR (standardized shape)
+// ─────────────────────────────────────────────
+
+export interface AppError {
+  code: number
+  message: string
+  field?: string
 }
 
 // ─────────────────────────────────────────────
@@ -149,14 +167,4 @@ export interface Invoice {
   paidAt?: string
   pdfUrl: string
   status: 'PENDING' | 'PAID' | 'OVERDUE'
-}
-
-// ─────────────────────────────────────────────
-// API ERROR (standardized shape)
-// ─────────────────────────────────────────────
-
-export interface AppError {
-  code: number
-  message: string
-  field?: string
 }

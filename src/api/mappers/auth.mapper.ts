@@ -16,8 +16,6 @@ export function mapLoginResponse(raw: any, userEmail: string): AuthResponse {
     } as User,
     tokens: {
       accessToken:  raw.data.token,
-      refreshToken: null,
-      expiresAt:    undefined,
     },
   }
 }
