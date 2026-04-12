@@ -24,8 +24,8 @@ export interface BankData {
 
 export interface AuthTokens {
   accessToken: string
-  refreshToken: string
-  expiresAt: number
+  refreshToken: string | null
+  expiresAt?: number
 }
 
 export interface AuthResponse {
@@ -44,7 +44,7 @@ export type RegisterUserType =
   | 'Admin'
 
 export interface LoginPayload {
-  email: string
+  user_email: string
   password: string
 }
 

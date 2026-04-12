@@ -9,6 +9,7 @@ import type {
   LoginPayload,
   RegisterPayload,
 } from '@/types'
+import { mapLoginResponse } from '@/api/mappers/auth.mapper'
 
 type AuthStatus = 'idle' | 'loading' | 'success' | 'error'
 
@@ -53,7 +54,9 @@ export const useAuthStore = defineStore(
       error.value = ''
 
       try {
-        const response = await authApi.login(payload)
+        const raw = await authApi.login(payload)
+        // const response = await authApi.login(payload)
+        const response = mapLoginResponse(raw, payload.user_email)
         setSession(response)
         status.value = 'success'
         return response
