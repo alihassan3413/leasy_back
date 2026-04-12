@@ -1,4 +1,5 @@
 import { post } from '../client/request'
+import { mapLoginResponse } from '../mappers/auth.mapper'
 import type {
   AuthResponse,
   AuthTokens,
@@ -7,13 +8,16 @@ import type {
   RegisterResponse,
   ForgotPasswordPayload,
   ResetPasswordPayload,
+  RawLoginResponse,
 } from '@/types'
 
 export const authApi = {
-  login(payload: LoginPayload) {
-    return post<AuthResponse, LoginPayload>('/auth/login', payload, {
+  async login(payload: LoginPayload): Promise<AuthResponse> {
+    const raw = await post<RawLoginResponse, LoginPayload>('/auth/login', payload, {
       skipAuth: true,
     })
+
+    return mapLoginResponse(raw, payload.user_email)
   },
 
   register(payload: RegisterPayload) {

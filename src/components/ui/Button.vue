@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, useSlots } from 'vue'
 import { Icon } from '@iconify/vue'
 import type { ButtonProps, ButtonSize, ButtonVariant } from './button.types'
 
@@ -12,8 +13,12 @@ const props = withDefaults(defineProps<ButtonProps>(), {
   type: 'button',
 })
 
+const slots = useSlots()
+
+const useTextSlot = computed(() => Boolean(slots.default))
+
 const base =
-  'inline-flex items-center justify-center rounded-md font-medium transition disabled:pointer-events-none disabled:opacity-50'
+  'inline-flex items-center justify-center rounded-md font-medium transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
 
 const variants: Record<ButtonVariant, string> = {
   primary: 'bg-custom-orange text-white hover:opacity-90',
@@ -36,8 +41,6 @@ const classes = computed(() => {
     props.buttonClasses,
   ]
 })
-
-const useTextSlot = computed(() => Boolean(useSlots().default))
 </script>
 
 <template>

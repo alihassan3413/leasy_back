@@ -5,9 +5,9 @@ import { configureClientAuth } from '@/api/client/auth'
 import { normalizeApiError, type ApiError } from '@/api/client/error'
 import type {
   AuthResponse,
-  AuthTokens,
   LoginPayload,
   RegisterPayload,
+  RegisterResponse,
 } from '@/types'
 
 type AuthStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -16,7 +16,6 @@ export const useAuthStore = defineStore(
   'auth',
   () => {
     const accessToken = ref<string | null>(null)
-    const refreshToken = ref<string | null>(null)
     const user = ref<AuthResponse['user'] | null>(null)
 
     const status = ref<AuthStatus>('idle')
@@ -26,20 +25,14 @@ export const useAuthStore = defineStore(
 
     function resetState(): void {
       accessToken.value = null
-      refreshToken.value = null
       user.value = null
       status.value = 'idle'
       error.value = ''
     }
 
-    function setTokens(tokens: AuthTokens): void {
-      accessToken.value = tokens.accessToken
-      refreshToken.value = tokens.refreshToken
-    }
-
     function setSession(payload: AuthResponse): void {
       user.value = payload.user
-      setTokens(payload.tokens)
+      accessToken.value = payload.tokens.accessToken
     }
 
     function setError(apiError: ApiError): never {
@@ -62,7 +55,7 @@ export const useAuthStore = defineStore(
       }
     }
 
-    async function register(payload: RegisterPayload) {
+    async function register(payload: RegisterPayload): Promise<RegisterResponse> {
       status.value = 'loading'
       error.value = ''
 
@@ -75,47 +68,19 @@ export const useAuthStore = defineStore(
       }
     }
 
-    async function refreshTokensAction(): Promise<string> {
-      if (!refreshToken.value) {
-        resetState()
-        throw new Error('No refresh token available.')
-      }
-
-      try {
-        const tokens = await authApi.refreshToken(refreshToken.value)
-        setTokens(tokens)
-        return tokens.accessToken
-      } catch (err) {
-        resetState()
-        throw err
-      }
-    }
-
-    async function logout(): Promise<void> {
-      const currentRefreshToken = refreshToken.value
-
-      try {
-        if (currentRefreshToken) {
-          await authApi.logout(currentRefreshToken)
-        }
-      } catch {
-        // best effort logout
-      } finally {
-        resetState()
-      }
+    function logout(): void {
+      resetState()
     }
 
     function initAuthClient(): void {
       configureClientAuth({
         getAccessToken: () => accessToken.value,
-        refreshAccessToken: refreshTokensAction,
         onAuthFailure: resetState,
       })
     }
 
     return {
       accessToken,
-      refreshToken,
       user,
       status,
       error,
@@ -126,15 +91,13 @@ export const useAuthStore = defineStore(
       initAuthClient,
       resetState,
       setSession,
-      setTokens,
-      refreshTokens: refreshTokensAction,
     }
   },
   {
     persist: {
       key: 'auth',
       storage: localStorage,
-      pick: ['accessToken', 'refreshToken', 'user'],
+      pick: ['accessToken', 'user'],
     },
   },
 )
