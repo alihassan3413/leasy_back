@@ -5,25 +5,25 @@ import leasybackLogo from "@/assets/logo/leasyback-logo.svg";
 <template>
   <div class="relative flex min-h-screen overflow-hidden">
     <div
-      class="absolute left-0 top-0 z-0 h-full w-1/2"
+      class="absolute left-0 top-0 z-0 h-full w-full md:w-1/2"
       style="background-color: #fafafa"
     />
 
     <img
       src="@/assets/logo/path-green.svg"
       alt=""
-      class="pointer-events-none absolute z-10"
+      class="pointer-events-none absolute z-10 hidden md:block"
       style="left: -5.97vw; top: 1vw; width: 111.18vw; height: auto; opacity: 0.54"
     />
 
     <img
       src="@/assets/logo/path-orange.svg"
       alt=""
-      class="pointer-events-none absolute z-10"
+      class="pointer-events-none absolute z-10 hidden md:block"
       style="left: -19.44vw; top: -11.85vw; width: 103.68vw; height: auto"
     />
 
-    <div class="relative flex w-1/2 items-center justify-center px-6 py-12">
+    <div class="relative flex w-full md:w-1/2 items-center justify-center px-4 md:px-6 py-1 md:py-12">
       <div class="relative z-20 w-full max-w-[420px]">
         <div
           class="rounded-[10px] bg-white border px-9 pb-9 border-green-gray shadow-[0_4px_4px_rgba(0,0,0,0.25)]"

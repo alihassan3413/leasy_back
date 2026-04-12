@@ -53,7 +53,8 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="flex min-h-[580px] flex-col">
+  <!-- for the medium screen  -->
+  <div class=" hidden md:flex min-h-[580px] flex-col">
     <p
       class="mx-auto mt-[65px] mb-[100px] max-w-[292px] text-left text-lg font-bold text-primary xl:mt-[91px] xl:mb-[140px] xl:text-xl"
     >
@@ -96,7 +97,7 @@ const onSubmit = handleSubmit(async (values) => {
 
         <RouterLink
           to="/auth/forgot-password"
-          class="mt-1 block text-xs text-custom-green"
+          class=" font-bold text-[14px] text-light-green underline leading-normal  not-italic decoration-solid"
         >
           Passwort vergessen?
         </RouterLink>
@@ -120,4 +121,76 @@ const onSubmit = handleSubmit(async (values) => {
       </RouterLink>
     </p>
   </div>
+
+  <!-- ── Mobile (below md) ─────────────────────────── -->
+  <div class="flex md:hidden  flex-col">
+    <div class="mx-auto flex flex-col items-center ">
+      <img src="/src/assets/logo/leasyback_logo_mobile.svg" alt="">
+    <p
+      class="     text-base  font-bold text-black leading-normal not-italic"
+    >
+      Hallo! Willkommen zurück!
+    </p>
+    <p class=" mt-px text-black text-[8px] font-bold not-italic leading-normal">Sind Sie ein Werkstett? Melden Sie sich hier mit ihren Zugangsdaten an</p>
+    </div>
+
+
+
+    <div
+      v-if="error"
+      class="mb-4 rounded-[5px] border border-red-300 bg-red-50 p-3 text-sm text-red-700"
+    >
+      {{ error }}
+    </div>
+
+    <form class="space-y-5 mt-20" @submit.prevent="onSubmit">
+      <TextInput
+        v-model="email"
+        label="E-Mail-Adresse"
+        for-id="login-email-mobile"
+        type="email"
+        placeholder="E-Mail-Adresse"
+        :error="emailError"
+      />
+
+      <div>
+        <TextInput
+          v-model="password"
+          label="Passwort"
+          for-id="login-password-mobile"
+          type="password"
+          placeholder="Passwort"
+          :show-password-toggle="true"
+          :error="passwordError"
+        />
+
+        <RouterLink
+          to="/auth/forgot-password"
+          class="font-bold text-[14px] text-light-green underline leading-normal not-italic decoration-solid"
+        >
+          Passwort vergessen?
+        </RouterLink>
+      </div>
+
+      <div class="pt-20">
+        <Button
+          type="submit"
+          :disabled="status === 'loading'"
+          button-classes="w-full rounded-[5px] py-3 text-sm font-bold"
+        >
+          {{ status === 'loading' ? 'Einloggen…' : 'Einloggen' }}
+        </Button>
+      </div>
+    </form>
+
+    <!-- Mobile only bottom link -->
+    <p class="mt-4 text-center text-[10px] text-black  font-normal leading-normal not-italic">
+      Sind Sie ein Firmenkunde?
+      <RouterLink to="/auth/register" class="text-juicy-ornge text-[10px]  leading-normal not-italic font-normal">
+      Zum Firmenkunden-Registration
+      </RouterLink>
+    </p>
+
+  </div>
+
 </template>
