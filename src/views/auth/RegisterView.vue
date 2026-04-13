@@ -14,6 +14,8 @@ const authStore = useAuthStore()
 const { status, error } = storeToRefs(authStore)
 const router = useRouter()
 
+const SubmittedRole = ref<RegisterUserType | null>(null)
+
 const roleOptions: { value: RegisterUserType; label: string }[] = [
   { value: 'Privatkunde', label: 'Privatkunde' },
   { value: 'Firmenkunde', label: 'Firmenkunde' },
@@ -45,6 +47,7 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     await authStore.register(payload)
+    SubmittedRole.value = values.role as RegisterUserType
     showSuccess.value = true
   } catch (err) {
     const apiError = err as {
@@ -64,7 +67,12 @@ const onSubmit = handleSubmit(async (values) => {
 
 const onSuccessOk = (): void => {
   showSuccess.value = false
-  void router.push('/auth/login')
+  if(SubmittedRole.value === 'Firmenkunde'){
+    void router.push('/register/company')
+  }else{
+    void router.push('/auth/login')
+  }
+ 
 }
 </script>
 
