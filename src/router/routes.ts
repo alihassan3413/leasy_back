@@ -1,18 +1,16 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { UserRole } from '@/types'
 
-// Augment RouteMeta so every route definition is type-safe.
 declare module 'vue-router' {
   interface RouteMeta {
     title?: string
     requiresAuth?: boolean
-    guestOnly?: boolean    // redirect away if the user is already authenticated
-    roles?: UserRole[]     // if set, only these roles may access the route
+    guestOnly?: boolean   
+    roles?: UserRole[]     
   }
 }
 
 export const routes: RouteRecordRaw[] = [
-  // ── Auth routes (accessible only when NOT logged in) ──────────────────────
   {
     path: '/auth',
     component: () => import('@/layouts/AuthLayout.vue'),
@@ -40,7 +38,6 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
 
-  // ── Protected app routes ──────────────────────────────────────────────────
   {
     path: '/',
     component: () => import('@/layouts/AppLayout.vue'),
@@ -56,6 +53,5 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
 
-  // ── Fallback ──────────────────────────────────────────────────────────────
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]

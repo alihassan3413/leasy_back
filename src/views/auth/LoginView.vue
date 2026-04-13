@@ -94,7 +94,7 @@ const onSubmit = handleSubmit(async (values) => {
 
         <RouterLink
           to="/auth/forgot-password"
-          class="mt-1 block text-xs text-custom-green"
+          class="mt-1 block text-[14px] font-bold text-custom-green underline decoration-[1.12px] underline-offset-[2.8px]"
         >
           Passwort vergessen?
         </RouterLink>
