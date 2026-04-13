@@ -1,40 +1,25 @@
-<script setup lang="ts">
-import { computed } from 'vue'
-import type { FormLabelProps } from './form-label.types'
+<script lang="ts" setup>
+import type { LabelProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { cn } from "@/lib/utils"
+import { Label } from '@/components/ui/label'
+import { useFormField } from "./useFormField"
 
-const props = withDefaults(defineProps<FormLabelProps>(), {
-  label: '',
-  forId: '',
-  required: false,
-  labelClasses: '',
-})
+const props = defineProps<LabelProps & { class?: HTMLAttributes["class"] }>()
 
-const hasLabel = computed(() => props.label.trim().length > 0)
-
-const classes = computed(() => {
-  return [
-    'mb-1.5 block text-sm font-bold text-custom-black',
-    props.labelClasses,
-  ]
-})
+const { error, formItemId } = useFormField()
 </script>
 
 <template>
-  <label
-    v-if="hasLabel"
-    :for="props.forId"
-    class="flex items-start justify-start gap-1"
+  <Label
+    data-slot="form-label"
+    :data-error="!!error"
+    :class="cn(
+      'data-[error=true]:text-destructive',
+      props.class,
+    )"
+    :for="formItemId"
   >
-    <span :class="classes">
-      {{ props.label }}
-    </span>
-
-    <span
-      v-if="props.required"
-      class="text-red-500"
-      aria-hidden="true"
-    >
-      *
-    </span>
-  </label>
+    <slot />
+  </Label>
 </template>
