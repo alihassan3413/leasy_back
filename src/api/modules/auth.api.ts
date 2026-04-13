@@ -16,7 +16,6 @@ export const authApi = {
     const raw = await post<RawLoginResponse, LoginPayload>('/auth/login', payload, {
       skipAuth: true,
     })
-
     return mapLoginResponse(raw, payload.user_email)
   },
 

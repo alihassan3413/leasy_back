@@ -37,7 +37,17 @@ export const useAuthStore = defineStore(
 
     function setError(apiError: ApiError): never {
       status.value = 'error'
-      error.value = apiError.message
+
+      if (apiError.status === 401 || apiError.status === 406) {
+        error.value = 'E-Mail oder Passwort ist falsch.'
+      } else if (apiError.status === 422) {
+        error.value = apiError.message || 'Bitte überprüfen Sie Ihre Eingaben.'
+      } else if (apiError.status === 0) {
+        error.value = 'Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.'
+      } else {
+        error.value = 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.'
+      }
+
       throw apiError
     }
 

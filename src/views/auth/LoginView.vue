@@ -25,9 +25,7 @@ const { handleSubmit, setErrors } = useForm<LoginFormValues>({
 const { value: email, errorMessage: emailError } = useField<string>('email')
 const { value: password, errorMessage: passwordError } = useField<string>('password')
 
-const onSubmit = handleSubmit(async (values) => {
-  console.log('Alliiiiiiiiiiiiii');
-  
+const onSubmit = handleSubmit(async (values) => {  
   const payload: LoginPayload = {
     user_email: values.email,
     password: values.password,

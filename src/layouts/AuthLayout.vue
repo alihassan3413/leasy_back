@@ -6,25 +6,27 @@ const route = useRoute();
 
 <template>
   <div class="relative flex md:min-h-screen overflow-hidden">
+    <!-- Left background -->
     <div
       class="absolute left-0 top-0 z-0 h-full w-full md:w-1/2"
       style="background-color: #fafafa"
     />
 
+    <!-- Paths on the LEFT side (behind form) -->
     <img
       src="@/assets/logo/path-green.svg"
       alt=""
       class="pointer-events-none absolute z-10 hidden md:block"
-      style="left: -5.97vw; top: 1vw; width: 111.18vw; height: auto; opacity: 0.54"
+      style="left: -6vw; top: 1vw; width: 112vw; height: auto; opacity: 0.54"
     />
-
     <img
       src="@/assets/logo/path-orange.svg"
       alt=""
       class="pointer-events-none absolute z-10 hidden md:block"
-      style="left: -19.44vw; top: -11.85vw; width: 103.68vw; height: auto"
+      style="left: -19vw; top: -12vw; width: 105vw; height: auto"
     />
 
+    <!-- Left side — form -->
     <div class="relative flex w-full md:w-1/2 items-center justify-center  md:px-6  md:py-12">
       <div class="relative z-20 w-full max-w-105">
         
@@ -62,12 +64,14 @@ const route = useRoute();
       </div>
     </div>
 
-    <!-- Right side — branding panel (hidden on mobile) -->
+    <!-- Right side — branding panel -->
     <div
-      class="relative z-0 hidden md:flex w-1/2 md:items-center md:justify-center overflow-hidden bg-primary px-12 lg:flex"
+      class="relative hidden md:flex w-1/2 md:items-center md:justify-center bg-primary px-12 lg:flex"
     >
+
+      <!-- Logo and text ABOVE the paths -->
       <div
-        class="relative z-20 w-full max-w-141.25 flex flex-col items-center text-left"
+        class="relative z-10 w-full max-w-141.25 flex flex-col items-center text-left"
       >
         <img
           :src="leasybackLogo"
