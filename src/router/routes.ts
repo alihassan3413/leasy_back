@@ -53,5 +53,12 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
 
+  {
+    path: '/register/b2c',
+    name: 'b2c-register',
+    component: () => import('@/views/auth/B2CRegistrationView.vue'),
+    meta: { title: 'B2C Registrierung', guestOnly: true },
+  },
+
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]

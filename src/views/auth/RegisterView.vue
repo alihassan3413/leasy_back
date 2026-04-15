@@ -37,6 +37,12 @@ const { value: password, errorMessage: passwordError } = useField<string>('passw
 const showSuccess = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
+  // B2C (Privatkunde): redirect to the multi-step B2C registration flow
+  if (values.role === 'Privatkunde') {
+    void router.push('/register/b2c')
+    return
+  }
+
   const payload: RegisterPayload = {
     user_email: values.email,
     password: values.password,
