@@ -22,7 +22,7 @@ const uploadDocsOpen = ref(false)
              Layout: "Status bei:" header at top
                      Two columns below: dates LEFT | dot+line CENTER | labels RIGHT
         ───────────────────────────────────────────────── -->
-        <div class="flex w-[290px] shrink-0 flex-col rounded-[5px] border bg-white" style="border-color:#ECECEC">
+        <div class="flex w-[290px] shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white" style="border-color:#ECECEC">
           <!-- Header -->
           <div class="px-6 py-5">
             <p class="text-[16px] font-bold leading-tight" style="color:#2E3E3F">
@@ -75,7 +75,7 @@ const uploadDocsOpen = ref(false)
                 </template>
                 <!-- Normal entry -->
                 <template v-else>
-                  <span class="text-[13px]" style="color:#2E3E3F">{{ entry.label }}</span>
+                  <span class="block break-words text-[13px]" style="color:#2E3E3F">{{ entry.label }}</span>
                 </template>
               </div>
             </div>
@@ -166,14 +166,12 @@ const uploadDocsOpen = ref(false)
         <!-- ─────────────────────────────────────────────────
              Panel 3: Fahrzeug Dokumente  (220px)
         ───────────────────────────────────────────────── -->
-        <div class="flex w-[220px] shrink-0 flex-col rounded-[5px] border bg-white" style="border-color:#ECECEC">
+        <div class="relative flex w-[220px] shrink-0 flex-col rounded-[5px] border bg-white" style="border-color:#ECECEC">
+          <button @click="uploadDocsOpen = true" class="absolute right-3 top-3 transition-opacity hover:opacity-60">
+            <Icon icon="mdi:pencil-outline" class="size-4 shrink-0" style="color:#01B990" />
+          </button>
           <div class="px-6 py-5">
-            <div class="flex items-center gap-1">
-              <p class="text-[16px] font-bold" style="color:#2E3E3F">Fahrzeug Dokumente</p>
-              <button @click="uploadDocsOpen = true" class="transition-opacity hover:opacity-60">
-                <Icon icon="mdi:pencil-outline" class="size-4 shrink-0" style="color:#B7C2C2" />
-              </button>
-            </div>
+            <p class="text-[16px] font-bold" style="color:#2E3E3F">Fahrzeug Dokumente</p>
           </div>
 
           <div class="flex flex-col gap-3 px-6">
@@ -207,14 +205,12 @@ const uploadDocsOpen = ref(false)
              Panel 4: Fahrzeug Daten  (160px)
              Each field: label on line 1 (grey), value on line 2 (dark)
         ───────────────────────────────────────────────── -->
-        <div class="flex w-[160px] shrink-0 flex-col rounded-[5px] border bg-white" style="border-color:#ECECEC">
+        <div class="relative flex w-[160px] shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white" style="border-color:#ECECEC">
+          <button @click="editVehicleOpen = true" class="absolute right-3 top-3 transition-opacity hover:opacity-60">
+            <Icon icon="mdi:pencil-outline" class="size-4 shrink-0" style="color:#01B990" />
+          </button>
           <div class="px-5 py-5">
-            <div class="flex items-center gap-1">
-              <p class="text-[16px] font-bold" style="color:#2E3E3F">Fahrzeug Daten</p>
-              <button @click="editVehicleOpen = true" class="transition-opacity hover:opacity-60">
-                <Icon icon="mdi:pencil-outline" class="size-4 shrink-0" style="color:#B7C2C2" />
-              </button>
-            </div>
+            <p class="text-[16px] font-bold" style="color:#2E3E3F">Fahrzeug Daten</p>
           </div>
 
           <div class="flex flex-col gap-4 px-5 pb-5">
@@ -234,8 +230,8 @@ const uploadDocsOpen = ref(false)
               <span class="text-[14px]" style="color:#B7C2C2">Leasinggeber:</span>
               <span class="text-[14px] font-medium" style="color:#2E3E3F">{{ vehicle.leasinggeber }}</span>
             </div>
-            <div class="flex flex-col">
-              <span class="text-[14px]" style="color:#B7C2C2">Leasing Abgabetermin:</span>
+            <div class="flex min-w-0 flex-col">
+              <span class="break-words text-[14px]" style="color:#B7C2C2">Leasing Abgabetermin:</span>
               <span class="text-[14px] font-medium" style="color:#2E3E3F">{{ vehicle.leasingAbgabetermin }}</span>
             </div>
           </div>
@@ -244,14 +240,12 @@ const uploadDocsOpen = ref(false)
         <!-- ─────────────────────────────────────────────────
              Panel 5: Zugewiesen an  (200px, flex-1)
         ───────────────────────────────────────────────── -->
-        <div class="flex min-w-[200px] flex-1 flex-col rounded-[5px] border bg-white" style="border-color:#ECECEC">
+        <div class="relative flex min-w-[200px] flex-1 flex-col rounded-[5px] border bg-white" style="border-color:#ECECEC">
+          <button @click="editVehicleOpen = true" class="absolute right-3 top-3 transition-opacity hover:opacity-60">
+            <Icon icon="mdi:pencil-outline" class="size-4 shrink-0" style="color:#01B990" />
+          </button>
           <div class="px-6 py-5">
-            <div class="flex items-center gap-1">
-              <p class="text-[16px] font-bold" style="color:#2E3E3F">Zugewiesen an</p>
-              <button @click="editVehicleOpen = true" class="transition-opacity hover:opacity-60">
-                <Icon icon="mdi:pencil-outline" class="size-4 shrink-0" style="color:#B7C2C2" />
-              </button>
-            </div>
+            <p class="text-[16px] font-bold" style="color:#2E3E3F">Zugewiesen an</p>
           </div>
 
           <!-- Centered avatar -->

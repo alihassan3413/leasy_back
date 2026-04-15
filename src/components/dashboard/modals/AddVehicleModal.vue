@@ -149,7 +149,7 @@ function handleSubmit() {
               <span class="text-[14px]" :style="marke ? 'color:#000' : 'color:#B7C2C2'">{{ marke || 'Marke wählen' }}</span>
               <Icon :icon="markeOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'" class="size-4" style="color:#2E3E3F" />
             </div>
-            <div v-if="markeOpen" class="absolute top-full z-50 mt-1 w-full rounded-[5px] border bg-white shadow-md" style="border-color:#B7C2C2">
+            <div v-if="markeOpen" class="absolute top-full z-50 mt-1 max-h-[150px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md" style="border-color:#B7C2C2">
               <div
                 v-for="opt in markeOptions"
                 :key="opt"
