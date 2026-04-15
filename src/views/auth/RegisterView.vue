@@ -14,7 +14,6 @@ const authStore = useAuthStore()
 const { status, error } = storeToRefs(authStore)
 const router = useRouter()
 
-const SubmittedRole = ref<RegisterUserType | null>(null)
 
 const roleOptions: { value: RegisterUserType; label: string }[] = [
   { value: 'Privatkunde', label: 'Privatkunde' },
@@ -47,7 +46,6 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     await authStore.register(payload)
-    SubmittedRole.value = values.role as RegisterUserType
     showSuccess.value = true
   } catch (err) {
     const apiError = err as {
@@ -67,19 +65,16 @@ const onSubmit = handleSubmit(async (values) => {
 
 const onSuccessOk = (): void => {
   showSuccess.value = false
-  if(SubmittedRole.value === 'Firmenkunde'){
-    void router.push('/register/company')
-  }else{
-    void router.push('/auth/login')
-  }
+  
+  void router.push('/auth/login')
  
 }
 </script>
 
 <template>
-  <div class="flex min-h-[580px] flex-col">
+  <div class="flex min-h-145 flex-col">
     <p
-      class="mx-auto mt-[65px] mb-[100px] max-w-[292px] text-left text-lg leading-normal font-bold text-primary xl:mt-[91px] xl:mb-[140px] xl:text-xl"
+      class="mx-auto mt-16.25 mb-25 max-w-73 text-left text-lg leading-normal font-bold text-primary xl:mt-22.75 xl:mb-35 xl:text-xl"
     >
       Sie können sich als Werkstatt, als Firmenkunde oder auch als Privatkunde
       registrieren

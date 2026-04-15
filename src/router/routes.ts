@@ -54,9 +54,12 @@ export const routes: RouteRecordRaw[] = [
   },
   {
     path: "/register/company",
-    name: "register-comapny",
+    name: "register-company",
     component: () => import("@/views/auth/RegisterCompanyView.vue"),
-    meta: { title: "Company registration" },
+    meta: { title: "Company registration",
+            requiresAuth: true,
+            roles: ['B2B']
+     },
   },
 
   { path: "/:pathMatch(.*)*", redirect: "/" },

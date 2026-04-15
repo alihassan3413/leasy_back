@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import Input from "../form/Input.vue";
-
-defineProps<{
-  values: any
-  errors: Record<string, string>
-}>()
-
+import FormTextField from '@/components/ui/form/FormTextField.vue'
+import FormSelectField from '../ui/form/FormSelectField.vue';
 
 const anredeOptions = [
   { label: "Herr", value: "herr" },
@@ -34,25 +29,26 @@ const vorwahlOptions = [
     <div class="w-full flex flex-col gap-4">
       <!-- Row 1: Anrede + Vorname + Nachname -->
       <div class="grid grid-cols-3 gap-1">
-        <SelectDropDown
-          v-model="values.anrede"
+        
+        <FormSelectField
+          name="admin.anrede"
           placeholder="Bitte wählen"
-          :error="errors['admin.anrede']"
           :options="anredeOptions"
           label="Anrede"
           required
           class="w-full"
         />
-        <Input
-          v-model="values.vorname"
-          :error="errors['admin.vorname']"
+
+        <FormTextField
+          name="admin.vorname"
+          
           label="Vorname"
           :required="true"
           class="w-60"
         />
-        <Input
-          v-model="values.nachname"
-          :error="errors['admin.nachname']"
+
+        <FormTextField
+          name="admin.nachname"
           label="Nachname"
           :required="true"
           class="w-60"
@@ -60,9 +56,8 @@ const vorwahlOptions = [
       </div>
 
       <!-- Row 2: Email full width -->
-      <Input
-        v-model="values.email"
-        :error="errors['admin.email']"
+      <FormTextField
+        name="admin.email"
         label="E-Mail-Adresse für Anfragen"
         type="email"
         :required="true"
@@ -71,9 +66,8 @@ const vorwahlOptions = [
 
       <!-- Row 3: Vorwahl + Telefon -->
       <div class="grid grid-cols-[240px_1fr] gap-4">
-        <SelectDropDown
-          v-model="values.vorwahl"
-          :error="errors['admin.vorwahl']"
+        <FormSelectField
+          name="admin.vorwahl"
           placeholder="Bitte wählen"
           :options="vorwahlOptions"
           label="Vorwahl"
@@ -81,9 +75,8 @@ const vorwahlOptions = [
           class="w-full"
         />
 
-        <Input
-          v-model="values.telefon"
-          :error="errors['admin.telefon']"
+        <FormTextField
+          name="admin.telefon"
           label="Tel. für Anfragen"
           type="tel"
           :required="true"
@@ -92,13 +85,6 @@ const vorwahlOptions = [
       </div>
     </div>
     <div class="flex justify-end py-7 px-10">
-      <!-- <Button
-        type="button"
-        button-classes="px-8 py-2.5 rounded-[5px] text-sm font-bold leading-normal not-italic"
-        class=""
-      >
-        Jetzt Registrieren
-      </Button> -->
       <slot name="submit-button" />
     </div>
   </div>

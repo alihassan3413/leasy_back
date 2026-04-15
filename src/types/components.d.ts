@@ -54,6 +54,7 @@ declare module 'vue' {
     FormItem: typeof import('./../components/ui/form/FormItem.vue')['default']
     FormLabel: typeof import('./../components/ui/form/FormLabel.vue')['default']
     FormMessage: typeof import('./../components/ui/form/FormMessage.vue')['default']
+    FormSelectField: typeof import('./../components/ui/form/FormSelectField.vue')['default']
     FormTextField: typeof import('./../components/ui/form/FormTextField.vue')['default']
     Input: typeof import('./../components/form/Input.vue')['default']
     Label: typeof import('./../components/ui/label/Label.vue')['default']
