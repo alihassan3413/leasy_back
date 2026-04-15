@@ -30,7 +30,6 @@ const onSubmit = handleSubmit(async (values) => {
     user_email: values.email,
     password: values.password,
   }
-console.log(authStore.userRole)
   try {
     await authStore.login(payload)
     if(authStore.userRole === 'B2B') {

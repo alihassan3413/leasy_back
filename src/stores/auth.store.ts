@@ -33,9 +33,7 @@ export const useAuthStore = defineStore(
 
     function setSession(payload: AuthResponse): void {
       user.value = payload.user
-      accessToken.value = payload.tokens.accessToken
-      console.log(payload);
-      
+      accessToken.value = payload.tokens.accessToken 
     }
 
     function setError(apiError: ApiError): never {
