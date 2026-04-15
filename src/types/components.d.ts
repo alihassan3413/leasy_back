@@ -11,11 +11,12 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AdminRegistration: typeof import('./../components/company/AdminRegistration.vue')['default']
     Avatar: typeof import('./../components/ui/avatar/Avatar.vue')['default']
     AvatarFallback: typeof import('./../components/ui/avatar/AvatarFallback.vue')['default']
     AvatarImage: typeof import('./../components/ui/avatar/AvatarImage.vue')['default']
     Badge: typeof import('./../components/ui/badge/Badge.vue')['default']
-    Button: typeof import('./../components/ui/Button.vue')['default']
+    Button: typeof import('./../components/ui/button/Button.vue')['default']
     Card: typeof import('./../components/ui/card/Card.vue')['default']
     CardAction: typeof import('./../components/ui/card/CardAction.vue')['default']
     CardContent: typeof import('./../components/ui/card/CardContent.vue')['default']
@@ -53,10 +54,13 @@ declare module 'vue' {
     FormItem: typeof import('./../components/ui/form/FormItem.vue')['default']
     FormLabel: typeof import('./../components/ui/form/FormLabel.vue')['default']
     FormMessage: typeof import('./../components/ui/form/FormMessage.vue')['default']
-    Input: typeof import('./../components/ui/input/Input.vue')['default']
+    Input: typeof import('./../components/form/Input.vue')['default']
     Label: typeof import('./../components/ui/label/Label.vue')['default']
+    Register: typeof import('./../components/company/Register.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Select: typeof import('../components/form/SelectDropDown.vue')['default']
+    SelectDropDown: typeof import('./../components/form/SelectDropDown.vue')['default']
     Sonner: typeof import('./../components/ui/sonner/Sonner.vue')['default']
     Table: typeof import('./../components/ui/table/Table.vue')['default']
     TableBody: typeof import('./../components/ui/table/TableBody.vue')['default']
