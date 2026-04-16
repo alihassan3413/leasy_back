@@ -1,45 +1,64 @@
 <script setup lang="ts">
-import { useAuth } from '@/composables/useAuth'
+import { ref } from 'vue'
+import { Icon } from '@iconify/vue'
+import AppSidebar from '@/components/dashboard/AppSidebar.vue'
 
-const { fullName, userRole, logout } = useAuth()
+const sidebarOpen = ref(false)
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col">
-    <!-- Top navigation -->
+  <div class="flex h-screen flex-col overflow-hidden">
+    <!-- Top bar — dark green -->
     <header
-      class="
-        bg-white border-b border-gray-200 h-16 flex items-center px-6 shrink-0
-      "
+      class="flex h-[60px] shrink-0 items-center justify-between px-8"
+      style="background-color: #10393B"
     >
-      <span class="font-bold text-gray-900 text-lg tracking-tight mr-auto">Leasyback</span>
+      <!-- Logo -->
+      <span class="text-xl font-bold tracking-tight text-white">LeasyBack</span>
 
-      <div class="flex items-center gap-4 text-sm text-gray-600">
-        <span>{{ fullName }}</span>
-        <span
-          class="
-            text-xs font-medium bg-gray-100 text-gray-500 px-2 py-0.5
-            rounded-full uppercase
-          "
-        >
-          {{ userRole }}
-        </span>
-        <button
-          class="
-            text-red-500
-            hover:text-red-700
-            transition-colors
-          "
-          @click="logout"
-        >
-          Sign out
+      <!-- Right icons -->
+      <div class="flex items-center gap-5">
+        <!-- Support -->
+        <button class="text-white/80 transition-colors hover:text-white">
+          <Icon
+            icon="mdi:help-circle-outline"
+            class="size-6"
+          />
+        </button>
+
+        <!-- Notifications -->
+        <button class="relative text-white/80 transition-colors hover:text-white">
+          <Icon
+            icon="mdi:bell-outline"
+            class="size-6"
+          />
+          <span
+            class="absolute -right-2 -top-2 flex size-[19px] items-center justify-center rounded-full text-[11px] font-bold text-white"
+            style="background-color: #EF8450"
+          >9</span>
+        </button>
+
+        <!-- Info -->
+        <button class="text-white/80 transition-colors hover:text-white">
+          <Icon
+            icon="mdi:information-outline"
+            class="size-6"
+          />
         </button>
       </div>
     </header>
 
-    <!-- Page content -->
-    <main class="flex-1 p-6">
-      <RouterView />
-    </main>
+    <!-- Body: sidebar + main -->
+    <div class="flex flex-1 overflow-hidden">
+      <AppSidebar
+        :open="sidebarOpen"
+        @toggle="sidebarOpen = !sidebarOpen"
+      />
+
+      <!-- Main content -->
+      <main class="flex-1 overflow-y-auto bg-white p-6">
+        <RouterView />
+      </main>
+    </div>
   </div>
 </template>

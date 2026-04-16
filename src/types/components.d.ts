@@ -11,6 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AddVehicleModal: typeof import('./../components/dashboard/modals/AddVehicleModal.vue')['default']
+    AppSidebar: typeof import('./../components/dashboard/AppSidebar.vue')['default']
     AdminRegistration: typeof import('./../components/company/AdminRegistration.vue')['default']
     Avatar: typeof import('./../components/ui/avatar/Avatar.vue')['default']
     AvatarFallback: typeof import('./../components/ui/avatar/AvatarFallback.vue')['default']
@@ -24,6 +26,8 @@ declare module 'vue' {
     CardFooter: typeof import('./../components/ui/card/CardFooter.vue')['default']
     CardHeader: typeof import('./../components/ui/card/CardHeader.vue')['default']
     CardTitle: typeof import('./../components/ui/card/CardTitle.vue')['default']
+    DdfCards: typeof import('./../components/dashboard/DdfCards.vue')['default']
+    DdfExpanded: typeof import('./../components/dashboard/DdfExpanded.vue')['default']
     Dialog: typeof import('./../components/ui/dialog/Dialog.vue')['default']
     DialogClose: typeof import('./../components/ui/dialog/DialogClose.vue')['default']
     DialogContent: typeof import('./../components/ui/dialog/DialogContent.vue')['default']
@@ -58,12 +62,17 @@ declare module 'vue' {
     FormTextField: typeof import('./../components/ui/form/FormTextField.vue')['default']
     Input: typeof import('./../components/form/Input.vue')['default']
     Label: typeof import('./../components/ui/label/Label.vue')['default']
+    ProgressBar: typeof import('./../components/registration/b2c/ProgressBar.vue')['default']
     Register: typeof import('./../components/company/Register.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('../components/form/SelectDropDown.vue')['default']
     SelectDropDown: typeof import('./../components/form/SelectDropDown.vue')['default']
     Sonner: typeof import('./../components/ui/sonner/Sonner.vue')['default']
+    Step1CustomerData: typeof import('./../components/registration/b2c/Step1CustomerData.vue')['default']
+    Step2VehicleData: typeof import('./../components/registration/b2c/Step2VehicleData.vue')['default']
+    Step3Appointment: typeof import('./../components/registration/b2c/Step3Appointment.vue')['default']
+    Step4PaymentMethod: typeof import('./../components/registration/b2c/Step4PaymentMethod.vue')['default']
     Table: typeof import('./../components/ui/table/Table.vue')['default']
     TableBody: typeof import('./../components/ui/table/TableBody.vue')['default']
     TableCaption: typeof import('./../components/ui/table/TableCaption.vue')['default']
@@ -75,5 +84,8 @@ declare module 'vue' {
     TableRow: typeof import('./../components/ui/table/TableRow.vue')['default']
     Textarea: typeof import('./../components/ui/textarea/Textarea.vue')['default']
     TextInput: typeof import('./../components/ui/form/TextInput.vue')['default']
+    UploadDocumentModal: typeof import('./../components/dashboard/modals/UploadDocumentModal.vue')['default']
+    VehicleRow: typeof import('./../components/dashboard/VehicleRow.vue')['default']
+    VehicleTable: typeof import('./../components/dashboard/VehicleTable.vue')['default']
   }
 }
