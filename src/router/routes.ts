@@ -61,6 +61,11 @@ export const routes: RouteRecordRaw[] = [
             roles: ['B2B']
      },
   },
+  {
+    path: "/register/workshop",
+    name: "register-workshop",
+    component: () => import("@/views/auth/RegisterWorkshopView.vue"),
+  },
 
   { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
