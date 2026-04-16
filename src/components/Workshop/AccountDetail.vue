@@ -1,16 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import Input from "@/components/form/Input.vue";
+import { useField } from "vee-validate";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 
-const ustIdNr = ref("");
-const kontoinhaber = ref("");
-const iban = ref("");
-const bic = ref("");
-const abweichendeAdresse = ref("");
-
-const hasUstIdNr = ref("nein");
-const wantsAbweichendeAdresse = ref("nein");
+const { value: hasUstIdNr } = useField<string>("account.hasUstIdNr");
+const { value: wantsAbweichendeAdresse } = useField<string>("account.wantsAbweichendeAdresse");
 </script>
 
 <template>
@@ -73,7 +66,8 @@ const wantsAbweichendeAdresse = ref("nein");
 
           <!-- Row 2: UST-ID Input -->
           <FormTextField
-            v-model="ustIdNr"
+            v-if="hasUstIdNr === 'ja'"
+            name="account.ustIdNr"
             placeholder="Umsatzsteuer-Identifikationsnr. (“Ust-IdNr.)"
             class="w-full"
           />
@@ -82,7 +76,7 @@ const wantsAbweichendeAdresse = ref("nein");
         <!-- Row 3: Kontoinhaber -->
         <div class="w-full">
           <FormTextField
-            v-model="kontoinhaber"
+            name="account.kontoinhaber"
             label="Kontoinhaber"
             required
             class="w-full"
@@ -91,8 +85,8 @@ const wantsAbweichendeAdresse = ref("nein");
 
         <!-- Row 4: IBAN & BIC (Grid) -->
         <div class="grid grid-cols-2 gap-4 w-full">
-          <FormTextField v-model="iban" label="IBAN" required class="w-full" />
-          <FormTextField v-model="bic" label="BIC" required class="w-full" />
+          <FormTextField name="account.iban" label="IBAN" required class="w-full" />
+          <FormTextField name="account.bic" label="BIC" required class="w-full" />
         </div>
 
         <!-- Row 6: Abweichende Adresse Input -->
@@ -148,7 +142,8 @@ const wantsAbweichendeAdresse = ref("nein");
 
           <!-- Row 6: Abweichende Adresse Input -->
           <FormTextField
-            v-model="abweichendeAdresse"
+            v-if="wantsAbweichendeAdresse === 'ja'"
+            name="account.abweichendeAdresse"
             placeholder=""
             required
             class="w-full"

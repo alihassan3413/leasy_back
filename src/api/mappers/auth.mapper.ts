@@ -3,7 +3,7 @@ import type { AuthResponse, User, UserRole } from '@/types'
 const userTypeMap: Record<string, UserRole> = {
   Privatkunde: 'B2C',
   Firmenkunde: 'B2B',
-  Werkstatt:   'WORKSHOP',
+  Werksatatt:   'WORKSHOP',
   Admin:       'ADMIN',
 }
 

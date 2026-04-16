@@ -1,24 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import Input from '@/components/form/Input.vue'
-import SelectDropDown from '@/components/form/SelectDropDown.vue'
-import FormTextField from '@/components/ui/form/FormTextField.vue'
-
-const firmenname = ref('')
-const anrede = ref('')
-const vorname = ref('')
-const nachname = ref('')
-const vorwahl = ref('')
-const telefon = ref('')
+import FormTextField from "@/components/ui/form/FormTextField.vue";
+import FormSelectField from "@/components/ui/form/FormSelectField.vue";
 
 const anredeOptions = [
-  { label: 'Herr', value: 'Herr' },
-  { label: 'Frau', value: 'Frau' },
-]
+  { label: "Herr", value: "Herr" },
+  { label: "Frau", value: "Frau" },
+];
 
 const vorwahlOptions = [
-  { label: 'Deutschland + (49)', value: '+49' },
-]
+  { label: "Deutschland + (49)", value: "de" },
+  { label: "Österreich + (43)", value: "at" },
+  { label: "Schweiz + (41)", value: "ch" },
+];
 </script>
 
 <template>
@@ -27,8 +20,11 @@ const vorwahlOptions = [
       <h2 class="text-primary text-[20px] font-bold leading-normal not-italic">
         Ansprechpartner für LeasyBack
       </h2>
-      <p class="text-black text-base font-normal leading-normal not-italic">
-        Damit wir Sie betreuen und informieren können, teilen Sie uns bitte einen Ansprechpartner für den LeasyBack.com Kundenservice mit.
+      <p
+        class="text-black text-base font-normal leading-normal not-italic mt-1"
+      >
+        Damit wir Sie betreuen und informieren können, teilen Sie uns bitte
+        einen Ansprechpartner für den LeasyBack.com Kundenservice mit.
       </p>
 
       <div class="w-full h-px bg-green-gray mb-4"></div>
@@ -38,7 +34,7 @@ const vorwahlOptions = [
         <!-- Row 1: Firmenname -->
         <div class="col-span-3">
           <FormTextField
-            v-model="firmenname"
+            name="firmenname"
             label="Firmenname (lt. HGB/Gewerbeeintrag)"
             placeholder=""
             required
@@ -48,50 +44,47 @@ const vorwahlOptions = [
 
         <!-- Row 2: Anrede, Vorname, Nachname -->
         <div class="col-span-1">
-          <SelectDropDown
-            v-model="anrede"
+          <FormSelectField
+            name="contact.anrede"
             label="Anrede"
             :options="anredeOptions"
             placeholder="Herr"
-            class="w-full"
+            required
           />
         </div>
         <div class="col-span-1">
           <FormTextField
-            v-model="vorname"
+            name="contact.vorname"
             label="Vorname"
             placeholder=""
             required
-            class="w-full"
           />
         </div>
         <div class="col-span-1">
-           <FormTextField
-            v-model="nachname"
+          <FormTextField
+            name="contact.nachname"
             label="Nachname"
             placeholder=""
             required
-            class="w-full"
           />
         </div>
 
         <!-- Row 3: Internat. Vorwahl, Tel. für Anfragen -->
         <div class="col-span-1">
-          <SelectDropDown
-            v-model="vorwahl"
+          <FormSelectField
+            name="contact.vorwahl"
             label="Internat. Vorwahl*"
             :options="vorwahlOptions"
             placeholder="Deutschland + (49)"
-            class="w-full"
+            required
           />
         </div>
         <div class="col-span-2">
           <FormTextField
-            v-model="telefon"
+            name="contact.telefon"
             label="Tel. für Anfragen"
             placeholder=""
             required
-            class="w-full"
           />
         </div>
       </div>

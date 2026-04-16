@@ -1,89 +1,101 @@
 <script setup lang="ts">
-import AdressDetails from "@/components/workshop/AdressDetails.vue";
-import Button from "@/components/ui/Button.vue";
+import AdressDetails from "@/components/Workshop/AdressDetails.vue";
+import { Button } from "@/components/ui/button";
 import ContactPerson from "@/components/Workshop/ContactPerson.vue";
 import AccountDetail from "@/components/Workshop/AccountDetail.vue";
 import LegalNotice from "@/components/Workshop/LegalNotice.vue";
 import GeneralTerms from "@/components/Workshop/GeneralTerms.vue";
-// import { useB2BStore } from "@/stores/b2b.store";
-// import { useForm } from "vee-validate";
-// import { b2bSchema } from "@/validations/b2b.validation";
+import { useWorkshopStore } from "@/stores/workshop.store";
+import { useForm } from "vee-validate";
+import { workshopSchema } from "@/validations/workshop.validation";
+import { useRouter } from "vue-router";
+import type { WorkshopCreatePayload } from "@/types";
 
-// const b2bStore = useB2BStore()
+const workshopStore = useWorkshopStore();
+const router = useRouter();
 
-// interface FormValues {
-//   company: {
-//     firmenname: string
-//     ustIdNr: string
-//     strasse: string
-//     nr: string
-//     zusaetzlicheAnschrift: string
-//     plz: string
-//     ort: string
-//   }
-//   admin: {
-//     anrede: string
-//     vorname: string
-//     nachname: string
-//     email: string
-//     vorwahl: string
-//     telefon: string
-//   }
-// }
+const { handleSubmit, isSubmitting } = useForm({
+  validationSchema: workshopSchema,
+  initialValues: {
+    firmenname: "",
+    email: "",
+    address: {
+      strasse: "",
+      nr: "",
+      zusaetzlicheAnschrift: "",
+      plz: "",
+      ort: "",
+    },
+    contact: {
+      anrede: "Herr",
+      vorname: "",
+      nachname: "",
+      vorwahl: "de",
+      telefon: "",
+    },
+    account: {
+      hasUstIdNr: "nein",
+      ustIdNr: "",
+      kontoinhaber: "",
+      iban: "",
+      bic: "",
+      wantsAbweichendeAdresse: "nein",
+      abweichendeAdresse: "",
+    },
+    legal: {
+      impressum: "",
+    },
+    terms: {
+      isProSelected: true,
+      isPremiumSelected: false,
+      agbAccepted: false,
+      privacyAccepted: false,
+    },
+  },
+});
 
-// const { handleSubmit, values, errors } = useForm<FormValues>({
-//   validationSchema: b2bSchema,
-//   initialValues: {
-//     company: {
-//       firmenname: "",
-//       ustIdNr: "",
-//       strasse: "",
-//       nr: "",
-//       zusaetzlicheAnschrift: "",
-//       plz: "",
-//       ort: "",
-//     },
-//     admin: {
-//       anrede: "herr",
-//       vorname: "",
-//       nachname: "",
-//       email: "",
-//       vorwahl: "de",
-//       telefon: "",
-//     },
-//   },
-// })
+const onSubmit = handleSubmit(async (values: any) => {
+  const payload: WorkshopCreatePayload = {
+    workshop_name: values.firmenname,
+    contact_email: values.email,
+    has_vat_id: values.account.hasUstIdNr === "ja",
+    vat_id: values.account.ustIdNr,
+    iban: values.account.iban,
+    bic: values.account.bic,
+    account_holder: values.account.kontoinhaber,
+    packages_selected: values.terms.isPremiumSelected ? "Premium" : "Pro",
+    terms_accepted: values.terms.agbAccepted,
+    privacy_accepted: values.terms.privacyAccepted,
+    address: {
+      street: values.address.strasse,
+      number: values.address.nr,
+      zip_code: values.address.plz,
+      city: values.address.ort,
+      country: "Germany",
+      longitude: 0.0,
+      latitude: 0.0,
+    },
+    contact: {
+      salutation: values.contact.anrede,
+      first_name: values.contact.vorname,
+      last_name: values.contact.nachname,
+      international_prefix:
+        values.contact.vorwahl === "de"
+          ? "+49"
+          : values.contact.vorwahl === "at"
+            ? "+43"
+            : "+41",
+      primary_phone_number: values.contact.telefon,
+      phone_numbers: [],
+    },
+  };
 
-// const prefixMap: Record<string, string> = {
-//   de: "+49",
-//   at: "+43",
-//   ch: "+41",
-// }
-
-// const onSubmit = handleSubmit(async (formValues) => {
-//   const payload = {
-//     company_name: formValues.company.firmenname,
-//     vat_id: formValues.company.ustIdNr,
-//     logo_url: "",
-//     contact_email: formValues.admin.email,
-//     address: {
-//       street: formValues.company.strasse,
-//       number: formValues.company.nr,
-//       zip_code: formValues.company.plz,
-//       city: formValues.company.ort,
-//       country: "Germany",
-//     },
-//     contact: {
-//       salutation: formValues.admin.anrede,
-//       first_name: formValues.admin.vorname,
-//       last_name: formValues.admin.nachname,
-//       international_prefix: prefixMap[formValues.admin.vorwahl],
-//       primary_phone_number: formValues.admin.telefon,
-//     },
-//   }
-
-//   await b2bStore.create(payload)
-// })
+  try {
+    await workshopStore.create(payload);
+  } catch (err) {
+    console.log(err)
+  }
+});
 </script>
 
 <template>
@@ -101,7 +113,9 @@ import GeneralTerms from "@/components/Workshop/GeneralTerms.vue";
       style="left: -19vw; top: -4vw; width: 105vw; height: auto"
     />
 
-    <div class="relative z-10 flex items-center justify-center min-h-screen pt-16">
+    <div
+      class="relative z-10 flex items-center justify-center min-h-screen pt-16"
+    >
       <div class="w-full max-w-200 flex flex-col items-start min-h-screen">
         <h1 class="text-white text-[32px] font-bold leading-normal not-italic">
           Registrierung - Werkstattpartner
@@ -120,11 +134,21 @@ import GeneralTerms from "@/components/Workshop/GeneralTerms.vue";
         </div>
 
         <form @submit.prevent="onSubmit" class="w-full">
-          <AdressDetails/>
-          <ContactPerson/>
-          <AccountDetail/>
-          <LegalNotice/>
-          <GeneralTerms/>
+          <AdressDetails />
+          <ContactPerson />
+          <AccountDetail />
+          <LegalNotice />
+          <GeneralTerms />
+
+          <div class="flex justify-center w-full py-10">
+            <Button
+              type="submit"
+              class="w-[240px] h-[40px] rounded-[5px] text-[15px] font-bold transition-all bg-custom-orange hover:bg-custom-orange/90 text-white"
+              :disabled="isSubmitting"
+            >
+              {{ isSubmitting ? "Wird registriert..." : "Jetzt Registrieren" }}
+            </Button>
+          </div>
         </form>
       </div>
     </div>

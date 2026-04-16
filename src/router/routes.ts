@@ -65,6 +65,11 @@ export const routes: RouteRecordRaw[] = [
     path: "/register/workshop",
     name: "register-workshop",
     component: () => import("@/views/auth/RegisterWorkshopView.vue"),
+    meta: { 
+      title: "Workshop registration",
+      requiresAuth: true,
+      roles: ['WORKSHOP']
+    },
   },
 
   { path: "/:pathMatch(.*)*", redirect: "/" },
