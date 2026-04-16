@@ -8,6 +8,10 @@ export function registerGuards(router: Router): void {
 
     // Already authenticated users don't need the login/register pages.
     if (to.meta.guestOnly && auth.isAuthenticated) {
+
+      if (auth.userRole === 'B2B') {
+        return { name: 'register-company'}
+      }
       return { name: 'dashboard' }
     }
 

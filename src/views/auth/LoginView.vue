@@ -30,10 +30,14 @@ const onSubmit = handleSubmit(async (values) => {
     user_email: values.email,
     password: values.password,
   }
-
   try {
     await authStore.login(payload)
-    void router.push('/')
+    if(authStore.userRole === 'B2B') {
+      router.push( { name: 'register-company'})
+    }else{
+      router.push( { name: 'dashboard'})
+    }
+    
   } catch (err) {
     const apiError = err as {
       message: string
@@ -51,9 +55,9 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="flex min-h-[580px] flex-col">
+  <div class="flex min-h-145 flex-col">
     <p
-      class="mx-auto mt-[65px] mb-[100px] max-w-[292px] text-left text-lg font-bold text-primary xl:mt-[91px] xl:mb-[140px] xl:text-xl"
+      class="mx-auto mt-16.25 mb-25 max-w-73 text-left text-lg font-bold text-primary xl:mt-22.75 xl:mb-35 xl:text-xl"
     >
       Hallo! Willkommen zurück!
     </p>
