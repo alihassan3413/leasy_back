@@ -12,8 +12,8 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AddVehicleModal: typeof import('./../components/dashboard/modals/AddVehicleModal.vue')['default']
-    AppSidebar: typeof import('./../components/dashboard/AppSidebar.vue')['default']
     AdminRegistration: typeof import('./../components/company/AdminRegistration.vue')['default']
+    AppSidebar: typeof import('./../components/dashboard/AppSidebar.vue')['default']
     Avatar: typeof import('./../components/ui/avatar/Avatar.vue')['default']
     AvatarFallback: typeof import('./../components/ui/avatar/AvatarFallback.vue')['default']
     AvatarImage: typeof import('./../components/ui/avatar/AvatarImage.vue')['default']
