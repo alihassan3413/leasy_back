@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useForm } from 'vee-validate'
 import FormTextField from '@/components/ui/form/FormTextField.vue'
-import FormSelectField from '@/components/ui/form/FormSelectField.vue'
+import FormSelectField from '@/components/ui/form/B2CSelectField.vue'
 import Button from '@/components/ui/Button.vue'
 import { customerDataSchema } from '@/validations/b2c/customerData.schema'
 import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'

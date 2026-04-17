@@ -17,6 +17,7 @@ declare module 'vue' {
     Avatar: typeof import('./../components/ui/avatar/Avatar.vue')['default']
     AvatarFallback: typeof import('./../components/ui/avatar/AvatarFallback.vue')['default']
     AvatarImage: typeof import('./../components/ui/avatar/AvatarImage.vue')['default']
+    B2CSelectField: typeof import('./../components/ui/form/B2CSelectField.vue')['default']
     Badge: typeof import('./../components/ui/badge/Badge.vue')['default']
     Button: typeof import('./../components/ui/Button.vue')['default']
     Card: typeof import('./../components/ui/card/Card.vue')['default']

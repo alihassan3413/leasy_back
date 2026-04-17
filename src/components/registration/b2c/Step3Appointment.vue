@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useField, useForm } from 'vee-validate'
 import { Icon } from '@iconify/vue'
-import FormSelectField from '@/components/ui/form/FormSelectField.vue'
+import FormSelectField from '@/components/ui/form/B2CSelectField.vue'
 import Button from '@/components/ui/Button.vue'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { appointmentSchema } from '@/validations/b2c/appointment.schema'

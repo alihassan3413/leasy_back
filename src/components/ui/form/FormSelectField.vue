@@ -1,63 +1,38 @@
 <script setup lang="ts">
-import { Field as FormField } from 'vee-validate'
-import FormItem from './FormItem.vue'
-import FormLabel from './FormLabel.vue'
-import FormControl from './FormControl.vue'
-import FormMessage from './FormMessage.vue'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { useField } from 'vee-validate'
+import SelectDropDown from '../../form/SelectDropDown.vue'
 
-withDefaults(
-  defineProps<{
-    name: string
-    label: string
-    options: { label: string; value: string }[]
-    placeholder?: string
-    required?: boolean
-    disabled?: boolean
-  }>(),
-  {
-    placeholder: 'Auswählen',
-    required: false,
-    disabled: false,
-  },
-)
+const props = withDefaults(defineProps<{
+  name: string
+  label: string
+  options: { label: string; value: string | number }[]
+  placeholder?: string
+  required?: boolean
+}>(), {
+  placeholder: 'Bitte wählen',
+  required: false,
+})
+
+// useField connects this specific component to the Vee-Validate form 
+// using the 'name' prop (e.g., "admin.anrede")
+const { value, errorMessage, meta } = useField<string>(() => props.name)
 </script>
 
 <template>
-  <FormField v-slot="{ componentField }" :name="name">
-    <FormItem class="space-y-1">
-      <FormLabel>
-        {{ label }}
-        <span v-if="required" class="text-custom-orange">*</span>
-      </FormLabel>
-      <Select v-bind="componentField" :disabled="disabled">
-        <FormControl>
-          <SelectTrigger
-            class="!h-[34px] w-full rounded-[5px] border-green-gray bg-white px-3 py-0 text-sm shadow-none data-[state=open]:border-custom-green focus-visible:ring-0"
-          >
-            <SelectValue :placeholder="placeholder" />
-          </SelectTrigger>
-        </FormControl>
-        <SelectContent>
-          <SelectItem
-            v-for="opt in options"
-            :key="opt.value"
-            :value="opt.value"
-          >
-            {{ opt.label }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
-      <!-- Reserved height keeps row layout stable whether an error is shown or not -->
-      <div class="min-h-[14px] leading-[14px]">
-        <FormMessage class="text-[11px] text-red-500" />
-      </div>
-    </FormItem>
-  </FormField>
+  <div class="flex flex-col w-full">
+    <SelectDropDown
+      v-model="value"
+      :label="label"
+      :options="options"
+      :placeholder="placeholder"
+      class="w-full"
+    />
+    
+    <span 
+      v-if="meta.touched && errorMessage" 
+      class="text-red-500 text-xs mt-1 ml-2"
+    >
+      {{ errorMessage }}
+    </span>
+  </div>
 </template>
