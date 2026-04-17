@@ -11,8 +11,10 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AccountDetail: typeof import('./../components/workshop/AccountDetail.vue')['default']
     AddVehicleModal: typeof import('./../components/dashboard/modals/AddVehicleModal.vue')['default']
     AdminRegistration: typeof import('./../components/company/AdminRegistration.vue')['default']
+    AdressDetails: typeof import('./../components/workshop/AdressDetails.vue')['default']
     AppSidebar: typeof import('./../components/dashboard/AppSidebar.vue')['default']
     Avatar: typeof import('./../components/ui/avatar/Avatar.vue')['default']
     AvatarFallback: typeof import('./../components/ui/avatar/AvatarFallback.vue')['default']
@@ -26,6 +28,7 @@ declare module 'vue' {
     CardFooter: typeof import('./../components/ui/card/CardFooter.vue')['default']
     CardHeader: typeof import('./../components/ui/card/CardHeader.vue')['default']
     CardTitle: typeof import('./../components/ui/card/CardTitle.vue')['default']
+    ContactPerson: typeof import('./../components/workshop/ContactPerson.vue')['default']
     DdfCards: typeof import('./../components/dashboard/DdfCards.vue')['default']
     DdfExpanded: typeof import('./../components/dashboard/DdfExpanded.vue')['default']
     Dialog: typeof import('./../components/ui/dialog/Dialog.vue')['default']
@@ -60,8 +63,10 @@ declare module 'vue' {
     FormMessage: typeof import('./../components/ui/form/FormMessage.vue')['default']
     FormSelectField: typeof import('./../components/ui/form/FormSelectField.vue')['default']
     FormTextField: typeof import('./../components/ui/form/FormTextField.vue')['default']
+    GeneralTerms: typeof import('./../components/workshop/GeneralTerms.vue')['default']
     Input: typeof import('./../components/form/Input.vue')['default']
     Label: typeof import('./../components/ui/label/Label.vue')['default']
+    LegalNotice: typeof import('./../components/workshop/LegalNotice.vue')['default']
     ProgressBar: typeof import('./../components/registration/b2c/ProgressBar.vue')['default']
     Register: typeof import('./../components/company/Register.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
