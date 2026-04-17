@@ -1,5 +1,4 @@
 <script setup lang="ts">
-<<<<<<< HEAD
 import { computed } from 'vue'
 import { Field as FormField } from 'vee-validate'
 import FormItem from './FormItem.vue'
@@ -62,34 +61,3 @@ const inputClasses = computed(() => [
     </FormItem>
   </FormField>
 </template>
-=======
-import { useField } from 'vee-validate'
-import Input from '@/components/form/Input.vue'
-
-const props = withDefaults(defineProps<{
-  name: string
-  label: string
-  placeholder?: string
-  type?: string
-  required?: boolean
-}>(), {
-  placeholder: '',
-  type: 'text',
-  required: false,
-})
-
-const { value, errorMessage, meta } = useField<string>(() => props.name)
-</script>
-
-<template>
-  <Input
-    v-model="value"
-    :label="label"
-    :placeholder="placeholder"
-    :type="type"
-    :required="required"
-    :error="meta.touched ? errorMessage : ''"
-    class="w-full"
-  />
-</template>
->>>>>>> origin/main
