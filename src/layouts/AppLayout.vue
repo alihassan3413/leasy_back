@@ -10,19 +10,21 @@ const sidebarOpen = ref(false)
   <div class="flex h-screen flex-col overflow-hidden">
     <!-- Top bar — dark green -->
     <header
-      class="flex h-[60px] shrink-0 items-center justify-between px-8"
+      class="flex h-[62px] shrink-0 items-center justify-between px-8.5"
       style="background-color: #10393B"
     >
       <!-- Logo -->
-      <span class="text-xl font-bold tracking-tight text-white">LeasyBack</span>
-
+       <div class=" flex w-40 h-14">
+          <img src="../assets/logo/leasyback-logo.svg" alt="">
+       </div>
+       
       <!-- Right icons -->
       <div class="flex items-center gap-5">
         <!-- Support -->
         <button class="text-white/80 transition-colors hover:text-white">
           <Icon
-            icon="mdi:help-circle-outline"
-            class="size-6"
+            icon="iconamoon:headphone-thin"
+            class="size-6.5"
           />
         </button>
 
