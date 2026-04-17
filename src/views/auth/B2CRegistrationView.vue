@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import B2CRegistrationLayout from '@/layouts/B2CRegistrationLayout.vue'
 import Step1CustomerData from '@/components/registration/b2c/Step1CustomerData.vue'
 import Step2VehicleData from '@/components/registration/b2c/Step2VehicleData.vue'
 import Step3Appointment from '@/components/registration/b2c/Step3Appointment.vue'
@@ -13,6 +14,15 @@ const router = useRouter()
 
 const showSuccess = ref(false)
 
+const stepTitles = ['Kundendaten', 'Fahrzeugdaten', 'Terminvereinbarung', 'Zahlungsmethode hinzufügen']
+const stepTitle = computed(() => stepTitles[store.currentStep - 1] ?? '')
+
+// Step 1: calls POST /userprofile/address-contact (store handles API + nextStep internally)
+async function onStep1Next() {
+  await store.submitProfile()
+}
+
+// Steps 2–4: local only (API endpoints not yet defined in backend)
 function onNext() {
   store.nextStep()
 }
@@ -22,8 +32,8 @@ function onBack() {
 }
 
 async function onFinalSubmit() {
+  // TODO: wire up vehicle / appointment / payment API calls when backend is ready
   store.status = 'loading'
-  // TODO: wire up to real API when backend is ready
   await new Promise((r) => setTimeout(r, 800))
   store.status = 'success'
   showSuccess.value = true
@@ -37,36 +47,36 @@ function onSuccessOk() {
 </script>
 
 <template>
-  <div class="flex min-h-screen w-full items-center justify-center bg-primary px-4 py-10">
-    <Transition
-      name="step"
-      mode="out-in"
+  <B2CRegistrationLayout :title="stepTitle" :current-step="store.currentStep">
+    <!-- API error banner (step 1 profile creation failure) -->
+    <div
+      v-if="store.error && store.status === 'error'"
+      class="mb-4 rounded-[5px] border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
     >
-      <Step1CustomerData
-        v-if="store.currentStep === 1"
-        key="step1"
-        @next="onNext"
-      />
-      <Step2VehicleData
-        v-else-if="store.currentStep === 2"
-        key="step2"
-        @next="onNext"
-        @back="onBack"
-      />
-      <Step3Appointment
-        v-else-if="store.currentStep === 3"
-        key="step3"
-        @next="onNext"
-        @back="onBack"
-      />
-      <Step4PaymentMethod
-        v-else-if="store.currentStep === 4"
-        key="step4"
-        @submit="onFinalSubmit"
-        @back="onBack"
-      />
-    </Transition>
-  </div>
+      {{ store.error }}
+    </div>
+
+    <Step1CustomerData
+      v-if="store.currentStep === 1"
+      :loading="store.status === 'loading'"
+      @next="onStep1Next"
+    />
+    <Step2VehicleData
+      v-if="store.currentStep === 2"
+      @next="onNext"
+      @back="onBack"
+    />
+    <Step3Appointment
+      v-if="store.currentStep === 3"
+      @next="onNext"
+      @back="onBack"
+    />
+    <Step4PaymentMethod
+      v-if="store.currentStep === 4"
+      @submit="onFinalSubmit"
+      @back="onBack"
+    />
+  </B2CRegistrationLayout>
 
   <!-- Success dialog -->
   <Teleport to="body">
@@ -97,7 +107,7 @@ function onSuccessOk() {
         </p>
 
         <Button
-          button-classes="rounded-[5px] px-8 py-2 text-sm font-bold bg-custom-green text-white"
+          button-classes="rounded-[5px] px-8 py-2 text-sm font-bold !bg-custom-green text-white"
           @click="onSuccessOk"
         >
           OK
@@ -106,18 +116,3 @@ function onSuccessOk() {
     </div>
   </Teleport>
 </template>
-
-<style scoped>
-.step-enter-active,
-.step-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.step-enter-from {
-  opacity: 0;
-  transform: translateX(20px);
-}
-.step-leave-to {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-</style>

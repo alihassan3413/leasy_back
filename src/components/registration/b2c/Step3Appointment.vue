@@ -2,9 +2,9 @@
 import { ref, computed } from 'vue'
 import { useField, useForm } from 'vee-validate'
 import { Icon } from '@iconify/vue'
-import DropDown from '@/components/ui/form/DropDown.vue'
+import FormSelectField from '@/components/ui/form/FormSelectField.vue'
 import Button from '@/components/ui/Button.vue'
-import ProgressBar from './ProgressBar.vue'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { appointmentSchema } from '@/validations/b2c/appointment.schema'
 import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'
 import type { AppointmentData } from '@/stores/b2cRegistration.store'
@@ -32,8 +32,8 @@ const branches: Record<string, { name: string; address: string; phone: string; e
   koeln: {
     name: 'TÜV Rheinland Prüfstelle Köln-Mülheim',
     address: 'Frankfurter Str. 200, 51065 Köln',
-    phone: 'T.: 0800 88 38 88 38',
-    email: 'Email: tuv.km@rheinland.de',
+    phone: 'T.: 080088388838',
+    email: 'Email: tuv.km@hreinland.de',
     distance: 'Entfernung: 14km',
   },
   hamburg: {
@@ -69,23 +69,19 @@ const branches: Record<string, { name: string; address: string; phone: string; e
 // Calendar logic
 const today = new Date()
 const calendarYear = ref(today.getFullYear())
-const calendarMonth = ref(today.getMonth()) // 0-indexed
-const selectedDate = ref('')
+const calendarMonth = ref(today.getMonth())
 
 const showConflictDialog = ref(false)
+const datePopoverOpen = ref(false)
 
-const monthNames = [
-  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
-]
+const monthNamesShort = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
 const dayHeaders = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
 const calendarDays = computed(() => {
   const year = calendarYear.value
   const month = calendarMonth.value
-  const firstDay = new Date(year, month, 1).getDay() // 0=Sun
+  const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  // shift so Monday=0
   const startOffset = (firstDay + 6) % 7
   const days: (number | null)[] = []
   for (let i = 0; i < startOffset; i++) days.push(null)
@@ -94,24 +90,17 @@ const calendarDays = computed(() => {
 })
 
 function prevMonth() {
-  if (calendarMonth.value === 0) {
-    calendarMonth.value = 11
-    calendarYear.value--
-  } else {
-    calendarMonth.value--
-  }
+  if (calendarMonth.value === 0) { calendarMonth.value = 11; calendarYear.value-- }
+  else calendarMonth.value--
 }
-
 function nextMonth() {
-  if (calendarMonth.value === 11) {
-    calendarMonth.value = 0
-    calendarYear.value++
-  } else {
-    calendarMonth.value++
-  }
+  if (calendarMonth.value === 11) { calendarMonth.value = 0; calendarYear.value++ }
+  else calendarMonth.value++
 }
+function prevYear() { calendarYear.value-- }
+function nextYear() { calendarYear.value++ }
 
-function formatDate(day: number): string {
+function toIso(day: number): string {
   const m = String(calendarMonth.value + 1).padStart(2, '0')
   const d = String(day).padStart(2, '0')
   return `${calendarYear.value}-${m}-${d}`
@@ -119,160 +108,168 @@ function formatDate(day: number): string {
 
 function selectDay(day: number | null) {
   if (!day) return
-  const iso = formatDate(day)
-  selectedDate.value = iso
-  datum.value = iso
-}
-
-function isToday(day: number | null): boolean {
-  if (!day) return false
-  return formatDate(day) === today.toISOString().split('T')[0]
+  datum.value = toIso(day)
+  datePopoverOpen.value = false
 }
 
 function isSelected(day: number | null): boolean {
-  if (!day) return false
-  return formatDate(day) === selectedDate.value
+  if (!day || !datum.value) return false
+  return toIso(day) === datum.value
 }
 
-// vee-validate
 const { handleSubmit } = useForm<AppointmentData>({
   validationSchema: appointmentSchema,
   initialValues: store.appointmentData,
 })
 
-const { value: stadt, errorMessage: stadtError } = useField<string>('stadt')
+const { value: stadt } = useField<string>('stadt')
 const { value: datum, errorMessage: datumError } = useField<string>('datum')
-const { value: uhrzeit, errorMessage: uhrzeitError } = useField<string>('uhrzeit')
 
 const selectedBranch = computed(() => (stadt.value ? branches[stadt.value] : null))
 
-const onSubmit = handleSubmit((values) => {
-  Object.assign(store.appointmentData, values)
+const datumDisplay = computed(() => {
+  if (!datum.value) return ''
+  const [y, m, d] = datum.value.split('-')
+  return `${d}.${m}.${y}`
+})
+
+const onSubmit = handleSubmit((vals) => {
+  Object.assign(store.appointmentData, vals)
   emit('next')
 })
 </script>
 
 <template>
-  <div class="w-full max-w-[680px] rounded-[10px] bg-white p-8 shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
-    <ProgressBar :current-step="3" />
+  <div class="space-y-6">
+    <!-- ───── CARD 1 — Filiale (Branch selection) ───── -->
+    <div class="w-full rounded-[10px] bg-white px-6 py-5 shadow-[0_4px_4px_rgba(0,0,0,0.25)] md:px-8 md:py-6">
+      <h2 class="text-[20px] font-bold text-primary">Suchen Sie Ihre Filiale aus</h2>
+      <div class="mt-2 mb-4 h-px w-full bg-green-gray" />
 
-    <h2 class="mb-6 text-xl font-bold text-primary">
-      Terminvereinbarung
-    </h2>
+      <div class="space-y-4">
+        <FormSelectField name="stadt" label="Stadt" :options="stadtOptions" />
 
-    <form novalidate @submit.prevent="onSubmit">
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <!-- Left: Location selection -->
-        <div class="space-y-4">
-          <p class="text-sm font-semibold text-primary">
-            Suchen Sie Ihre Filiale aus
-          </p>
+        <div
+          v-if="selectedBranch"
+          class="grid grid-cols-1 gap-4 md:grid-cols-2"
+        >
+          <div class="flex h-[140px] items-center justify-center rounded-[5px] bg-[#b7c2c2]/30">
+            <Icon icon="material-symbols-light:location-on" class="text-5xl text-custom-green" />
+          </div>
 
-          <DropDown
-            v-model="stadt"
-            label="Stadt"
-            for-id="stadt"
-            :options="stadtOptions"
-            :error="stadtError"
-          />
-
-          <div
-            v-if="selectedBranch"
-            class="rounded-[5px] border border-custom-green bg-white p-3 text-sm"
-          >
-            <p class="font-semibold text-primary">{{ selectedBranch.name }}</p>
-            <p class="text-custom-black mt-1">{{ selectedBranch.address }}</p>
+          <div class="flex flex-col justify-center rounded-[5px] border border-custom-green bg-white p-3 text-xs">
+            <p class="font-bold text-primary">{{ selectedBranch.name }}</p>
+            <p class="mt-2 text-custom-black">{{ selectedBranch.address }}</p>
             <p class="text-custom-black">{{ selectedBranch.phone }}</p>
             <p class="text-custom-black">{{ selectedBranch.email }}</p>
-            <p class="mt-1 font-medium text-custom-green">{{ selectedBranch.distance }}</p>
+            <p class="mt-2 text-custom-black">{{ selectedBranch.distance }}</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ───── CARD 2 — Termin (Date + time) ───── -->
+    <div class="w-full rounded-[10px] bg-white px-6 py-5 shadow-[0_4px_4px_rgba(0,0,0,0.25)] md:px-8 md:py-6">
+      <h2 class="text-[20px] font-bold text-primary">Hier können Sie Termine buchen</h2>
+      <div class="mt-2 mb-4 h-px w-full bg-green-gray" />
+
+      <form novalidate @submit.prevent="onSubmit" class="space-y-3">
+        <div class="max-w-[340px] space-y-3">
+          <!-- Datum -->
+          <div class="space-y-1">
+            <label class="text-sm font-bold text-primary">Datum</label>
+            <Popover v-model:open="datePopoverOpen">
+              <PopoverTrigger as-child>
+                <button
+                  type="button"
+                  class="flex h-[34px] w-full items-center justify-between rounded-[5px] border border-green-gray bg-white px-3 text-left text-sm text-custom-black outline-none transition focus:border-custom-green"
+                  :class="datumError ? 'border-red-400 bg-red-50' : ''"
+                >
+                  <span :class="datumDisplay ? 'text-custom-black' : 'text-green-gray'">
+                    {{ datumDisplay || 'TT.MM.JJJJ' }}
+                  </span>
+                  <Icon icon="material-symbols-light:calendar-month-outline" class="text-lg text-primary" />
+                </button>
+              </PopoverTrigger>
+
+              <PopoverContent class="w-[280px] rounded-[5px] border border-green-gray p-3">
+                <div class="mb-2 flex items-center justify-between">
+                  <div class="flex items-center gap-1">
+                    <span class="text-sm font-medium text-primary">{{ monthNamesShort[calendarMonth] }}</span>
+                    <div class="flex flex-col">
+                      <button type="button" class="leading-none text-primary hover:opacity-70" @click="prevMonth">
+                        <Icon icon="material-symbols-light:keyboard-arrow-up" class="text-base" />
+                      </button>
+                      <button type="button" class="leading-none text-primary hover:opacity-70" @click="nextMonth">
+                        <Icon icon="material-symbols-light:keyboard-arrow-down" class="text-base" />
+                      </button>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <span class="text-sm font-medium text-primary">{{ calendarYear }}</span>
+                    <div class="flex flex-col">
+                      <button type="button" class="leading-none text-primary hover:opacity-70" @click="prevYear">
+                        <Icon icon="material-symbols-light:keyboard-arrow-up" class="text-base" />
+                      </button>
+                      <button type="button" class="leading-none text-primary hover:opacity-70" @click="nextYear">
+                        <Icon icon="material-symbols-light:keyboard-arrow-down" class="text-base" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-7 gap-0.5 text-center text-[11px] font-medium text-green-gray">
+                  <div v-for="d in dayHeaders" :key="d" class="py-1">{{ d }}</div>
+                </div>
+
+                <div class="grid grid-cols-7 gap-0.5 text-center text-xs">
+                  <button
+                    v-for="(day, i) in calendarDays"
+                    :key="i"
+                    type="button"
+                    :disabled="!day"
+                    class="flex h-7 items-center justify-center rounded-[3px] transition"
+                    :class="{
+                      'bg-custom-green text-white font-bold': isSelected(day),
+                      'text-primary hover:bg-custom-green/20': !isSelected(day) && day,
+                      'invisible': !day,
+                    }"
+                    @click="selectDay(day)"
+                  >
+                    {{ day }}
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <p v-if="datumError" class="text-[11px] text-red-500">{{ datumError }}</p>
           </div>
 
-          <!-- Placeholder map -->
-          <div
-            v-if="selectedBranch"
-            class="flex h-36 items-center justify-center rounded-[5px] bg-[#b7c2c2]/30 text-green-gray"
+          <FormSelectField name="uhrzeit" label="Uhrzeit" :options="uhrzeitOptions" />
+        </div>
+
+        <p class="pt-2 text-xs text-custom-black">
+          Frühester Termin am 26.02.2025 um 11:00 Uhr.
+        </p>
+
+        <!-- Single set of buttons (single form, single submit) -->
+        <div class="flex justify-end gap-3 pt-2">
+          <Button
+            type="button"
+            button-classes="rounded-[5px] py-2 px-10 text-sm font-bold !bg-custom-orange text-white hover:opacity-90"
+            @click="emit('back')"
           >
-            <Icon icon="material-symbols-light:location-on-outline" class="text-4xl text-custom-green" />
-          </div>
+            Abbrechen
+          </Button>
+          <Button
+            type="submit"
+            button-classes="rounded-[5px] py-2 px-10 text-sm font-bold !bg-custom-green text-white hover:opacity-90"
+          >
+            Weiter
+          </Button>
         </div>
-
-        <!-- Right: Date & time selection -->
-        <div class="space-y-4">
-          <p class="text-sm font-semibold text-primary">
-            Hier können Sie Termine buchen
-          </p>
-
-          <!-- Calendar -->
-          <div class="rounded-[5px] border border-green-gray p-3">
-            <div class="mb-2 flex items-center justify-between">
-              <button type="button" class="p-1 text-primary hover:opacity-70" @click="prevMonth">
-                <Icon icon="material-symbols-light:chevron-left-rounded" class="text-xl" />
-              </button>
-              <span class="text-sm font-semibold text-primary">
-                {{ monthNames[calendarMonth] }} {{ calendarYear }}
-              </span>
-              <button type="button" class="p-1 text-primary hover:opacity-70" @click="nextMonth">
-                <Icon icon="material-symbols-light:chevron-right-rounded" class="text-xl" />
-              </button>
-            </div>
-
-            <div class="grid grid-cols-7 gap-0.5 text-center text-xs">
-              <div
-                v-for="d in dayHeaders"
-                :key="d"
-                class="py-1 font-medium text-green-gray"
-              >
-                {{ d }}
-              </div>
-
-              <button
-                v-for="(day, i) in calendarDays"
-                :key="i"
-                type="button"
-                :disabled="!day"
-                class="flex h-7 w-full items-center justify-center rounded text-xs transition"
-                :class="{
-                  'bg-custom-orange text-white font-bold': isSelected(day),
-                  'bg-custom-green/20 text-primary hover:bg-custom-green/40': !isSelected(day) && day && !isToday(day),
-                  'ring-1 ring-primary': isToday(day) && !isSelected(day),
-                  'invisible': !day,
-                }"
-                @click="selectDay(day)"
-              >
-                {{ day }}
-              </button>
-            </div>
-          </div>
-
-          <p v-if="datumError" class="text-xs text-red-500">{{ datumError }}</p>
-
-          <DropDown
-            v-model="uhrzeit"
-            label="Uhrzeit"
-            for-id="uhrzeit"
-            :options="uhrzeitOptions"
-            :error="uhrzeitError"
-          />
-        </div>
-      </div>
-
-      <div class="mt-6 flex gap-3">
-        <Button
-          type="button"
-          button-classes="rounded-[5px] py-3 px-6 text-sm font-bold bg-custom-orange text-white hover:opacity-90"
-          @click="emit('back')"
-        >
-          Zurück
-        </Button>
-
-        <Button
-          type="submit"
-          button-classes="flex-1 rounded-[5px] py-3 text-sm font-bold bg-custom-green text-white hover:opacity-90"
-        >
-          Weiter
-        </Button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 
   <!-- Conflict dialog -->
@@ -282,14 +279,18 @@ const onSubmit = handleSubmit((values) => {
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
     >
       <div class="w-full max-w-sm rounded-[5px] bg-[#ECECEC] p-6 text-center">
-        <p class="mb-2 font-semibold text-custom-black">
+        <Icon
+          icon="material-symbols-light:info-outline"
+          class="mx-auto mb-2 text-4xl text-custom-green"
+        />
+        <p class="mb-2 font-bold text-custom-black">
           Ihr Wunschtermin ist leider vergeben.
         </p>
         <p class="mb-5 text-sm text-custom-black">
           Frühester freier Termin ist am 26.02.2025 um 11 Uhr.
         </p>
         <Button
-          button-classes="rounded-[5px] px-8 py-2 text-sm font-bold bg-custom-green text-white"
+          button-classes="rounded-[5px] px-10 py-2 text-sm font-bold !bg-custom-green text-white"
           @click="showConflictDialog = false"
         >
           OK

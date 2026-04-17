@@ -1,14 +1,27 @@
 <script setup lang="ts">
-defineProps<{ currentStep: number; totalSteps?: number }>()
+const props = withDefaults(
+  defineProps<{ currentStep: number; totalSteps?: number }>(),
+  { totalSteps: 4 },
+)
 </script>
 
 <template>
-  <div class="mb-6 flex items-center gap-2">
-    <template v-for="step in (totalSteps ?? 4)" :key="step">
+  <div class="relative flex items-center justify-between">
+    <!-- Background line spanning behind circles. Per Figma: 10px tall, light gray. -->
+    <div class="absolute left-2.5 right-2.5 h-[10px] rounded-full bg-[#D9D9D9]" />
+
+    <!-- Circles -->
+    <div
+      v-for="step in props.totalSteps"
+      :key="step"
+      class="relative z-10 flex h-5 w-5 items-center justify-center rounded-full transition-colors duration-300"
+      :class="step <= props.currentStep ? 'bg-custom-green' : 'bg-[#D9D9D9]'"
+    >
+      <!-- Inner white dot for the active step only -->
       <div
-        class="h-1.5 flex-1 rounded-full transition-colors duration-300"
-        :class="step <= currentStep ? 'bg-custom-green' : 'bg-green-gray/40'"
+        v-if="step === props.currentStep"
+        class="h-1.5 w-1.5 rounded-full bg-white"
       />
-    </template>
+    </div>
   </div>
 </template>

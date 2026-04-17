@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useField, useForm } from 'vee-validate'
-import DropDown from '@/components/ui/form/DropDown.vue'
-import TextInput from '@/components/ui/form/TextInput.vue'
+import { useForm } from 'vee-validate'
+import FormTextField from '@/components/ui/form/FormTextField.vue'
+import FormSelectField from '@/components/ui/form/FormSelectField.vue'
 import Button from '@/components/ui/Button.vue'
-import ProgressBar from './ProgressBar.vue'
 import { customerDataSchema } from '@/validations/b2c/customerData.schema'
 import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'
 import type { CustomerData } from '@/stores/b2cRegistration.store'
 
+defineProps<{ loading?: boolean }>()
 const emit = defineEmits<{ next: [] }>()
 
 const store = useB2CRegistrationStore()
@@ -29,17 +29,6 @@ const { handleSubmit } = useForm<CustomerData>({
   initialValues: store.customerData,
 })
 
-const { value: anrede, errorMessage: anredeError } = useField<string>('anrede')
-const { value: vorname, errorMessage: vornameError } = useField<string>('vorname')
-const { value: nachname, errorMessage: nachnameError } = useField<string>('nachname')
-const { value: email, errorMessage: emailError } = useField<string>('email')
-const { value: strasse, errorMessage: strasseError } = useField<string>('strasse')
-const { value: hausnummer, errorMessage: hausnummerError } = useField<string>('hausnummer')
-const { value: zusatz } = useField<string>('zusatz')
-const { value: plz, errorMessage: plzError } = useField<string>('plz')
-const { value: ort, errorMessage: ortError } = useField<string>('ort')
-const { value: land, errorMessage: landError } = useField<string>('land')
-
 const onSubmit = handleSubmit((values) => {
   Object.assign(store.customerData, values)
   emit('next')
@@ -47,104 +36,48 @@ const onSubmit = handleSubmit((values) => {
 </script>
 
 <template>
-  <div class="w-full max-w-[520px] rounded-[10px] bg-white p-8 shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
-    <ProgressBar :current-step="1" />
+  <div class="w-full rounded-[10px] bg-white px-6 py-5 shadow-[0_4px_4px_rgba(0,0,0,0.25)] md:px-8 md:py-6">
+    <!-- Inner card header -->
+    <h2 class="text-[20px] font-bold text-primary">Kundendaten</h2>
+    <div class="mt-2 mb-3 h-px w-full bg-green-gray" />
 
-    <h2 class="mb-6 text-xl font-bold text-primary">
-      Kundendaten
-    </h2>
-
-    <form novalidate class="space-y-4" @submit.prevent="onSubmit">
-      <DropDown
-        v-model="anrede"
-        label="Anrede"
-        for-id="anrede"
-        :options="anredeOptions"
-        :error="anredeError"
-      />
-
-      <div class="grid grid-cols-2 gap-4">
-        <TextInput
-          v-model="vorname"
-          label="Vorname*"
-          for-id="vorname"
-          placeholder="Vorname"
-          :error="vornameError"
-        />
-        <TextInput
-          v-model="nachname"
-          label="Nachname*"
-          for-id="nachname"
-          placeholder="Nachname"
-          :error="nachnameError"
-        />
+    <form novalidate @submit.prevent="onSubmit" class="space-y-2">
+      <!-- Row 1: Anrede / Vorname / Nachname -->
+      <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
+        <FormSelectField name="anrede" label="Anrede" :options="anredeOptions" />
+        <FormTextField name="vorname" label="Vorname" placeholder="Vorname" required />
+        <FormTextField name="nachname" label="Nachname" placeholder="Nachname" required />
       </div>
 
-      <TextInput
-        v-model="email"
-        label="E-Mail-Adresse für Anfragen*"
-        for-id="b2c-email"
+      <!-- Row 2: Straße (large) / Nr. (small) / Zusätzliche Anschrift -->
+      <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-[1fr_100px_1fr]">
+        <FormTextField name="strasse" label="Straße" placeholder="Straße" required />
+        <FormTextField name="hausnummer" label="Nr." placeholder="Nr." required />
+        <FormTextField name="zusatz" label="Zusätzliche Anschrift" placeholder="Adresszusatz" />
+      </div>
+
+      <!-- Row 3: PLZ (small) / Ort / Land (static text "Deutschland") -->
+      <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-[100px_1fr_1fr]">
+        <FormTextField name="plz" label="PLZ" placeholder="PLZ" required />
+        <FormTextField name="ort" label="Ort" placeholder="Ort" required />
+        <FormSelectField name="land" label="Land" :options="landOptions" />
+      </div>
+
+      <!-- Row 4: E-Mail full width -->
+      <FormTextField
+        name="email"
+        label="E-Mail-Adresse für Anfragen"
         type="email"
         placeholder="E-Mail-Adresse"
-        :error="emailError"
+        required
       />
 
-      <div class="grid grid-cols-3 gap-4">
-        <div class="col-span-2">
-          <TextInput
-            v-model="strasse"
-            label="Straße*"
-            for-id="strasse"
-            placeholder="Straße"
-            :error="strasseError"
-          />
-        </div>
-        <TextInput
-          v-model="hausnummer"
-          label="Nr.*"
-          for-id="hausnummer"
-          placeholder="Nr."
-          :error="hausnummerError"
-        />
-      </div>
-
-      <TextInput
-        v-model="zusatz"
-        label="Zusätzliche Anschrift"
-        for-id="zusatz"
-        placeholder="Adresszusatz (optional)"
-      />
-
-      <div class="grid grid-cols-2 gap-4">
-        <TextInput
-          v-model="plz"
-          label="PLZ*"
-          for-id="plz"
-          placeholder="PLZ"
-          :error="plzError"
-        />
-        <TextInput
-          v-model="ort"
-          label="Ort*"
-          for-id="ort"
-          placeholder="Ort"
-          :error="ortError"
-        />
-      </div>
-
-      <DropDown
-        v-model="land"
-        label="Land"
-        for-id="land"
-        :options="landOptions"
-        :error="landError"
-      />
-
-      <div class="flex gap-3 pt-4">
+      <!-- Buttons right-aligned -->
+      <div class="flex justify-end gap-3 pt-4">
         <RouterLink to="/auth/register">
           <Button
             type="button"
-            button-classes="rounded-[5px] py-3 px-6 text-sm font-bold bg-custom-orange text-white hover:opacity-90"
+            button-classes="rounded-[5px] py-2 px-10 text-sm font-bold !bg-custom-orange text-white hover:opacity-90"
           >
             Zurück
           </Button>
@@ -152,9 +85,10 @@ const onSubmit = handleSubmit((values) => {
 
         <Button
           type="submit"
-          button-classes="flex-1 rounded-[5px] py-3 text-sm font-bold bg-custom-green text-white hover:opacity-90"
+          :disabled="loading"
+          button-classes="rounded-[5px] py-2 px-10 text-sm font-bold !bg-custom-green text-white hover:opacity-90"
         >
-          Weiter
+          {{ loading ? 'Wird gespeichert…' : 'Weiter' }}
         </Button>
       </div>
     </form>

@@ -155,6 +155,44 @@ export interface Appointment {
 }
 
 // ─────────────────────────────────────────────
+// B2C PROFILE API TYPES
+// ─────────────────────────────────────────────
+
+export interface B2CProfileAddress {
+  street: string
+  number: string
+  additional_address?: string
+  zip_code: string
+  city: string
+  country: string
+  longitude?: number
+  latitude?: number
+}
+
+export interface B2CProfileContact {
+  salutation: string
+  first_name: string
+  last_name: string
+}
+
+export interface B2CPhone {
+  international_prefix: string
+  phone_number: string
+}
+
+export interface B2CProfileCreatePayload {
+  address: B2CProfileAddress
+  contact: B2CProfileContact
+  phones: B2CPhone[]
+}
+
+export interface B2CProfileCreateResponse {
+  address_id: string
+  contact_id: string
+  status: 'created'
+}
+
+// ─────────────────────────────────────────────
 // PAYMENT
 // ─────────────────────────────────────────────
 
