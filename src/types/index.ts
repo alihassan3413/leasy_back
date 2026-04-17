@@ -206,3 +206,43 @@ export interface Invoice {
   pdfUrl: string
   status: 'PENDING' | 'PAID' | 'OVERDUE'
 }
+
+
+// ─────────────────────────────────────────────
+// B2B Registration
+// 
+
+export interface B2BCreateComapnyPayload {
+  company_name: string
+  vat_id: string
+  logo_url?: string
+  contact_email: string
+
+  address: {
+    street: string
+    number: string
+    zip_code: string
+    city: string
+    country: string
+  }
+
+  contact: {
+    salutation: string
+    first_name: string
+    last_name: string
+    international_prefix: string
+    primary_phone_number: string
+  }
+}
+
+export interface B2BCreateResponse {
+  b2b_id: string
+  contact_id: string
+  address_id: string
+  company_name: string
+  vat_id: string
+  logo_url?: string
+  contact_email: string
+  created_at: string
+  updated_at: string
+}
