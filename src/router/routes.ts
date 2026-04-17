@@ -61,6 +61,16 @@ export const routes: RouteRecordRaw[] = [
             roles: ['B2B']
      },
   },
+  {
+    path: "/register/workshop",
+    name: "register-workshop",
+    component: () => import("@/views/auth/RegisterWorkshopView.vue"),
+    meta: { 
+      title: "Workshop registration",
+      requiresAuth: true,
+      roles: ['WORKSHOP']
+    },
+  },
 
   {
     path: "/register/b2c",
