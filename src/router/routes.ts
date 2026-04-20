@@ -50,6 +50,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import("@/views/DashboardView.vue"),
         meta: { title: "Dashboard" },
       },
+      {
+        path: "account",
+        name: "workshop-account",
+        component: () => import("@/views/account/WorkshopAccountView.vue"),
+        meta: { title: "Account" },
+      }
     ],
   },
   {
