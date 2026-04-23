@@ -1,57 +1,59 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
-import { useField, useForm } from 'vee-validate'
+import { storeToRefs } from "pinia";
+import { useRouter } from "vue-router";
+import { useField, useForm } from "vee-validate";
 
-import Button from '@/components/ui/Button.vue'
-import TextInput from '@/components/ui/form/TextInput.vue'
-import { useAuthStore } from '@/stores/auth.store'
-import { loginSchema } from '@/validations/auth/login.schema'
-import type { LoginPayload } from '@/types'
+import Button from "@/components/ui/Button.vue";
+import TextInput from "@/components/ui/form/TextInput.vue";
+import { useAuthStore } from "@/stores/auth.store";
+import { loginSchema } from "@/validations/auth/login.schema";
+import type { LoginPayload } from "@/types";
 
 interface LoginFormValues {
-  email: string
-  password: string
+  email: string;
+  password: string;
 }
 
-const authStore = useAuthStore()
-const { status, error } = storeToRefs(authStore)
-const router = useRouter()
+const authStore = useAuthStore();
+const { status, error } = storeToRefs(authStore);
+const router = useRouter();
 
 const { handleSubmit, setErrors } = useForm<LoginFormValues>({
   validationSchema: loginSchema,
-})
+});
 
-const { value: email, errorMessage: emailError } = useField<string>('email')
-const { value: password, errorMessage: passwordError } = useField<string>('password')
+const { value: email, errorMessage: emailError } = useField<string>("email");
+const { value: password, errorMessage: passwordError } =
+  useField<string>("password");
 
-const onSubmit = handleSubmit(async (values) => {  
+const onSubmit = handleSubmit(async (values) => {
   const payload: LoginPayload = {
     user_email: values.email,
     password: values.password,
-  }
+  };
   try {
-    await authStore.login(payload)
-    if(authStore.userRole === 'B2B') {
-      router.push( { name: 'register-company'})
-    }else{
-      router.push( { name: 'dashboard'})
+    await authStore.login(payload);
+    if (authStore.userRole === "B2B") {
+      router.push({ name: "register-company" });
+    } else if (authStore.userRole === "WORKSHOP") {
+      router.push({ name: "register-workshop" });
+    } else {
+      router.push({ name: "dashboard" });
     }
-    
   } catch (err) {
     const apiError = err as {
-      message: string
-      errors?: Record<string, string[]>
-    }
+      message: string;
+      errors?: Record<string, string[]>;
+    };
 
     if (apiError.errors) {
       setErrors({
         email: apiError.errors.user_email?.[0],
         password: apiError.errors.password?.[0],
-      })
+      });
     }
   }
-})
+});
 </script>
 
 <template>
@@ -110,7 +112,7 @@ const onSubmit = handleSubmit(async (values) => {
           :disabled="status === 'loading'"
           button-classes="w-full rounded-[5px] py-3 text-sm font-bold"
         >
-          {{ status === 'loading' ? 'Einloggen…' : 'Einloggen' }}
+          {{ status === "loading" ? "Einloggen…" : "Einloggen" }}
         </Button>
       </div>
     </form>

@@ -10,7 +10,9 @@ export function registerGuards(router: Router): void {
     if (to.meta.guestOnly && auth.isAuthenticated) {
 
       if (auth.userRole === 'B2B') {
-        return { name: 'register-company'}
+        return { name: 'register-company' }
+      } else if (auth.userRole === 'WORKSHOP') {
+        return { name: 'register-workshop' }
       }
       return { name: 'dashboard' }
     }
