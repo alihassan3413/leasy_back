@@ -18,11 +18,13 @@ const addVehicleOpen = ref(false)
         My Dashboard
       </h1>
       <div  @click="addVehicleOpen = true" class="flex items-center gap-2 ">
-        <div class="">
+        
           <Icon icon="ic:baseline-plus" class=" w-8 h-8 text-custom-orange cursor-pointer" />
-        </div>
       </div>
+      
+      
     </div>
+
     
     <B2BVehicleTable :vehicles="b2bVehicles" />
 

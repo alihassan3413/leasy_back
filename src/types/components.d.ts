@@ -14,6 +14,7 @@ declare module 'vue' {
     AddVehicleModal: typeof import('./../components/dashboard/modals/AddVehicleModal.vue')['default']
     AdminRegistration: typeof import('./../components/company/AdminRegistration.vue')['default']
     AppSidebar: typeof import('./../components/dashboard/AppSidebar.vue')['default']
+    AssignmentModal: typeof import('./../components/b2b/modals/AssignmentModal.vue')['default']
     Avatar: typeof import('./../components/ui/avatar/Avatar.vue')['default']
     AvatarFallback: typeof import('./../components/ui/avatar/AvatarFallback.vue')['default']
     AvatarImage: typeof import('./../components/ui/avatar/AvatarImage.vue')['default']

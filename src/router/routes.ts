@@ -51,11 +51,11 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: "Dashboard" },
       },
       {
-    path: "/dashboard-b2b",
-    name: "dashboard-b2b",
-    component: () => import("@/views/DashboardB2B.vue"),
-    meta: {title: "B2B Dashboard"}
-  },
+        path: "/dashboard-b2b",
+        name: "dashboard-b2b",
+        component: () => import("@/views/DashboardB2B.vue"),
+        meta: {title: "B2B Dashboard"}
+      },
     ],
   },
   {
