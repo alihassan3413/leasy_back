@@ -257,3 +257,62 @@ export interface WorkshopCreateResponse {
   created_at: string;
   updated_at: string;
 }
+
+export interface PhoneNumber {
+  international_prefix: string;
+  phone_number: string;
+  is_primary_contact: boolean;
+}
+
+export interface WorkshopContact {
+  contact_id: string;
+  salutation: string;
+  first_name: string;
+  last_name: string;
+  phone_numbers: PhoneNumber[];
+}
+
+export interface WorkshopAddress {
+  address_id: string;
+  street: string;
+  number: string;
+  additional_address: string | null;
+  zip_code: string;
+  city: string;
+  country: string;
+}
+
+export interface WorkshopResponse {
+  workshop_id: string;
+  workshop_name: string;
+  logo_url: string | null;
+  contact_email: string;
+  has_vat_id: boolean;
+  vat_id: string | null;
+  packages_selected: string;
+  imprint_text: string | null;
+  services_offered: string[] | null;
+  created_at: string;
+  updated_at: string;
+  contact: WorkshopContact;
+  address: WorkshopAddress;
+}
+
+export interface WorkshopUpdatePayload {
+  workshop_name?: string;
+  logo_url?: string | null;
+  contact_email?: string;
+  has_vat_id?: boolean;
+  vat_id?: string | null;
+  address?: Partial<WorkshopAddress>;
+  contact?: {
+    salutation?: string;
+    first_name?: string;
+    last_name?: string;
+    phone_numbers?: {
+      international_prefix: string;
+      phone_number: string;
+      is_primary_contact?: boolean;
+    }[];
+  };
+}

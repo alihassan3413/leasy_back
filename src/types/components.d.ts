@@ -11,7 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AccountDetail: typeof import('./../components/workshop/AccountDetail.vue')['default']
+    AccountCredits: typeof import('./../components/account/workshop/AccountCredits.vue')['default']
+    AccountDetail: typeof import('./../components/account/b2b/AccountDetail.vue')['default']
     AddVehicleModal: typeof import('./../components/dashboard/modals/AddVehicleModal.vue')['default']
     AdminRegistration: typeof import('./../components/company/AdminRegistration.vue')['default']
     AdressDetails: typeof import('./../components/workshop/AdressDetails.vue')['default']
@@ -28,9 +29,11 @@ declare module 'vue' {
     CardFooter: typeof import('./../components/ui/card/CardFooter.vue')['default']
     CardHeader: typeof import('./../components/ui/card/CardHeader.vue')['default']
     CardTitle: typeof import('./../components/ui/card/CardTitle.vue')['default']
-    ContactPerson: typeof import('./../components/workshop/ContactPerson.vue')['default']
+    ContactPerson: typeof import('./../components/account/b2b/ContactPerson.vue')['default']
+    Contract: typeof import('./../components/account/workshop/contract.vue')['default']
     DdfCards: typeof import('./../components/dashboard/DdfCards.vue')['default']
     DdfExpanded: typeof import('./../components/dashboard/DdfExpanded.vue')['default']
+    DeleteAccount: typeof import('./../components/account/b2b/DeleteAccount.vue')['default']
     Dialog: typeof import('./../components/ui/dialog/Dialog.vue')['default']
     DialogClose: typeof import('./../components/ui/dialog/DialogClose.vue')['default']
     DialogContent: typeof import('./../components/ui/dialog/DialogContent.vue')['default']
@@ -66,7 +69,8 @@ declare module 'vue' {
     GeneralTerms: typeof import('./../components/workshop/GeneralTerms.vue')['default']
     Input: typeof import('./../components/form/Input.vue')['default']
     Label: typeof import('./../components/ui/label/Label.vue')['default']
-    LegalNotice: typeof import('./../components/workshop/LegalNotice.vue')['default']
+    LegalNotice: typeof import('./../components/Workshop/LegalNotice.vue')['default']
+    ManagePassword: typeof import('./../components/account/b2b/ManagePassword.vue')['default']
     ProgressBar: typeof import('./../components/registration/b2c/ProgressBar.vue')['default']
     Register: typeof import('./../components/company/Register.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

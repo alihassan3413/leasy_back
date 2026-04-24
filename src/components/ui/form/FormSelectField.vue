@@ -8,6 +8,7 @@ const props = withDefaults(defineProps<{
   options: { label: string; value: string | number }[]
   placeholder?: string
   required?: boolean
+  width?: string
 }>(), {
   placeholder: 'Bitte wählen',
   required: false,
@@ -19,13 +20,13 @@ const { value, errorMessage, meta } = useField<string>(() => props.name)
 </script>
 
 <template>
-  <div class="flex flex-col w-full">
+  <div class="flex flex-col">
     <SelectDropDown
       v-model="value"
       :label="label"
       :options="options"
       :placeholder="placeholder"
-      class="w-full"
+      :width="width"
     />
     
     <span 
