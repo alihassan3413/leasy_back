@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Setting from "@/components/payment/historyb2b/Setting.vue";
-import Transaction from "@/components/payment/historyb2b/Transaction.vue";
+import Setting from "@/components/payment/historyb2c/Setting.vue";
+import Transaction from "@/components/payment/historyb2c/Transaction.vue";
 </script>
 
 <template>
