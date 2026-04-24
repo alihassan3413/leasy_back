@@ -56,7 +56,7 @@ const sidebarOpen = ref(false)
       />
 
       <!-- Main content -->
-      <main class="flex-1 overflow-y-auto bg-white p-6">
+      <main class="flex-1 overflow-y-auto bg-white p-6 overflow-hidden max-w-7xl mx-auto">
         <RouterView />
       </main>
     </div>
