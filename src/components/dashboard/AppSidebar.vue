@@ -12,7 +12,7 @@ const { user, logout } = useAuth();
 
 const navItems = [
   { label: 'My Dashboard', icon: 'mdi:view-dashboard-outline', name: 'dashboard' },
-  { label: 'Zahlungsverlauf', icon: 'mdi:receipt-text-outline', name: null },
+  { label: 'Zahlungsverlauf', icon: 'mdi:receipt-text-outline', name: 'payment' },
   { label: 'My Account', icon: 'mdi:account-outline', name: 'b2c-account' },
   { label: 'Einstellungen', icon: 'mdi:cog-outline', name: 'setting' },
 ]
