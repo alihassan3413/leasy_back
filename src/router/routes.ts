@@ -62,6 +62,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import("@/views/setting/SettingView.vue"),
         meta: { title: "Setting View" },
       },
+      {
+        path: "payment",
+        name: "payment",
+        component: () => import("@/views/payment/HistoryB2b.vue"),
+        meta: { title: "Payment View" },
+      },
     ],
   },
   {
