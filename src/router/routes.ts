@@ -55,7 +55,13 @@ export const routes: RouteRecordRaw[] = [
         name: "b2c-account",
         component: () => import("@/views/account/B2cAccountView.vue"),
         meta: { title: "B2C Account" },
-      }
+      },
+      {
+        path: "setting",
+        name: "setting",
+        component: () => import("@/views/setting/SettingView.vue"),
+        meta: { title: "Setting View" },
+      },
     ],
   },
   {
