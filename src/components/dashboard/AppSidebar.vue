@@ -1,19 +1,20 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 defineProps<{ open: boolean }>()
 defineEmits<{ toggle: [] }>()
 
-const route = useRoute()
-const { user, logout } = useAuth()
+const route = useRoute();
+const router = useRouter();
+const { user, logout } = useAuth();
 
 const navItems = [
   { label: 'My Dashboard', icon: 'mdi:view-dashboard-outline', name: 'dashboard' },
-  { label: 'Zahlungsverlauf', icon: 'mdi:receipt-text-outline', name: null },
-  { label: 'My Account', icon: 'mdi:account-outline', name: null },
-  { label: 'Einstellungen', icon: 'mdi:cog-outline', name: null },
+  { label: 'Zahlungsverlauf', icon: 'mdi:receipt-text-outline', name: 'payment' },
+  { label: 'My Account', icon: 'mdi:account-outline', name: 'b2c-account' },
+  { label: 'Einstellungen', icon: 'mdi:cog-outline', name: 'setting' },
 ]
 
 function isActive(name: string | null) {
@@ -23,6 +24,14 @@ function isActive(name: string | null) {
     return route.name === 'dashboard' || route.name === 'dashboard-b2b'
   }
   return name !== null && route.name === name
+}
+
+function navigateTo(name: string | null) {
+  if (!name) {
+    return;
+  }
+
+  void router.push({ name });
 }
 </script>
 
@@ -65,6 +74,8 @@ function isActive(name: string | null) {
         :key="item.label"
         class="flex h-[40px] w-full items-center transition-opacity hover:opacity-80"
         :class="open ? '' : 'justify-center'"
+        type="button"
+        @click="navigateTo(item.name)"
       >
         <!-- Icon -->
         <div
