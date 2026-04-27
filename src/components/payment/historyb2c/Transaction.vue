@@ -95,7 +95,7 @@ const transactions = [
               <button
                 class="text-custom-green hover:opacity-80 transition-opacity"
               >
-                <Icon icon="ph:file-pdf-light" class="size-6" />
+                <Icon icon="mdi:file-download-outline" class="size-6 cursor-pointer"  />
               </button>
             </TableCell>
           </TableRow>

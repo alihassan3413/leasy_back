@@ -52,7 +52,7 @@ const handleBillingSubmit = (data: any) => {
       <!-- Right: Current Info -->
       <div class="space-y-6 pt-2">
         <div class="flex items-start">
-          <span class="w-72 shrink-0 font-bold text-custom-black"
+          <span class="w-64 shrink-0 font-bold text-custom-black"
             >Aktuelle Kontodaten</span
           >
           <span
@@ -62,7 +62,7 @@ const handleBillingSubmit = (data: any) => {
           >
         </div>
         <div class="flex items-start">
-          <span class="w-72 shrink-0 font-bold text-custom-black"
+          <span class="w-64 shrink-0 font-bold text-custom-black"
             >Aktuelle Rechnungsadresse</span
           >
           <span class="text-custom-black opacity-70 leading-tight">
