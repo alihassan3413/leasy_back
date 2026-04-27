@@ -17,6 +17,10 @@ export default defineConfig({
     Components({
       dirs: ['src/components'],
       dts: 'src/types/components.d.ts',
+
+     directoryAsNamespace: true,
+     collapseSamePrefixes: true,
+     globalNamespaces: ['ui'],
     }),
   ],
 
