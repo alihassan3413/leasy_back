@@ -164,5 +164,10 @@ declare module 'vue' {
     WorkshopContactPerson: typeof import('./../components/Workshop/ContactPerson.vue')['default']
     WorkshopGeneralTerms: typeof import('./../components/Workshop/GeneralTerms.vue')['default']
     WorkshopLegalNotice: typeof import('./../components/Workshop/LegalNotice.vue')['default']
+    WorkshopTempAccountDetail: typeof import('./../components/Workshop-Temp/AccountDetail.vue')['default']
+    WorkshopTempAdressDetails: typeof import('./../components/Workshop-Temp/AdressDetails.vue')['default']
+    WorkshopTempContactPerson: typeof import('./../components/Workshop-Temp/ContactPerson.vue')['default']
+    WorkshopTempGeneralTerms: typeof import('./../components/Workshop-Temp/GeneralTerms.vue')['default']
+    WorkshopTempLegalNotice: typeof import('./../components/Workshop-Temp/LegalNotice.vue')['default']
   }
 }
