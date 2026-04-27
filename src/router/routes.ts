@@ -51,6 +51,12 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: "Dashboard" },
       },
       {
+        path: "/dashboard-b2b",
+        name: "dashboard-b2b",
+        component: () => import("@/views/DashboardB2B.vue"),
+        meta: {title: "B2B Dashboard"}
+      },
+      {
         path: "b2c",
         name: "b2c-account",
         component: () => import("@/views/account/B2cAccountView.vue"),
@@ -89,6 +95,6 @@ export const routes: RouteRecordRaw[] = [
       roles: ['WORKSHOP']
     },
   },
-
+  
   { path: "/:pathMatch(.*)*", redirect: "/" },
 ];

@@ -30,10 +30,20 @@ const markeOpen = ref(false)
 const nutzerOpen = ref(false)
 
 const markeOptions = ['VW', 'BMW', 'Mercedes', 'Audi', 'Renault', 'Toyota', 'Peugeot', 'Skoda', 'Ford', 'Opel']
-const nutzerOptions = ['— Unbekannt —', 'Christin Mechtild', 'Thorsten Jung', 'Marcus Dietrich']
+const nutzerOptions = ['Christin Mechtild', 'Thorsten Jung', 'Marcus Dietrich']
 
 // ── Edit vs Add mode ─────────────────────────────────────────────────────────
 const isEditMode = computed(() => !!props.vehicle)
+
+
+const markeIconClasses  = computed(() => [
+  "text-[40px] text-primary transition-transform duration-200",
+    markeOpen.value ? "rotate-180" : "rotate-0",
+]);
+const nutzerIconClasses   = computed(() => [
+  "text-[40px] text-primary transition-transform duration-200",
+    nutzerOpen.value ? "rotate-180" : "rotate-0",
+]);
 
 // When modal opens, populate fields from vehicle (edit) or clear (add)
 watch(() => props.open, (opened) => {
@@ -86,13 +96,13 @@ function handleSubmit() {
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
-      class="p-0 gap-0 overflow-hidden"
+      class="p-0 gap-0  overflow-visible"
       style="width: 700px; max-width: 700px; border-radius: 5px; border: 1px solid #ECECEC;"
       :show-close-button="false"
     >
       <!-- Header -->
       <div
-        class="flex h-[50px] items-center justify-between px-9"
+        class="flex h-[50px] items-center justify-between px-9 max-w-[700px]"
         style="background-color:#FAFAFA; border-bottom: 1px solid #B7C2C2"
       >
         <span class="text-[20px] font-bold" style="color:#10393B">Neues Fahrzeug</span>
@@ -114,20 +124,26 @@ function handleSubmit() {
 
           <!-- Kennzeichen -->
           <div class="flex flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color:#000">Kennzeichen</label>
+            <label class="text-[16px] font-bold text-black">Kennzeichen
+              <span class="text-[10px] font-bold ml-3 text-custom-black">*(Format: ABC DE 1234)</span>
+            </label>
             <!-- German plate widget -->
             <div class="flex h-[36px] items-center rounded-[5px] border" style="background:#ECECEC; border-color:#B7C2C2">
               <!-- EU blue strip -->
               <div class="flex h-full w-[22px] shrink-0 flex-col items-center justify-center rounded-l-[4px]" style="background:#00339B">
-                <span class="text-[8px] font-bold text-white leading-none">★</span>
+                <span class="text-[8px] font-bold text-white leading-none mb-1">★</span>
                 <span class="text-[14px] font-bold text-white leading-none">D</span>
               </div>
               <!-- City -->
-              <div class="flex h-full items-center border-x" style="border-color:#B7C2C2; background:#FAFAFA; min-width:60px">
+              <div class="flex flex-1  h-full items-center border-x" style="border-color:#B7C2C2; background:#FAFAFA;">
                 <input v-model="city" class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none" style="color:#B7C2C2" placeholder="ABC" maxlength="3" />
               </div>
+              <div class="p-1 flex flex-col gap-1 ">
+                <Icon icon="cib:circle" class="w-3 h-3 text-custom-black"  />
+                <Icon icon="mdi:badge-outline" class="w-3.5 h-3.5 text-custom-black" />
+              </div>
               <!-- District -->
-              <div class="flex h-full items-center border-r" style="border-color:#B7C2C2; background:#FAFAFA; min-width:44px">
+              <div class="flex flex-1 h-full items-center border-r" style="border-color:#B7C2C2; background:#FAFAFA;">
                 <input v-model="district" class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none" style="color:#B7C2C2" placeholder="DE" maxlength="2" />
               </div>
               <!-- Number -->
@@ -135,19 +151,19 @@ function handleSubmit() {
                 <input v-model="number" class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none" style="color:#B7C2C2" placeholder="1234" maxlength="5" />
               </div>
             </div>
-            <span class="text-[10px] font-bold" style="color:#2E3E3F">*(Format: ABC DE 1234)</span>
+            
           </div>
 
           <!-- Marke (dropdown) -->
           <div class="relative flex flex-col gap-1">
             <label class="text-[16px] font-bold" style="color:#000">Marke</label>
             <div
-              class="flex h-[30px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
+              class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
               style="border-color:#B7C2C2"
               @click="markeOpen = !markeOpen; nutzerOpen = false"
             >
               <span class="text-[14px]" :style="marke ? 'color:#000' : 'color:#B7C2C2'">{{ marke || 'Marke wählen' }}</span>
-              <Icon :icon="markeOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'" class="size-4" style="color:#2E3E3F" />
+              <Icon icon="ic:round-arrow-drop-down" :class="markeIconClasses" />
             </div>
             <div v-if="markeOpen" class="absolute top-full z-50 mt-1 max-h-[150px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md" style="border-color:#B7C2C2">
               <div
@@ -165,16 +181,16 @@ function handleSubmit() {
             <label class="text-[16px] font-bold" style="color:#000">Modell</label>
             <input
               v-model="modell"
-              class="h-[30px] rounded-[5px] border px-2 text-[14px] outline-none"
+              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color:#B7C2C2; color:#000"
-              placeholder="Modell"
+              
             />
           </div>
 
           <!-- Leasingende -->
           <div class="flex flex-col gap-1">
             <label class="text-[16px] font-bold" style="color:#000">Leasingende</label>
-            <div class="relative flex h-[30px] items-center rounded-[5px] border" style="border-color:#B7C2C2">
+            <div class="relative flex h-[37px] items-center rounded-[5px] border" style="border-color:#B7C2C2">
               <input
                 v-model="leasingende"
                 type="date"
@@ -190,14 +206,16 @@ function handleSubmit() {
 
           <!-- FIN -->
           <div class="flex flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color:#000">FIN</label>
+            <label class="text-[16px] font-bold text-black">FIN 
+              <span class="text-[10px] font-bold ml-3 text-custom-black">*(seh. Fahrzeugschein Mitte oben)</span>
+            </label>
             <input
               v-model="fin"
-              class="h-[30px] rounded-[5px] border px-2 text-[14px] outline-none"
+              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color:#B7C2C2; color:#000"
-              placeholder="Fahrgestellnummer"
+              
             />
-            <span class="text-[10px] font-bold" style="color:#2E3E3F">*(seh. Fahrzeugschein Mitte oben)</span>
+            
           </div>
 
           <!-- Rückgabestart -->
@@ -206,9 +224,10 @@ function handleSubmit() {
             <input
               v-model="rueckgabestart"
               type="date"
-              class="h-[30px] rounded-[5px] border px-2 text-[14px] outline-none"
+              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color:#B7C2C2; color:#000"
             />
+            
           </div>
 
           <!-- Status -->
@@ -216,7 +235,7 @@ function handleSubmit() {
             <label class="text-[16px] font-bold" style="color:#000">Status</label>
             <input
               v-model="status"
-              class="h-[30px] rounded-[5px] border px-2 text-[14px] outline-none"
+              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color:#B7C2C2; color:#000"
               placeholder="Status"
             />
@@ -226,21 +245,24 @@ function handleSubmit() {
           <div class="relative flex flex-col gap-1">
             <label class="text-[16px] font-bold" style="color:#000">Fahrzeugnutzer</label>
             <div
-              class="flex h-[30px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
+              class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
               style="border-color:#B7C2C2"
               @click="nutzerOpen = !nutzerOpen; markeOpen = false"
             >
               <span class="text-[14px]" :style="fahrzeugnutzer ? 'color:#000' : 'color:#B7C2C2'">{{ fahrzeugnutzer || 'Nutzer wählen' }}</span>
-              <Icon :icon="nutzerOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'" class="size-4" style="color:#2E3E3F" />
+              <Icon icon="ic:round-arrow-drop-down" :class="nutzerIconClasses" />
             </div>
-            <div v-if="nutzerOpen" class="absolute top-full z-50 mt-1 w-full rounded-[5px] border bg-white shadow-md" style="border-color:#B7C2C2">
+            <div v-if="nutzerOpen" class="absolute top-full z-50 mt-1 w-full rounded-[5px] border  overflow-y-auto bg-white shadow-md" style="border-color:#B7C2C2">
+               <span class="px-2 text-[14px] ">— Unbekannt —</span>
               <div
                 v-for="opt in nutzerOptions"
                 :key="opt"
                 class="flex h-[30px] cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
                 style="color:#000"
                 @click="fahrzeugnutzer = opt; nutzerOpen = false"
-              >{{ opt }}</div>
+              >
+             
+              {{ opt }}</div>
             </div>
           </div>
 

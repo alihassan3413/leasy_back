@@ -18,6 +18,11 @@ const navItems = [
 ]
 
 function isActive(name: string | null) {
+  if (!name) return false
+
+  if (name === 'dashboard'){
+    return route.name === 'dashboard' || route.name === 'dashboard-b2b'
+  }
   return name !== null && route.name === name
 }
 
