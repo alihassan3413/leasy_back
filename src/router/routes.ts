@@ -50,6 +50,30 @@ export const routes: RouteRecordRaw[] = [
         component: () => import("@/views/DashboardView.vue"),
         meta: { title: "Dashboard" },
       },
+      {
+        path: "/dashboard-b2b",
+        name: "dashboard-b2b",
+        component: () => import("@/views/DashboardB2B.vue"),
+        meta: {title: "B2B Dashboard"}
+      },
+      {
+        path: "b2c",
+        name: "b2c-account",
+        component: () => import("@/views/account/B2cAccountView.vue"),
+        meta: { title: "B2C Account" },
+      },
+      {
+        path: "setting",
+        name: "setting",
+        component: () => import("@/views/setting/SettingView.vue"),
+        meta: { title: "Setting View" },
+      },
+      {
+        path: "payment",
+        name: "payment",
+        component: () => import("@/views/payment/HistoryB2c.vue"),
+        meta: { title: "Payment View" },
+      },
     ],
   },
   {
