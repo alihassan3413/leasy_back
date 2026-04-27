@@ -96,6 +96,20 @@ export interface AppError {
 // VEHICLE
 // ─────────────────────────────────────────────
 
+export interface VehicleStatusResponse {
+  vehicle_id: string;
+  license_plate: string;
+  first_registration_date: string;
+  leasing_end_date: string;
+  vin: string;
+  make: string;
+  model: string;
+  vehicle_belongs: string;
+  created_at: string;
+  updated_at: string;
+  orders: any[];
+}
+
 export interface Vehicle {
   id: string;
   licensePlate: string; // German format: e.g. "M-AB 1234"
