@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { useForm } from "vee-validate";
 import { Icon } from "@iconify/vue";
-import { useWorkshopStore } from "@/stores/workshop.store";
-import { addressSchema } from "@/validations/workshop.validation";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import profileImage from "../../../assets/logo/B2bProfile-img.svg";
@@ -30,17 +26,17 @@ const anredeOptions = [
       </button>
     </div>
 
-    <form @submit.prevent="onSubmit" class="space-y-8">
+    <form @submit.prevent="" class="space-y-8">
       <!-- Logo and Company Info Section -->
       <div class="flex justify-between gap-32 items-end">
         <!-- Square Logo Upload -->
         <div class="flex flex-col items-start gap-3">
           <div
             class="flex size-24 cursor-pointer items-center justify-center overflow-hidden rounded-full"
-            @click="triggerLogoUpload"
+            
           >
-            <img v-if="logoUrl" :src="logoUrl" class="size-full object-cover" />
-            <img v-else :src="profileImage" class="size-full object-cover" />
+            <!-- <img v-if="" :src="logoUrl" class="size-full object-cover" /> -->
+            <img  :src="profileImage" class="size-full object-cover" />
             <!-- <Icon v-else icon="mdi:account" class="size-16 text-green-gray" /> -->
           </div>
           <span
@@ -52,7 +48,7 @@ const anredeOptions = [
             type="file"
             accept="image/*"
             class="hidden"
-            @change="onFileChange"
+            
           />
         </div>
 
@@ -66,15 +62,15 @@ const anredeOptions = [
             width="w-[128px]"
           />
           <FormTextField
-            name="firmenname"
-            label="Firmenname (lt. HGB/Gewerbeeintrag)*"
-            placeholder="HWT GmbH"
+            name=""
+            label="Vorname"
+            placeholder="Christin"
             class="w-full max-w-95"
           />
           <FormTextField
             name="ustIdNr"
-            label="USt-IdNr."
-            placeholder="DE 127395564"
+            label="Nachname"
+            placeholder="Mechtild"
             class="w-full max-w-95"
           />
         </div>
@@ -158,9 +154,10 @@ const anredeOptions = [
         <Button
           type="submit"
           class="h-8.5 rounded-[5px] bg-custom-green text-sm font-bold text-white transition-all hover:bg-[#019d7a] w-37.5"
-          :disabled="isSubmitting"
+         
         >
-          {{ isSubmitting ? "Wird gespeichert..." : "Speichern" }}
+        Speichern
+          <!-- {{ isSubmitting ? "Wird gespeichert..." : "Speichern" }} -->
         </Button>
       </div>
     </form>
