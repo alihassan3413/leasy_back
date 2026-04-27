@@ -107,7 +107,31 @@ export interface VehicleStatusResponse {
   vehicle_belongs: string;
   created_at: string;
   updated_at: string;
-  orders: any[];
+  orders: Array<{
+    id: string;
+    auftragsnummer: string;
+    leasyback_partner: string;
+    request_payload: {
+      besichtigungsort?: {
+        name: string;
+        strasse: string;
+        plz: string;
+        ort: string;
+        termin: string;
+        land: string;
+      };
+      ansprechpartner?: {
+        name: string;
+        email: string;
+        telefon: string;
+      };
+    };
+    status_updates: Array<{
+      id: string;
+      created_at: string;
+      bewertung_id?: string;
+    }>;
+  }>;
 }
 
 export interface Vehicle {
@@ -177,37 +201,37 @@ export interface Appointment {
 // ─────────────────────────────────────────────
 
 export interface B2CProfileAddress {
-  street: string
-  number: string
-  additional_address?: string
-  zip_code: string
-  city: string
-  country: string
-  longitude?: number
-  latitude?: number
+  street: string;
+  number: string;
+  additional_address?: string;
+  zip_code: string;
+  city: string;
+  country: string;
+  longitude?: number;
+  latitude?: number;
 }
 
 export interface B2CProfileContact {
-  salutation: string
-  first_name: string
-  last_name: string
+  salutation: string;
+  first_name: string;
+  last_name: string;
 }
 
 export interface B2CPhone {
-  international_prefix: string
-  phone_number: string
+  international_prefix: string;
+  phone_number: string;
 }
 
 export interface B2CProfileCreatePayload {
-  address: B2CProfileAddress
-  contact: B2CProfileContact
-  phones: B2CPhone[]
+  address: B2CProfileAddress;
+  contact: B2CProfileContact;
+  phones: B2CPhone[];
 }
 
 export interface B2CProfileCreateResponse {
-  address_id: string
-  contact_id: string
-  status: 'created'
+  address_id: string;
+  contact_id: string;
+  status: "created";
 }
 
 // ─────────────────────────────────────────────
