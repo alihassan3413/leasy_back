@@ -9,7 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-[5px] border border-green-gray">
+  <div class="rounded-[5px] border border-green-gray overflow-x-auto">
     <Table>
       <TableHeader>
         <TableRow
@@ -24,6 +24,8 @@ defineProps<{
           <TableHead class="h-[40px] w-[130px] px-3 text-right text-[13px] font-bold text-white">Optionen</TableHead>
         </TableRow>
       </TableHeader>
+
+      
       <TableBody>
         <VehicleRow
           v-for="vehicle in vehicles"

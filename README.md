@@ -195,7 +195,7 @@ All env vars must start with `VITE_` — only then does Vite expose them to the 
 
 | Variable | Dev value | Prod value | Purpose |
 |----------|-----------|------------|---------|
-| `VITE_API_URL` | `http://localhost:8000/api/v1` | `https://api.leasyback.com/api/v1` | Backend base URL |
+| `VITE_API_URL` | `http://localhost:8000/api/v1` | `https://api.leasyback.com/` | Backend base URL |
 | `VITE_APP_ENV` | `development` | `production` | Feature flags |
 
 Access them in code: `import.meta.env.VITE_API_URL`

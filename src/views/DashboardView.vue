@@ -152,7 +152,7 @@ const completedVehicles: Vehicle[] = [
 </script>
 
 <template>
-  <div class="flex flex-col gap-5">
+  <div class="flex flex-col gap-5 overflow-hidden">
     <!-- Page header -->
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-bold text-custom-black">
