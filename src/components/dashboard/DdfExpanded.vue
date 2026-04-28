@@ -16,24 +16,18 @@ const uploadDocsOpen = ref(false);
     <TableCell colspan="6" class="max-w-0 p-0 overflow-x-auto">
       <!-- 5 panels side by side, each a separate card with gap -->
       <div
-        class="flex gap-2 border-t border-green-gray bg-white p-2"
+        class="flex gap-2.5 border-t border-green-gray bg-white p-2"
         style="min-width: max-content"
       >
-        <!-- ─────────────────────────────────────────────────
-             Panel 1: Status / Timeline  (290px)
-             Layout: "Status bei:" header at top
-                     Two columns below: dates LEFT | dot+line CENTER | labels RIGHT
-        ───────────────────────────────────────────────── -->
         <div
           v-if="vehicle.workshopName"
-          class="flex w-72.5 shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white"
+          class="flex max-w-[350px] shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white"
           style="border-color: #ececec"
         >
           <!-- Header -->
           <div class="px-6 py-5">
             <p
-              class="text-[16px] font-bold leading-tight"
-              style="color: #2e3e3f"
+              class="text-[16px] font-bold text-custom-black leading-tight"
             >
               Status bei: {{ vehicle.workshopName }}
             </p>
@@ -49,8 +43,8 @@ const uploadDocsOpen = ref(false);
               <!-- Date column -->
               <div class="w-25 shrink-0 px-3 py-1 text-right">
                 <span
-                  class="whitespace-pre-line text-[12px] leading-tight"
-                  style="color: #2e3e3f"
+                  class="whitespace-pre-line text-[14px] text-custom-black leading-tight"
+                  
                   >{{ entry.datetime }}</span
                 >
               </div>
@@ -93,7 +87,7 @@ const uploadDocsOpen = ref(false);
                   >
                   <p
                     v-if="entry.sublabel"
-                    class="text-[11px] leading-tight"
+                    class="text-[14px] text-wrap font-normal leading-tight"
                     style="color: #2e3e3f"
                   >
                     {{ entry.sublabel }}
@@ -102,7 +96,7 @@ const uploadDocsOpen = ref(false);
                 <!-- Normal entry -->
                 <template v-else>
                   <span
-                    class="block wrap-break-word text-[13px]"
+                    class="block wrap-break-word text-[14px] font-normal"
                     style="color: #2e3e3f"
                     >{{ entry.label }}</span
                   >
@@ -114,9 +108,8 @@ const uploadDocsOpen = ref(false);
           <div class="h-4" />
         </div>
 
-        <!-- ─────────────────────────────────────────────────
-             Panel 2: Angebote  (360px)
-        ───────────────────────────────────────────────── -->
+      
+          <!-- Panel 2: Angebote  -->
         <div
           class="flex w-90 shrink-0 flex-col rounded-[5px] border bg-white"
           style="border-color: #ececec"
@@ -124,15 +117,19 @@ const uploadDocsOpen = ref(false);
           <div class="px-6 py-5">
             <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
           </div>
+          <div class="flex   justify-center ">
+            <p class="bg-custom-green text-base text-white font-medium  py-2 px-4 rounded-md"> This feature is to be appear soon 
+            </p>
+          </div>
 
           <!-- Offer rows -->
-          <div class="flex flex-col gap-3 px-6">
+          <!-- <div class="flex flex-col gap-3 px-6">
             <div
               v-for="offer in vehicle.offers"
               :key="offer.id"
               class="flex flex-col"
             >
-              <!-- Row 1: name + price + radio -->
+              
               <div class="flex items-center justify-between">
                 <span
                   class="text-[14px] font-bold"
@@ -145,7 +142,7 @@ const uploadDocsOpen = ref(false);
                     :style="offer.accepted ? 'color:#2E3E3F' : 'color:#B7C2C2'"
                     >{{ offer.cost }} €</span
                   >
-                  <!-- Radio: circle (accepted = filled orange dot, else empty grey) -->
+                  
                   <div
                     class="flex size-3.75 shrink-0 items-center justify-center rounded-full border"
                     :style="
@@ -162,7 +159,6 @@ const uploadDocsOpen = ref(false);
                   </div>
                 </div>
               </div>
-              <!-- Row 2: address + distance + saving -->
               <div class="flex items-center justify-between">
                 <span class="text-[12px]" style="color: #b7c2c2">{{
                   offer.address
@@ -177,10 +173,10 @@ const uploadDocsOpen = ref(false);
                 >
               </div>
             </div>
-          </div>
+          </div> -->
 
           <!-- Accept button -->
-          <div class="mt-4 px-6">
+          <!-- <div class="mt-4 px-6">
             <button
               class="w-full rounded-[5px] py-2 text-[14px] font-bold"
               :style="
@@ -191,10 +187,10 @@ const uploadDocsOpen = ref(false);
             >
               Kostenpflichtig Annehmen
             </button>
-          </div>
+          </div> -->
 
           <!-- Accepted offer box -->
-          <div class="px-6 pb-5 pt-3">
+          <!-- <div class="px-6 pb-5 pt-3">
             <p class="mb-2 text-[14px] font-bold" style="color: #2e3e3f">
               Angenommenes Angebot
             </p>
@@ -210,14 +206,13 @@ const uploadDocsOpen = ref(false);
                 {{ vehicle.offers.find((o) => o.accepted)?.cost }} €
               </span>
             </div>
-          </div>
+          </div> -->
         </div>
 
-        <!-- ─────────────────────────────────────────────────
-             Panel 3: Fahrzeug Dokumente  (220px)
-        ───────────────────────────────────────────────── -->
+        
+        <!-- Panel 3: Fahrzeug Dokumente -->
         <div
-          class="relative flex w-55 shrink-0 flex-col rounded-[5px] border bg-white"
+          class="relative flex w-60 shrink-0 flex-col rounded-[5px] border bg-white"
           style="border-color: #ececec"
         >
           <button
@@ -226,11 +221,11 @@ const uploadDocsOpen = ref(false);
           >
             <Icon
               icon="mdi:pencil-outline"
-              class="size-4 shrink-0"
+              class="size-5 shrink-0"
               style="color: #01b990"
             />
           </button>
-          <div class="px-6 py-5">
+          <div class="px-6 py-8">
             <p class="text-[16px] font-bold" style="color: #2e3e3f">
               Fahrzeug Dokumente
             </p>
@@ -252,7 +247,7 @@ const uploadDocsOpen = ref(false);
           </div>
 
           <div class="px-6 pb-2 pt-5">
-            <p class="text-[14px] font-bold" style="color: #2e3e3f">
+            <p class="text-[14px] font-normal" style="color: #2e3e3f">
               Rückgabe Dokumente
             </p>
           </div>
@@ -273,12 +268,10 @@ const uploadDocsOpen = ref(false);
           </div>
         </div>
 
-        <!-- ─────────────────────────────────────────────────
-             Panel 4: Fahrzeug Daten  (160px)
-             Each field: label on line 1 (grey), value on line 2 (dark)
-        ───────────────────────────────────────────────── -->
+        
+          <!-- Panel 4: Fahrzeug Daten   -->
         <div
-          class="relative flex w-40 shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white"
+          class="relative flex w-47.5 shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white"
           style="border-color: #ececec"
         >
           <button
@@ -287,11 +280,11 @@ const uploadDocsOpen = ref(false);
           >
             <Icon
               icon="mdi:pencil-outline"
-              class="size-4 shrink-0"
+              class="size-5 shrink-0"
               style="color: #01b990"
             />
           </button>
-          <div class="px-5 py-5">
+          <div class="px-5 py-8">
             <p class="text-[16px] font-bold" style="color: #2e3e3f">
               Fahrzeug Daten
             </p>
@@ -299,7 +292,7 @@ const uploadDocsOpen = ref(false);
 
           <div class="flex flex-col gap-4 px-5 pb-5">
             <div class="flex flex-col">
-              <span class="text-[14px]" style="color: #b7c2c2"
+              <span class="text-[14px] text-custom-black"
                 >Kennzeichen:</span
               >
               <span class="text-[14px] font-medium" style="color: #2e3e3f">{{
@@ -307,13 +300,13 @@ const uploadDocsOpen = ref(false);
               }}</span>
             </div>
             <div class="flex flex-col">
-              <span class="text-[14px]" style="color: #b7c2c2">Modell:</span>
+              <span class="text-[14px] text-custom-black" >Modell:</span>
               <span class="text-[14px] font-medium" style="color: #2e3e3f"
                 >{{ vehicle.brand }} {{ vehicle.model }}</span
               >
             </div>
             <div class="flex flex-col">
-              <span class="text-[14px]" style="color: #b7c2c2"
+              <span class="text-[14px] text-custom-black"
                 >Kilometerstand:</span
               >
               <span class="text-[14px] font-medium" style="color: #2e3e3f">{{
@@ -321,7 +314,7 @@ const uploadDocsOpen = ref(false);
               }}</span>
             </div>
             <div class="flex flex-col">
-              <span class="text-[14px]" style="color: #b7c2c2"
+              <span class="text-[14px] text-custom-black"
                 >Leasinggeber:</span
               >
               <span class="text-[14px] font-medium" style="color: #2e3e3f">{{
@@ -329,7 +322,7 @@ const uploadDocsOpen = ref(false);
               }}</span>
             </div>
             <div class="flex min-w-0 flex-col">
-              <span class="wrap-break-word text-[14px]" style="color: #b7c2c2"
+              <span class="wrap-break-word text-[14px] text-custom-black"
                 >Leasing Abgabetermin:</span
               >
               <span class="text-[14px] font-medium" style="color: #2e3e3f">{{
@@ -339,9 +332,8 @@ const uploadDocsOpen = ref(false);
           </div>
         </div>
 
-        <!-- ─────────────────────────────────────────────────
-             Panel 5: Zugewiesen an  (200px, flex-1)
-        ───────────────────────────────────────────────── -->
+        
+        <!-- Panel 5: Zugewiesen an   -->
         <div
           class="relative flex min-w-50 flex-1 flex-col rounded-[5px] border bg-white"
           style="border-color: #ececec"
@@ -352,11 +344,11 @@ const uploadDocsOpen = ref(false);
           >
             <Icon
               icon="mdi:pencil-outline"
-              class="size-4 shrink-0"
+              class="size-5 shrink-0"
               style="color: #01b990"
             />
           </button>
-          <div class="px-6 py-5">
+          <div class="px-6 py-7">
             <p class="text-[16px] font-bold" style="color: #2e3e3f">
               Zugewiesen an
             </p>
