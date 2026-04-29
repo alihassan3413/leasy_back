@@ -96,6 +96,44 @@ export interface AppError {
 // VEHICLE
 // ─────────────────────────────────────────────
 
+export interface VehicleStatusResponse {
+  vehicle_id: string;
+  license_plate: string;
+  first_registration_date: string;
+  leasing_end_date: string;
+  vin: string;
+  make: string;
+  model: string;
+  vehicle_belongs: string;
+  created_at: string;
+  updated_at: string;
+  orders: Array<{
+    id: string;
+    auftragsnummer: string;
+    leasyback_partner: string;
+    request_payload: {
+      besichtigungsort?: {
+        name: string;
+        strasse: string;
+        plz: string;
+        ort: string;
+        termin: string;
+        land: string;
+      };
+      ansprechpartner?: {
+        name: string;
+        email: string;
+        telefon: string;
+      };
+    };
+    status_updates: Array<{
+      id: string;
+      created_at: string;
+      bewertung_id?: string;
+    }>;
+  }>;
+}
+
 export interface Vehicle {
   id: string;
   licensePlate: string; // German format: e.g. "M-AB 1234"
@@ -156,6 +194,44 @@ export interface Appointment {
   date: string; // ISO date string
   timeSlot: string; // e.g. "09:00"
   status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+}
+
+// ─────────────────────────────────────────────
+// B2C PROFILE API TYPES
+// ─────────────────────────────────────────────
+
+export interface B2CProfileAddress {
+  street: string;
+  number: string;
+  additional_address?: string;
+  zip_code: string;
+  city: string;
+  country: string;
+  longitude?: number;
+  latitude?: number;
+}
+
+export interface B2CProfileContact {
+  salutation: string;
+  first_name: string;
+  last_name: string;
+}
+
+export interface B2CPhone {
+  international_prefix: string;
+  phone_number: string;
+}
+
+export interface B2CProfileCreatePayload {
+  address: B2CProfileAddress;
+  contact: B2CProfileContact;
+  phones: B2CPhone[];
+}
+
+export interface B2CProfileCreateResponse {
+  address_id: string;
+  contact_id: string;
+  status: "created";
 }
 
 // ─────────────────────────────────────────────

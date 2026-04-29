@@ -1,4 +1,4 @@
-export type InputType = 'text' | 'email' | 'password' | 'number' | 'tel'
+export type InputType = 'text' | 'email' | 'password' | 'number' | 'tel' | 'date'
 
 export interface TextInputProps {
   modelValue?: string

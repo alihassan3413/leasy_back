@@ -46,15 +46,14 @@ const iconClasses = computed(() => [
           <Icon
             icon="solar:play-bold"
             class="size-6 text-custom-green"
-            
           />
         </button>
 
         <!-- Notification badge — only when vehicle has notifications -->
         <div
           v-if="vehicle.notifications"
-          class="flex size-[19px] items-center justify-center rounded-full text-[13px] font-bold text-white"
-          style="background-color:#EF8450"
+          class="flex size-[19px] items-center justify-center rounded-full bg-custom-orange text-[13px] font-bold text-white"
+          
         >
           {{ vehicle.notifications }}
         </div>

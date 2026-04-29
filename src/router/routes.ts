@@ -95,6 +95,13 @@ export const routes: RouteRecordRaw[] = [
       roles: ['WORKSHOP']
     },
   },
-  
+
+  {
+    path: "/register/b2c",
+    name: "b2c-register",
+    component: () => import("@/views/auth/B2CRegistrationView.vue"),
+    meta: { title: "B2C Registrierung", requiresAuth: true },
+  },
+
   { path: "/:pathMatch(.*)*", redirect: "/" },
 ];

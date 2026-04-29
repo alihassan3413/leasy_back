@@ -38,6 +38,8 @@ const { value: password, errorMessage: passwordError } = useField<string>('passw
 const showSuccess = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
+  authStore.error = ''
+
   const payload: RegisterPayload = {
     user_email: values.email,
     password: values.password,
@@ -46,13 +48,12 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     await authStore.register(payload)
+    // All roles (including Privatkunde) just create the account here and show success.
+    // The B2C return-process wizard at /register/b2c is entered separately from the homepage CTA,
+    // not from this page.
     showSuccess.value = true
   } catch (err) {
-    const apiError = err as {
-      message: string
-      errors?: Record<string, string[]>
-    }
-
+    const apiError = err as { message: string; errors?: Record<string, string[]> }
     if (apiError.errors) {
       setErrors({
         role: apiError.errors.user_type?.[0],

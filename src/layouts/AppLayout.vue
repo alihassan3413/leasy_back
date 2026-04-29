@@ -51,14 +51,11 @@ const sidebarOpen = ref(false)
     </header>
 
     <!-- Body: sidebar + main -->
-    <div class="flex flex-1 overflow-hidden">
-      <AppSidebar
-        :open="sidebarOpen"
-        @toggle="sidebarOpen = !sidebarOpen"
-      />
+    <div class="flex flex-1 overflow-hidden relative">
+      <AppSidebar/>
 
       <!-- Main content -->
-      <main class="flex-1 overflow-y-auto bg-white p-6 overflow-hidden max-w-7xl mx-auto">
+      <main class="flex-1 overflow-y-auto bg-white p-6 overflow-hidden pl-[140px]">
         <RouterView />
       </main>
     </div>
