@@ -271,7 +271,7 @@ const uploadDocsOpen = ref(false);
         
           <!-- Panel 4: Fahrzeug Daten   -->
         <div
-          class="relative flex w-47.5 shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white"
+          class="relative flex w-47.5 xl:w-60.5 shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white"
           style="border-color: #ececec"
         >
           <button
@@ -335,7 +335,7 @@ const uploadDocsOpen = ref(false);
         
         <!-- Panel 5: Zugewiesen an   -->
         <div
-          class="relative flex min-w-50 flex-1 flex-col rounded-[5px] border bg-white"
+          class="relative flex min-w-50 max-w-80 flex-1 flex-col rounded-[5px] border bg-white"
           style="border-color: #ececec"
         >
           <button
