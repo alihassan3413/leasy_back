@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch } from "vue";
+import { ref, watch } from "vue";
 import { useForm } from "vee-validate";
 import { Icon } from "@iconify/vue";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
@@ -7,8 +7,14 @@ import FormSelectField from "@/components/ui/form/FormSelectField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import profileImage from "../../../assets/logo/B2bProfile-img.svg";
 import { useB2CStore } from "@/stores/b2c.store";
+import type { B2CProfileUpdatePayload } from "@/types";
 
 const b2cStore = useB2CStore();
+const isEditMode = ref(false);
+
+onMounted(async () => {
+  await b2cStore.fetchProfile();
+});
 
 const anredeOptions = [
   { label: "Herr", value: "Herr" },
@@ -16,16 +22,18 @@ const anredeOptions = [
   { label: "Divers", value: "Divers" },
 ];
 
-const { handleSubmit, resetForm } = useForm({
+const { handleSubmit, resetForm, isSubmitting } = useForm({
   initialValues: {
     anrede: "",
     vorname: "",
     nachname: "",
-    "address.strasse": "",
-    "address.nr": "",
-    "address.zusaetzlicheAnschrift": "",
-    "address.plz": "",
-    "address.ort": "",
+    address: {
+      strasse: "",
+      nr: "",
+      zusaetzlicheAnschrift: "",
+      plz: "",
+      ort: "",
+    },
   },
 });
 
@@ -38,11 +46,13 @@ watch(
           anrede: profile.contact.salutation,
           vorname: profile.contact.first_name,
           nachname: profile.contact.last_name,
-          addressStreet: profile.address.street,
-          addressNumber: profile.address.number,
-          addressAdditionalAddress: profile.address.additional_address || "",
-          addressZipCode: profile.address.zip_code,
-          addressCity: profile.address.city,
+          address: {
+            strasse: profile.address.street,
+            nr: profile.address.number,
+            zusaetzlicheAnschrift: profile.address.additional_address || "",
+            plz: profile.address.zip_code,
+            ort: profile.address.city,
+          },
         },
       });
     }
@@ -50,10 +60,61 @@ watch(
   { immediate: true },
 );
 
-const onSubmit = handleSubmit((values) => {
-  console.log("Form submitted:", values);
-  // Add save logic here when needed
+const onSubmit = handleSubmit(async (values) => {
+  if (!b2cStore.profile) return;
+
+  const payload: B2CProfileUpdatePayload = {
+    address_id: b2cStore.profile.address.address_id,
+    contact_id: b2cStore.profile.contact.contact_id,
+    address: {
+      street: values.address.strasse,
+      number: values.address.nr,
+      additional_address: values.address.zusaetzlicheAnschrift,
+      zip_code: values.address.plz,
+      city: values.address.ort,
+      country: b2cStore.profile.address.country,
+      longitude: b2cStore.profile.address.longitude,
+      latitude: b2cStore.profile.address.latitude,
+    },
+    contact: {
+      salutation: values.anrede,
+      first_name: values.vorname,
+      last_name: values.nachname,
+    },
+    phones: b2cStore.profile.phones || [],
+  };
+
+  try {
+    await b2cStore.updateProfile(payload);
+    isEditMode.value = false;
+  } catch (err) {
+    console.error("Failed to update profile:", err);
+  }
 });
+
+const toggleEditMode = () => {
+  if (isEditMode.value) {
+    // If cancelling, reset form to current profile values
+    if (b2cStore.profile) {
+      resetForm({
+        values: {
+          anrede: b2cStore.profile.contact.salutation,
+          vorname: b2cStore.profile.contact.first_name,
+          nachname: b2cStore.profile.contact.last_name,
+          address: {
+            strasse: b2cStore.profile.address.street,
+            nr: b2cStore.profile.address.number,
+            zusaetzlicheAnschrift:
+              b2cStore.profile.address.additional_address || "",
+            plz: b2cStore.profile.address.zip_code,
+            ort: b2cStore.profile.address.city,
+          },
+        },
+      });
+    }
+  }
+  isEditMode.value = !isEditMode.value;
+};
 </script>
 
 <template>
@@ -65,9 +126,13 @@ const onSubmit = handleSubmit((values) => {
       <h2 class="text-xl font-bold text-color-primary">Kontodaten</h2>
       <button
         type="button"
+        @click="toggleEditMode"
         class="text-custom-green transition-opacity hover:opacity-70"
       >
-        <Icon icon="mdi:pencil-outline" class="size-6" />
+        <Icon
+          :icon="isEditMode ? 'mdi:close' : 'mdi:pencil-outline'"
+          class="size-6"
+        />
       </button>
     </div>
 
@@ -84,6 +149,7 @@ const onSubmit = handleSubmit((values) => {
             <!-- <Icon v-else icon="mdi:account" class="size-16 text-green-gray" /> -->
           </div>
           <span
+            v-if="isEditMode"
             class="text-base whitespace-nowrap font-normal text-custom-black"
             >Profilbild ändern</span
           >
@@ -98,18 +164,21 @@ const onSubmit = handleSubmit((values) => {
             placeholder="Anrede"
             :options="anredeOptions"
             width="w-[128px]"
+            :disabled="!isEditMode"
           />
           <FormTextField
             name="vorname"
             label="Vorname"
             placeholder="Vorname"
             class="w-full max-w-95"
+            :disabled="!isEditMode"
           />
           <FormTextField
             name="nachname"
             label="Nachname"
             placeholder="Nachname"
             class="w-full max-w-95"
+            :disabled="!isEditMode"
           />
         </div>
       </div>
@@ -128,16 +197,18 @@ const onSubmit = handleSubmit((values) => {
           >
             <!-- Row 1: Straße & Nr -->
             <FormTextField
-              name="addressStreet"
+              name="address.strasse"
               label="Straße"
               placeholder="Straße"
               class="w-95"
+              :disabled="!isEditMode"
             />
             <FormTextField
-              name="addressNumber"
+              name="address.nr"
               label="Nr."
               placeholder="Nr."
               class="w-44.5"
+              :disabled="!isEditMode"
             />
 
             <!-- Row 2: Zusätzliche Anschrift & PLZ -->
@@ -146,20 +217,23 @@ const onSubmit = handleSubmit((values) => {
               label="Zusätzliche Anschrift"
               placeholder="Adresszusatz"
               class="w-95"
+              :disabled="!isEditMode"
             />
             <FormTextField
-              name="addressZipCode"
+              name="address.plz"
               label="PLZ"
               placeholder="PLZ"
               class="w-44.5"
+              :disabled="!isEditMode"
             />
 
             <!-- Row 3: Ort & Land -->
             <FormTextField
-              name="addressCity"
+              name="address.ort"
               label="Ort"
               placeholder="Ort"
               class="w-95"
+              :disabled="!isEditMode"
             />
             <div class="flex flex-col">
               <span class="mb-1.5 text-sm font-bold text-black">Land</span>
@@ -188,13 +262,13 @@ const onSubmit = handleSubmit((values) => {
       </div>
 
       <!-- Save Button -->
-      <div class="flex justify-end mb-7.5">
+      <div v-if="isEditMode" class="flex justify-end mb-7.5">
         <Button
           type="submit"
           class="h-8.5 rounded-[5px] bg-custom-green text-sm font-bold text-white transition-all hover:bg-[#019d7a] w-37.5"
+          :disabled="isSubmitting"
         >
-          Speichern
-          <!-- {{ isSubmitting ? "Wird gespeichert..." : "Speichern" }} -->
+          {{ isSubmitting ? "Wird gespeichert..." : "Speichern" }}
         </Button>
       </div>
     </form>

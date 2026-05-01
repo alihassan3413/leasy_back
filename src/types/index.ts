@@ -243,6 +243,17 @@ export interface B2CProfileCreateResponse {
   status: "created";
 }
 
+export interface B2CProfileUpdatePayload extends B2CProfileCreatePayload {
+  address_id: string;
+  contact_id: string;
+}
+
+export interface B2CProfileUpdateResponse {
+  address_id: string;
+  contact_id: string;
+  status: "updated";
+}
+
 export interface B2CUserProfileResponse {
   user_id: string;
   email: string;
