@@ -1,8 +1,15 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
+import { useB2CStore } from "@/stores/b2c.store";
 import AccountDetail from "@/components/account/b2c/AccountDetail.vue";
 import ContactPerson from "@/components/account/b2c/ContactPerson.vue";
 import ManagePassword from "@/components/account/b2c/ManagePassword.vue";
 import DeleteAccount from "@/components/account/b2c/DeleteAccount.vue";
+
+const b2cStore = useB2CStore();
+onMounted(async () => {
+  await b2cStore.fetchProfile();
+});
 </script>
 
 <template>
