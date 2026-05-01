@@ -6,6 +6,9 @@ export function registerGuards(router: Router): void {
     // Guards run inside the router context so Pinia is already active here.
     const auth = useAuthStore()
 
+    // Clear any previous error messages when navigating to a new page.
+    auth.clearError()
+
     // Already authenticated users don't need the login/register pages.
     if (to.meta.guestOnly && auth.isAuthenticated) {
 

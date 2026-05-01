@@ -38,8 +38,6 @@ const { value: password, errorMessage: passwordError } = useField<string>('passw
 const showSuccess = ref(false)
 
 const onSubmit = handleSubmit(async (values) => {
-  authStore.error = ''
-
   const payload: RegisterPayload = {
     user_email: values.email,
     password: values.password,
