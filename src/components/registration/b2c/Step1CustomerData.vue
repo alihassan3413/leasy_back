@@ -6,6 +6,9 @@ import Button from '@/components/ui/Button.vue'
 import { customerDataSchema } from '@/validations/b2c/customerData.schema'
 import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'
 import type { CustomerData } from '@/stores/b2cRegistration.store'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 defineProps<{ loading?: boolean }>()
 const emit = defineEmits<{ next: [] }>()
@@ -33,12 +36,20 @@ const onSubmit = handleSubmit((values) => {
   Object.assign(store.customerData, values)
   emit('next')
 })
+
+function goToArmaturenbrett() {
+  router.push({ name: 'dashboard' })
+}
 </script>
 
 <template>
   <div class="w-full rounded-[10px] bg-white px-6 py-5 shadow-[0_4px_4px_rgba(0,0,0,0.25)] md:px-8 md:py-6">
     <!-- Inner card header -->
-    <h2 class="text-[20px] font-bold text-primary">Kundendaten</h2>
+     <div class="flex justify-between items-center">
+      <h2 class="text-[20px] font-bold text-primary">Kundendaten</h2>
+      <Button type="primary" class="mt-2" @click="goToArmaturenbrett">Armaturenbrett</Button>
+    </div>
+
     <div class="mt-2 mb-3 h-px w-full bg-green-gray" />
 
     <form novalidate @submit.prevent="onSubmit" class="space-y-2">
