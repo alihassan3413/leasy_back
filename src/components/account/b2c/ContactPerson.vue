@@ -1,6 +1,12 @@
 <script setup lang="ts">
+import { watch } from "vue";
+import { useForm } from "vee-validate";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import FormSelectField from "@/components/ui/form/FormSelectField.vue";
+import Button from "@/components/ui/button/Button.vue";
+import { useB2CStore } from "@/stores/b2c.store";
+
+const b2cStore = useB2CStore();
 
 // Options
 const anredeOptions = [
@@ -9,11 +15,33 @@ const anredeOptions = [
   { label: "Divers", value: "Divers" },
 ];
 
-const prefixOptions = [
-  { label: "Deutschland + (49)", value: "+49" },
-  { label: "Österreich + (43)", value: "+43" },
-  { label: "Schweiz + (41)", value: "+41" },
-];
+const { handleSubmit, resetForm, isSubmitting } = useForm({
+  initialValues: {
+    anrede: "",
+    vorname: "",
+    nachname: "",
+  },
+});
+
+watch(
+  () => b2cStore.profile,
+  (profile) => {
+    if (profile) {
+      resetForm({
+        values: {
+          anrede: profile.contact.salutation,
+          vorname: profile.contact.first_name,
+          nachname: profile.contact.last_name,
+        },
+      });
+    }
+  },
+  { immediate: true },
+);
+
+const onSubmit = handleSubmit((values) => {
+  console.log("Contact form submitted:", values);
+});
 </script>
 
 <template>
@@ -25,27 +53,27 @@ const prefixOptions = [
       </h2>
     </div>
 
-    <div class="flex space-y-4">
+    <form @submit.prevent="onSubmit" class="flex space-y-4">
       <!-- First Row: Salutation and Name -->
       <div class="flex w-full gap-7.5">
         <div class="flex w-full gap-7.5">
-            <FormSelectField
-              name="anrede"
-              label="Anrede"
-              :options="anredeOptions"
-              placeholder="Anrede"
-              width="w-[128px]"
-            />
+          <FormSelectField
+            name="anrede"
+            label="Anrede"
+            :options="anredeOptions"
+            placeholder="Anrede"
+            width="w-[128px]"
+          />
           <FormTextField
             name="vorname"
             label="Vorname"
-            placeholder=""
+            placeholder="Vorname"
             class="w-full max-w-90"
           />
           <FormTextField
             name="nachname"
             label="Nachname"
-            placeholder=""
+            placeholder="Nachname"
             class="w-full max-w-90"
           />
         </div>
@@ -61,6 +89,6 @@ const prefixOptions = [
           </Button>
         </div>
       </div>
-    </div>
+    </form>
   </div>
 </template>
