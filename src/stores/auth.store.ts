@@ -24,12 +24,17 @@ export const useAuthStore = defineStore(
     const isAuthenticated = computed(() => Boolean(accessToken.value))
     const userRole = computed( () => user.value?.role)
 
-    function resetState(): void {
+   function resetState(): void {
       accessToken.value = null
       user.value = null
       status.value = 'idle'
       error.value = ''
     }
+
+    function clearError(): void {
+      error.value = ''
+      status.value = 'idle'
+       }
 
     function setSession(payload: AuthResponse): void {
       user.value = payload.user
@@ -100,6 +105,7 @@ export const useAuthStore = defineStore(
       login,
       register,
       logout,
+      clearError,
       initAuthClient,
       resetState,
       setSession,
