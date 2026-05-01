@@ -54,7 +54,7 @@ export const routes: RouteRecordRaw[] = [
         path: "/dashboard-b2b",
         name: "dashboard-b2b",
         component: () => import("@/views/DashboardB2B.vue"),
-        meta: {title: "B2B Dashboard"}
+        meta: { title: "B2B Dashboard" },
       },
       {
         path: "b2c",
@@ -89,10 +89,10 @@ export const routes: RouteRecordRaw[] = [
     path: "/register/workshop",
     name: "register-workshop",
     component: () => import("@/views/auth/RegisterWorkshopView.vue"),
-    meta: { 
+    meta: {
       title: "Workshop registration",
       requiresAuth: true,
-      roles: ['WORKSHOP']
+      roles: ["WORKSHOP"],
     },
   },
 
@@ -100,7 +100,11 @@ export const routes: RouteRecordRaw[] = [
     path: "/register/b2c",
     name: "b2c-register",
     component: () => import("@/views/auth/B2CRegistrationView.vue"),
-    meta: { title: "B2C Registrierung", requiresAuth: true },
+    meta: {
+      title: "B2C Registrierung",
+      requiresAuth: true,
+      roles: ["B2C"],
+    },
   },
 
   { path: "/:pathMatch(.*)*", redirect: "/" },

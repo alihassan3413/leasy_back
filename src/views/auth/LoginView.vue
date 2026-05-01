@@ -37,6 +37,8 @@ const onSubmit = handleSubmit(async (values) => {
       router.push({ name: "register-company" });
     } else if (authStore.userRole === "WORKSHOP") {
       router.push({ name: "register-workshop" });
+    } else if (authStore.userRole === "B2C") {
+      router.push({ name: "b2c-register" });
     } else {
       router.push({ name: "dashboard" });
     }
