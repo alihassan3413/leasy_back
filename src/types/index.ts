@@ -125,6 +125,10 @@ export interface VehicleStatusResponse {
         email: string;
         telefon: string;
       };
+      benachrichtigung?: {
+        gutachten?: unknown[]
+        terminbestätigung?: unknown[]
+      };
     };
     status_updates: Array<{
       id: string;
