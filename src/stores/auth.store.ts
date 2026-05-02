@@ -7,7 +7,6 @@ import type {
   AuthResponse,
   LoginPayload,
   RegisterPayload,
-  RegisterResponse,
 } from '@/types'
 
 type AuthStatus = 'idle' | 'loading' | 'success' | 'error'
@@ -22,9 +21,9 @@ export const useAuthStore = defineStore(
     const error = ref('')
 
     const isAuthenticated = computed(() => Boolean(accessToken.value))
-    const userRole = computed( () => user.value?.role)
+    const userRole = computed(() => user.value?.role)
 
-   function resetState(): void {
+    function resetState(): void {
       accessToken.value = null
       user.value = null
       status.value = 'idle'
@@ -34,11 +33,11 @@ export const useAuthStore = defineStore(
     function clearError(): void {
       error.value = ''
       status.value = 'idle'
-       }
+    }
 
     function setSession(payload: AuthResponse): void {
       user.value = payload.user
-      accessToken.value = payload.tokens.accessToken 
+      accessToken.value = payload.tokens.accessToken
     }
 
     function setError(apiError: ApiError): never {
@@ -51,7 +50,7 @@ export const useAuthStore = defineStore(
       } else if (apiError.status === 0) {
         error.value = 'Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.'
       } else {
-        error.value = 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.'
+        error.value = 'Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.'
       }
 
       throw apiError
@@ -63,22 +62,34 @@ export const useAuthStore = defineStore(
 
       try {
         const response = await authApi.login(payload)
+
         setSession(response)
+
         status.value = 'success'
+
         return response
       } catch (err) {
         return setError(normalizeApiError(err))
       }
     }
 
-    async function register(payload: RegisterPayload): Promise<RegisterResponse> {
+    async function register(payload: RegisterPayload): Promise<AuthResponse> {
       status.value = 'loading'
       error.value = ''
 
       try {
-        const response = await authApi.register(payload)
+        await authApi.register(payload)
+
+        const loginResponse = await authApi.login({
+          user_email: payload.user_email,
+          password: payload.password,
+        })
+
+        setSession(loginResponse)
+
         status.value = 'success'
-        return response
+
+        return loginResponse
       } catch (err) {
         return setError(normalizeApiError(err))
       }

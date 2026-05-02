@@ -38,7 +38,7 @@ export interface AuthResponse {
 export type RegisterUserType =
   | "Privatkunde"
   | "Firmenkunde"
-  | "Werksatatt"
+  | "Werkstatt"
   | "Admin";
 
 export interface LoginPayload {

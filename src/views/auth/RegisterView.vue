@@ -9,6 +9,7 @@ import TextInput from '@/components/ui/form/TextInput.vue'
 import { registerSchema } from '@/validations/auth/register.schema'
 import { useAuthStore } from '@/stores/auth.store'
 import type { RegisterPayload, RegisterUserType } from '@/types'
+import { getOnBoardingRouteName } from '@/utils/onboarding'
 
 const authStore = useAuthStore()
 const { status, error } = storeToRefs(authStore)
@@ -45,11 +46,12 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
-    await authStore.register(payload)
-    // All roles (including Privatkunde) just create the account here and show success.
-    // The B2C return-process wizard at /register/b2c is entered separately from the homepage CTA,
-    // not from this page.
-    showSuccess.value = true
+    const response = await authStore.register(payload)
+
+    router.push({
+      name: getOnBoardingRouteName(response.user.role),
+    })
+
   } catch (err) {
     const apiError = err as { message: string; errors?: Record<string, string[]> }
     if (apiError.errors) {

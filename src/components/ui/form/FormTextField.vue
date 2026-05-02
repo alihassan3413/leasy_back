@@ -14,17 +14,18 @@ const props = withDefaults(defineProps<{
   required: false,
 })
 
-const { value, errorMessage, meta } = useField<string>(() => props.name)
+const { value, errorMessage, meta, handleChange } = useField<string>(() => props.name)
 </script>
 
 <template>
   <Input
-    v-model="value"
+    :model-value="value"
     :label="label"
     :placeholder="placeholder"
     :type="type"
     :required="required"
     :error="meta.touched ? errorMessage : ''"
     class="w-full"
+    @update:model-value="handleChange"
   />
 </template>

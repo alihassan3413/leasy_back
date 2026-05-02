@@ -39,16 +39,8 @@ export interface PaymentData {
   uhrzeit: string
 }
 
-export const useB2CRegistrationStore = defineStore('b2cRegistration', () => {
-  const currentStep = ref(1)
-  const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const error = ref('')
-
-  // IDs returned by the API after profile creation
-  const addressId = ref<string | null>(null)
-  const contactId = ref<string | null>(null)
-
-  const customerData = ref<CustomerData>({
+function getDefaultCustomerData(): CustomerData {
+  return {
     anrede: '',
     vorname: '',
     nachname: '',
@@ -59,9 +51,11 @@ export const useB2CRegistrationStore = defineStore('b2cRegistration', () => {
     plz: '',
     ort: '',
     land: 'Deutschland',
-  })
+  }
+}
 
-  const vehicleData = ref<VehicleData>({
+function getDefaultVehicleData(): VehicleData {
+  return {
     marke: '',
     modell: '',
     fin: '',
@@ -70,33 +64,59 @@ export const useB2CRegistrationStore = defineStore('b2cRegistration', () => {
     kennzeichenCity: '',
     kennzeichenLetters: '',
     kennzeichenNumbers: '',
-  })
+  }
+}
 
-  const appointmentData = ref<AppointmentData>({
+function getDefaultAppointmentData(): AppointmentData {
+  return {
     stadt: '',
     datum: '',
     uhrzeit: '',
-  })
+  }
+}
 
-  const paymentData = ref<PaymentData>({
+function getDefaultPaymentData(): PaymentData {
+  return {
     datum: '',
     uhrzeit: '',
-  })
+  }
+}
 
-  function nextStep() {
-    if (currentStep.value < 4) currentStep.value++
+export const useB2CRegistrationStore = defineStore('b2cRegistration', () => {
+  const currentStep = ref(1)
+  const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const error = ref('')
+
+  const addressId = ref<string | null>(null)
+  const contactId = ref<string | null>(null)
+
+  const customerData = ref<CustomerData>(getDefaultCustomerData())
+  const vehicleData = ref<VehicleData>(getDefaultVehicleData())
+  const appointmentData = ref<AppointmentData>(getDefaultAppointmentData())
+  const paymentData = ref<PaymentData>(getDefaultPaymentData())
+
+  function nextStep(): void {
+    if (currentStep.value < 4) {
+      currentStep.value += 1
+    }
   }
 
-  function prevStep() {
-    if (currentStep.value > 1) currentStep.value--
+  function prevStep(): void {
+    if (currentStep.value > 1) {
+      currentStep.value -= 1
+    }
   }
 
-  function goToStep(step: number) {
+  function goToStep(step: number): void {
     currentStep.value = step
   }
 
-  // POST /userprofile/address-contact — requires JWT (set after auto-login in RegisterView)
   async function submitProfile(): Promise<void> {
+    if (addressId.value && contactId.value) {
+      nextStep()
+      return
+    }
+
     status.value = 'loading'
     error.value = ''
 
@@ -119,54 +139,58 @@ export const useB2CRegistrationStore = defineStore('b2cRegistration', () => {
 
     try {
       const response = await b2cApi.createProfile(payload)
+
       addressId.value = response.address_id
       contactId.value = response.contact_id
       status.value = 'success'
+
       nextStep()
     } catch (err) {
       const apiError = normalizeApiError(err)
+
       status.value = 'error'
 
       if (apiError.status === 401) {
         error.value = 'Sitzung abgelaufen. Bitte registrieren Sie sich erneut.'
+      } else if (apiError.status === 422) {
+        error.value = apiError.message || 'Bitte überprüfen Sie Ihre Eingaben.'
+      } else if (apiError.status === 500) {
+        error.value = 'Diese E-Mail-Adresse wurde bereits verwendet.'
       } else if (apiError.status === 0 || !apiError.status) {
         error.value = 'Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.'
       } else {
-        error.value = apiError.message || 'Profil konnte nicht erstellt werden. Bitte versuchen Sie es erneut.'
+        error.value =
+          apiError.message ||
+          'Profil konnte nicht erstellt werden. Bitte versuchen Sie es erneut.'
       }
     }
   }
 
-  function reset() {
-    currentStep.value = 1
+  function resetStatus(): void {
+    status.value = 'idle'
+    error.value = ''
+  }
+
+  function resetRegistrationData(): void {
     status.value = 'idle'
     error.value = ''
     addressId.value = null
     contactId.value = null
-    customerData.value = {
-      anrede: '',
-      vorname: '',
-      nachname: '',
-      email: '',
-      strasse: '',
-      hausnummer: '',
-      zusatz: '',
-      plz: '',
-      ort: '',
-      land: 'Deutschland',
-    }
-    vehicleData.value = {
-      marke: '',
-      modell: '',
-      fin: '',
-      erstzulassungsdatum: '',
-      leasingende: '',
-      kennzeichenCity: '',
-      kennzeichenLetters: '',
-      kennzeichenNumbers: '',
-    }
-    appointmentData.value = { stadt: '', datum: '', uhrzeit: '' }
-    paymentData.value = { datum: '', uhrzeit: '' }
+    customerData.value = getDefaultCustomerData()
+    vehicleData.value = getDefaultVehicleData()
+    appointmentData.value = getDefaultAppointmentData()
+    paymentData.value = getDefaultPaymentData()
+  }
+
+  function reset(): void {
+    currentStep.value = 1
+    resetRegistrationData()
+  }
+
+  function resetProgress(): void {
+    currentStep.value = 1
+    status.value = 'idle'
+    error.value = ''
   }
 
   return {
@@ -183,6 +207,9 @@ export const useB2CRegistrationStore = defineStore('b2cRegistration', () => {
     prevStep,
     goToStep,
     submitProfile,
+    resetStatus,
+    resetRegistrationData,
     reset,
+    resetProgress,
   }
 })

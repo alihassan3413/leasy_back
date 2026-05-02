@@ -28,18 +28,18 @@ const inputClasses = computed(() =>
   <div class="flex flex-col gap-0.5 w-full">
     <Label v-if="label" :for="id" class="text-sm font-bold text-black leading-normal not-italic">
       {{ label }}
-      <span v-if="required" class="text-custom-orange text-sm font-bold leading-normal not-italic ">*</span>
+      <span v-if="required" class="text-custom-orange text-sm font-bold leading-normal not-italic">*</span>
     </Label>
     <Input
       :id="id"
       :type="type"
       :placeholder="placeholder"
       :disabled="disabled"
-      :value="modelValue"
+      :model-value="modelValue"
       :class="inputClasses"
-      @update:model-value="emit('update:modelValue' , $event)"
+      @update:model-value="emit('update:modelValue', $event)"
     />
-    <span v-if="error" class="text-custom-orange  text-xs mt-1">
+    <span v-if="error" class="text-custom-orange text-xs mt-1">
       {{ error }}
     </span>
   </div>

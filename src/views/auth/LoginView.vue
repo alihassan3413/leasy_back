@@ -33,15 +33,7 @@ const onSubmit = handleSubmit(async (values) => {
   };
   try {
     await authStore.login(payload);
-    if (authStore.userRole === "B2B") {
-      router.push({ name: "register-company" });
-    } else if (authStore.userRole === "WORKSHOP") {
-      router.push({ name: "register-workshop" });
-    } else if (authStore.userRole === "B2C") {
-      router.push({ name: "b2c-register" });
-    } else {
       router.push({ name: "dashboard" });
-    }
   } catch (err) {
     const apiError = err as {
       message: string;
