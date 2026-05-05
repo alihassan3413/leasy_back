@@ -94,3 +94,4 @@ function navigateTo(name: string | null) {
 
   </aside>
 </template>
+ 
