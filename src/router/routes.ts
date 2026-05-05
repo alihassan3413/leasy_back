@@ -106,6 +106,16 @@ export const routes: RouteRecordRaw[] = [
       roles: ["B2C"],
     },
   },
+  {
+    path: "/admin",
+    name: "admin",
+    component: () => import("@/views/admin/AdminPanel.vue"),
+    // meta: {
+    //   title: "Admin Panel",
+    //   requiresAuth: true,
+    //   roles: ["ADMIN"],
+    // },
+  },
 
   { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
