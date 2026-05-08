@@ -126,8 +126,8 @@ export interface VehicleStatusResponse {
         telefon: string;
       };
       benachrichtigung?: {
-        gutachten?: unknown[]
-        terminbestätigung?: unknown[]
+        gutachten?: unknown[];
+        terminbestätigung?: unknown[];
       };
     };
     status_updates: Array<{
@@ -326,6 +326,36 @@ export interface B2BCreateResponse {
   contact_email: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface B2BProfileResponse {
+  b2b: string;
+  company_name: string;
+  logo_url: string | null;
+  contact_email: string;
+  vat_id: string;
+  created_at: string;
+  updated_at: string;
+  contact: {
+    contact_id: string;
+    salutation: string;
+    first_name: string;
+    last_name: string;
+    phone_numbers: {
+      international_prefix: string;
+      phone_number: string;
+      is_primary_contact: boolean;
+    }[];
+  };
+  address: {
+    address_id: string;
+    street: string;
+    number: string;
+    additional_address: string | null;
+    zip_code: string;
+    city: string;
+    country: string;
+  };
 }
 
 // ─────────────────────────────────────────────

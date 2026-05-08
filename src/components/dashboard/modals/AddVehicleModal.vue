@@ -3,6 +3,8 @@ import { ref, watch, computed } from "vue";
 import { Icon } from "@iconify/vue";
 import type { Vehicle } from "../vehicle.types";
 import { useVehicleStore } from "@/stores/vehicle.store";
+import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
+import { useB2BStore } from "@/stores/b2b.store";
 import { useAuthStore } from "@/stores/auth.store";
 
 const props = defineProps<{
@@ -16,19 +18,21 @@ const emit = defineEmits<{
 }>();
 
 const vehicleStore = useVehicleStore();
+const b2bVehicleStore = useB2BVehicleStore();
+const b2bStore = useB2BStore();
 const authStore = useAuthStore();
 
 // ── Form state ──────────────────────────────────────────────────────────────
-const city    = ref('')
-const district = ref('')
-const number  = ref('')
-const marke   = ref('')
-const modell  = ref('')
-const leasingende = ref('')
-const fin     = ref('')
-const rueckgabestart = ref('')
-const status  = ref('')
-const fahrzeugnutzer = ref('')
+const city = ref("");
+const district = ref("");
+const number = ref("");
+const marke = ref("");
+const modell = ref("");
+const leasingende = ref("");
+const fin = ref("");
+const rueckgabestart = ref("");
+const status = ref("");
+const fahrzeugnutzer = ref("");
 
 // Dropdown open states
 const markeOpen = ref(false);
@@ -147,10 +151,13 @@ async function handleSubmit() {
 
   try {
     if (!isEditMode.value) {
-      await vehicleStore.addVehicle(payload);
-      // If we have a user ID, refresh the list
-      if (authStore.user?.id) {
-        await vehicleStore.fetchVehicles(authStore.user.id);
+      if (authStore.user?.role === "B2B") {
+        await b2bVehicleStore.addVehicle(payload);
+      } else {
+        await vehicleStore.addVehicle(payload);
+        if (authStore.user?.id) {
+          await vehicleStore.fetchVehicles(authStore.user.id);
+        }
       }
     } else {
       // Handle edit mode if needed (API not provided yet)
