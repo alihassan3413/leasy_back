@@ -94,6 +94,24 @@ export function registerGuards(router: Router): void {
     ) {
       return landingRouteFor(auth.userRole, onboardingComplete);
     }
+
+    // Dashboard redirection based on role
+    if (to.name === "dashboard" && auth.userRole === "B2B") {
+      return { name: "dashboard-b2b" };
+    }
+
+    if (to.name === "dashboard-b2b" && auth.userRole === "B2C") {
+      return { name: "dashboard" };
+    }
+
+    // Account redirection based on role
+    if (to.name === "b2c-account" && auth.userRole === "B2B") {
+      return { name: "b2b-account" };
+    }
+
+    if (to.name === "b2b-account" && auth.userRole === "B2C") {
+      return { name: "b2c-account" };
+    }
   });
 
   // Keep the browser tab title in sync with the current route.

@@ -126,8 +126,8 @@ export interface VehicleStatusResponse {
         telefon: string;
       };
       benachrichtigung?: {
-        gutachten?: unknown[]
-        terminbestätigung?: unknown[]
+        gutachten?: unknown[];
+        terminbestätigung?: unknown[];
       };
     };
     status_updates: Array<{
@@ -328,6 +328,7 @@ export interface B2BCreateResponse {
   updated_at: string;
 }
 
+<<<<<<< HEAD
 export interface B2BPhoneNumber {
   international_prefix: string;
   phone_number: string;
@@ -335,11 +336,18 @@ export interface B2BPhoneNumber {
 }
 
 export interface B2BProfile {
+=======
+export interface B2BProfileResponse {
+>>>>>>> 48f52ed9f72f5e70ba9370c80a85f526e2accf41
   b2b: string;
   company_name: string;
   logo_url: string | null;
   contact_email: string;
+<<<<<<< HEAD
   vat_id: string | null;
+=======
+  vat_id: string;
+>>>>>>> 48f52ed9f72f5e70ba9370c80a85f526e2accf41
   created_at: string;
   updated_at: string;
   contact: {
@@ -347,7 +355,15 @@ export interface B2BProfile {
     salutation: string;
     first_name: string;
     last_name: string;
+<<<<<<< HEAD
     phone_numbers: B2BPhoneNumber[];
+=======
+    phone_numbers: {
+      international_prefix: string;
+      phone_number: string;
+      is_primary_contact: boolean;
+    }[];
+>>>>>>> 48f52ed9f72f5e70ba9370c80a85f526e2accf41
   };
   address: {
     address_id: string;
@@ -360,6 +376,7 @@ export interface B2BProfile {
   };
 }
 
+<<<<<<< HEAD
 export interface B2BProfileUpdatePayload {
   company_name: string;
   vat_id: string;
@@ -382,6 +399,8 @@ export interface B2BProfileUpdatePayload {
   };
 }
 
+=======
+>>>>>>> 48f52ed9f72f5e70ba9370c80a85f526e2accf41
 // ─────────────────────────────────────────────
 // Workshop Registration
 //
