@@ -51,7 +51,7 @@ async function onFinalSubmit(): Promise<void> {
 function onSuccessOk(): void {
   showSuccess.value = false
   store.reset()
-  void router.push({ name: 'dashboard' })
+  void router.push({ name: 'dashboard-b2c' })
 }
 </script>
 

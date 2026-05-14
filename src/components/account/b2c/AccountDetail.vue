@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useForm } from "vee-validate";
 import { Icon } from "@iconify/vue";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import FormSelectField from "@/components/ui/form/FormSelectField.vue";
 import Button from "@/components/ui/button/Button.vue";
-import profileImage from "../../../assets/logo/B2bProfile-img.svg";
+import profileImage from "@/assets/logo/B2bProfile-img.svg";
 import { useB2CStore } from "@/stores/b2c.store";
 import type { B2CProfileUpdatePayload } from "@/types";
 
 const b2cStore = useB2CStore();
 const isEditMode = ref(false);
+
+const fileInput = ref<HTMLInputElement | null>(null);
+const avatarUrl = ref<string | null>(null);
+const avatarFile = ref<File | null>(null);
 
 onMounted(async () => {
   await b2cStore.fetchProfile();
@@ -22,70 +26,108 @@ const anredeOptions = [
   { label: "Divers", value: "Divers" },
 ];
 
-const { handleSubmit, resetForm, isSubmitting } = useForm({
-  initialValues: {
-    anrede: "",
-    vorname: "",
-    nachname: "",
-    address: {
-      strasse: "",
-      nr: "",
-      zusaetzlicheAnschrift: "",
-      plz: "",
-      ort: "",
+const { handleSubmit, resetForm, setFieldValue, values, isSubmitting } =
+  useForm({
+    initialValues: {
+      anrede: "",
+      vorname: "",
+      nachname: "",
+      address: {
+        strasse: "",
+        nr: "",
+        zusaetzlicheAnschrift: "",
+        plz: "",
+        ort: "",
+        latitude: null as number | null,
+        longitude: null as number | null,
+      },
     },
-  },
-});
+  });
 
 watch(
   () => b2cStore.profile,
   (profile) => {
-    if (profile) {
-      resetForm({
-        values: {
-          anrede: profile.contact.salutation,
-          vorname: profile.contact.first_name,
-          nachname: profile.contact.last_name,
-          address: {
-            strasse: profile.address.street,
-            nr: profile.address.number,
-            zusaetzlicheAnschrift: profile.address.additional_address || "",
-            plz: profile.address.zip_code,
-            ort: profile.address.city,
-          },
+    if (!profile) return;
+    resetForm({
+      values: {
+        anrede: profile.contact.salutation,
+        vorname: profile.contact.first_name,
+        nachname: profile.contact.last_name,
+        address: {
+          strasse: profile.address.street,
+          nr: profile.address.number,
+          zusaetzlicheAnschrift: profile.address.additional_address ?? "",
+          plz: profile.address.zip_code,
+          ort: profile.address.city,
+          latitude: profile.address.latitude,
+          longitude: profile.address.longitude,
         },
-      });
-    }
+      },
+    });
+    avatarUrl.value = profile.contact.avatar_url ?? null;
   },
   { immediate: true },
 );
 
-const onSubmit = handleSubmit(async (values) => {
+const triggerAvatarUpload = () => {
+  if (!isEditMode.value) return;
+  fileInput.value?.click();
+};
+
+const onFileChange = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+  avatarFile.value = file;
+  avatarUrl.value = URL.createObjectURL(file);
+};
+
+type ResolvedAddress = {
+  street?: string;
+  number?: string;
+  zip_code?: string;
+  city?: string;
+  latitude: number;
+  longitude: number;
+};
+
+const onAddressFromMap = (resolved: ResolvedAddress) => {
+  if (!isEditMode.value) return;
+  if (resolved.street) setFieldValue("address.strasse", resolved.street);
+  if (resolved.number) setFieldValue("address.nr", resolved.number);
+  if (resolved.zip_code) setFieldValue("address.plz", resolved.zip_code);
+  if (resolved.city) setFieldValue("address.ort", resolved.city);
+  setFieldValue("address.latitude", resolved.latitude);
+  setFieldValue("address.longitude", resolved.longitude);
+};
+
+const onSubmit = handleSubmit(async (formValues) => {
   if (!b2cStore.profile) return;
 
   const payload: B2CProfileUpdatePayload = {
     address_id: b2cStore.profile.address.address_id,
     contact_id: b2cStore.profile.contact.contact_id,
     address: {
-      street: values.address.strasse,
-      number: values.address.nr,
-      additional_address: values.address.zusaetzlicheAnschrift,
-      zip_code: values.address.plz,
-      city: values.address.ort,
+      street: formValues.address.strasse,
+      number: formValues.address.nr,
+      additional_address: formValues.address.zusaetzlicheAnschrift,
+      zip_code: formValues.address.plz,
+      city: formValues.address.ort,
       country: b2cStore.profile.address.country,
-      longitude: b2cStore.profile.address.longitude,
-      latitude: b2cStore.profile.address.latitude,
+      latitude: formValues.address.latitude,
+      longitude: formValues.address.longitude,
     },
     contact: {
-      salutation: values.anrede,
-      first_name: values.vorname,
-      last_name: values.nachname,
+      salutation: formValues.anrede,
+      first_name: formValues.vorname,
+      last_name: formValues.nachname,
     },
     phones: b2cStore.profile.phones || [],
   };
 
   try {
     await b2cStore.updateProfile(payload);
+    avatarFile.value = null;
     isEditMode.value = false;
   } catch (err) {
     console.error("Failed to update profile:", err);
@@ -93,35 +135,34 @@ const onSubmit = handleSubmit(async (values) => {
 });
 
 const toggleEditMode = () => {
-  if (isEditMode.value) {
-    // If cancelling, reset form to current profile values
-    if (b2cStore.profile) {
-      resetForm({
-        values: {
-          anrede: b2cStore.profile.contact.salutation,
-          vorname: b2cStore.profile.contact.first_name,
-          nachname: b2cStore.profile.contact.last_name,
-          address: {
-            strasse: b2cStore.profile.address.street,
-            nr: b2cStore.profile.address.number,
-            zusaetzlicheAnschrift:
-              b2cStore.profile.address.additional_address || "",
-            plz: b2cStore.profile.address.zip_code,
-            ort: b2cStore.profile.address.city,
-          },
+  if (isEditMode.value && b2cStore.profile) {
+    const profile = b2cStore.profile;
+    resetForm({
+      values: {
+        anrede: profile.contact.salutation,
+        vorname: profile.contact.first_name,
+        nachname: profile.contact.last_name,
+        address: {
+          strasse: profile.address.street,
+          nr: profile.address.number,
+          zusaetzlicheAnschrift: profile.address.additional_address ?? "",
+          plz: profile.address.zip_code,
+          ort: profile.address.city,
+          latitude: profile.address.latitude,
+          longitude: profile.address.longitude,
         },
-      });
-    }
+      },
+    });
+    avatarUrl.value = profile.contact.avatar_url ?? null;
+    avatarFile.value = null;
   }
   isEditMode.value = !isEditMode.value;
 };
 </script>
 
 <template>
-  <div
-    class="w-full rounded-[10px] border border-[#D9E2E2] bg-white px-10 pt-5"
-  >
-    <!-- Header with Pencil Icon -->
+  <div class="w-full rounded-[10px] border border-[#D9E2E2] bg-white px-10 py-6">
+    <!-- Header with Pencil / Close Icon -->
     <div class="mb-6 flex items-center justify-between">
       <h2 class="text-xl font-bold text-color-primary">Kontodaten</h2>
       <button
@@ -137,27 +178,38 @@ const toggleEditMode = () => {
     </div>
 
     <form @submit.prevent="onSubmit" class="space-y-8">
-      <!-- Logo and Company Info Section -->
-      <div class="flex justify-between gap-32 items-end">
-        <!-- Square Logo Upload -->
-        <div class="flex flex-col items-start gap-3">
+      <!-- Avatar + Contact info -->
+      <div class="flex items-end gap-8">
+        <!-- Avatar -->
+        <div class="flex flex-col items-start gap-3 shrink-0">
           <div
-            class="flex size-24 cursor-pointer items-center justify-center overflow-hidden rounded-full"
+            class="flex size-24 items-center justify-center overflow-hidden rounded-full"
+            :class="isEditMode ? 'cursor-pointer' : 'cursor-default'"
+            @click="triggerAvatarUpload"
           >
-            <!-- <img v-if="" :src="logoUrl" class="size-full object-cover" /> -->
-            <img :src="profileImage" class="size-full object-cover" />
-            <!-- <Icon v-else icon="mdi:account" class="size-16 text-green-gray" /> -->
+            <img
+              :src="avatarUrl || profileImage"
+              alt="Profilbild"
+              class="size-full object-cover"
+            />
           </div>
           <span
             v-if="isEditMode"
-            class="text-base whitespace-nowrap font-normal text-custom-black"
-            >Profilbild ändern</span
+            class="whitespace-nowrap text-base font-normal text-custom-black"
           >
-          <input ref="fileInput" type="file" accept="image/*" class="hidden" />
+            Profilbild ändern
+          </span>
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="onFileChange"
+          />
         </div>
 
-        <!-- Company Info Fields -->
-        <div class="flex gap-7.5 w-full">
+        <!-- Contact fields: fill remaining row, never overflow -->
+        <div class="flex flex-1 min-w-0 gap-[30px]">
           <FormSelectField
             name="anrede"
             label="Anrede"
@@ -165,19 +217,20 @@ const toggleEditMode = () => {
             :options="anredeOptions"
             width="w-[128px]"
             :disabled="!isEditMode"
+            class="shrink-0"
           />
           <FormTextField
             name="vorname"
             label="Vorname"
             placeholder="Vorname"
-            class="w-full max-w-95"
+            class="flex-1 min-w-0"
             :disabled="!isEditMode"
           />
           <FormTextField
             name="nachname"
             label="Nachname"
             placeholder="Nachname"
-            class="w-full max-w-95"
+            class="flex-1 min-w-0"
             :disabled="!isEditMode"
           />
         </div>
@@ -190,49 +243,41 @@ const toggleEditMode = () => {
           Karte aus.
         </p>
 
-        <div class="flex justify-between gap-6">
-          <!-- Address Fields -->
+        <div class="flex gap-6">
+          <!-- Address grid: shares the row with the map. min-w-0 so it can shrink. -->
           <div
-            class="grid flex-1 grid-cols-[2fr_1fr] gap-x-7.5 gap-y-3 lg:max-w-137.5"
+            class="grid flex-1 min-w-0 grid-cols-[2fr_1fr] gap-x-[30px] gap-y-3"
           >
-            <!-- Row 1: Straße & Nr -->
             <FormTextField
               name="address.strasse"
               label="Straße"
               placeholder="Straße"
-              class="w-95"
               :disabled="!isEditMode"
             />
             <FormTextField
               name="address.nr"
               label="Nr."
               placeholder="Nr."
-              class="w-44.5"
               :disabled="!isEditMode"
             />
 
-            <!-- Row 2: Zusätzliche Anschrift & PLZ -->
             <FormTextField
               name="address.zusaetzlicheAnschrift"
               label="Zusätzliche Anschrift"
               placeholder="Adresszusatz"
-              class="w-95"
               :disabled="!isEditMode"
             />
             <FormTextField
               name="address.plz"
               label="PLZ"
               placeholder="PLZ"
-              class="w-44.5"
               :disabled="!isEditMode"
             />
 
-            <!-- Row 3: Ort & Land -->
             <FormTextField
               name="address.ort"
               label="Ort"
               placeholder="Ort"
-              class="w-95"
               :disabled="!isEditMode"
             />
             <div class="flex flex-col">
@@ -243,29 +288,25 @@ const toggleEditMode = () => {
             </div>
           </div>
 
-          <!-- Map Placeholder -->
+          <!-- Map: fixed width on laptop, fixed height so Leaflet can measure. -->
           <div
-            class="h-52.75 max-w-101.5 flex-1 overflow-hidden rounded-lg border border-[#D9E2E2] bg-[#F9FAFA] lg:h-auto"
+            class="h-[260px] w-[400px] shrink-0 overflow-hidden rounded-lg border border-[#D9E2E2]"
           >
-            <div
-              class="flex size-full items-center justify-center bg-[#E5E7EB] relative"
-            >
-              <div
-                class="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=Cologne,Germany&zoom=13&size=600x300&key=YOUR_API_KEY')] bg-cover bg-center opacity-40"
-              ></div>
-              <div class="z-10 flex flex-col items-center">
-                <Icon icon="mdi:map-marker" class="size-10 text-custom-green" />
-              </div>
-            </div>
+            <AppMapPicker
+              :latitude="values.address?.latitude ?? null"
+              :longitude="values.address?.longitude ?? null"
+              :interactive="isEditMode"
+              @resolved="onAddressFromMap"
+            />
           </div>
         </div>
       </div>
 
       <!-- Save Button -->
-      <div v-if="isEditMode" class="flex justify-end mb-7.5">
+      <div v-if="isEditMode" class="mb-[30px] flex justify-end">
         <Button
           type="submit"
-          class="h-8.5 rounded-[5px] bg-custom-green text-sm font-bold text-white transition-all hover:bg-[#019d7a] w-37.5"
+          class="h-[34px] w-[150px] rounded-[5px] bg-custom-green text-sm font-bold text-white transition-all hover:bg-[#019d7a]"
           :disabled="isSubmitting"
         >
           {{ isSubmitting ? "Wird gespeichert..." : "Speichern" }}

@@ -23,6 +23,11 @@ const props = defineProps({
     type: String,
     default: "w-57.5",
   },
+
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -41,6 +46,7 @@ const selectedLabel = computed(() => {
 /* Methods */
 
 function toggleDropdown() {
+  if (props.disabled) return;
   isOpen.value = !isOpen.value;
 }
 
@@ -84,8 +90,8 @@ onBeforeUnmount(() => {
 
     <!-- Select Box -->
     <div
-      class="relative rounded-[5px] border border-green-gray bg-[#ECECEC] cursor-pointer"
-      :class="width"
+      class="relative rounded-[5px] border border-green-gray bg-[#ECECEC]"
+      :class="[width, disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer']"
       @click="toggleDropdown"
     >
       <!-- Selected Value -->

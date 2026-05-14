@@ -84,7 +84,7 @@ const vorwahlOptions = [
         />
       </div>
     </div>
-    <div class="flex justify-end py-7 px-10">
+    <div class="flex justify-end py-7">
       <slot name="submit-button" />
     </div>
   </div>

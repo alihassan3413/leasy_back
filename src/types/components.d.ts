@@ -28,6 +28,7 @@ declare module 'vue' {
     AdminHeader: typeof import('./../components/admin/Header.vue')['default']
     AdminVehicleExpanded: typeof import('./../components/admin/AdminVehicleExpanded.vue')['default']
     AdminVehicleTable: typeof import('./../components/admin/AdminVehicleTable.vue')['default']
+    AppMapPicker: typeof import('./../components/ui/AppMapPicker.vue')['default']
     AppModal: typeof import('./../components/ui/AppModal.vue')['default']
     Avatar: typeof import('./../components/ui/avatar/Avatar.vue')['default']
     AvatarFallback: typeof import('./../components/ui/avatar/AvatarFallback.vue')['default']

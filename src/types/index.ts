@@ -328,6 +328,60 @@ export interface B2BCreateResponse {
   updated_at: string;
 }
 
+export interface B2BPhoneNumber {
+  international_prefix: string;
+  phone_number: string;
+  is_primary_contact: boolean;
+}
+
+export interface B2BProfile {
+  b2b: string;
+  company_name: string;
+  logo_url: string | null;
+  contact_email: string;
+  vat_id: string | null;
+  created_at: string;
+  updated_at: string;
+  contact: {
+    contact_id: string;
+    salutation: string;
+    first_name: string;
+    last_name: string;
+    phone_numbers: B2BPhoneNumber[];
+  };
+  address: {
+    address_id: string;
+    street: string;
+    number: string;
+    additional_address: string | null;
+    zip_code: string;
+    city: string;
+    country: string;
+  };
+}
+
+export interface B2BProfileUpdatePayload {
+  company_name: string;
+  vat_id: string;
+  logo_url?: string | null;
+  contact_email: string;
+  address: {
+    street: string;
+    number: string;
+    zip_code: string;
+    city: string;
+    country: string;
+  };
+  contact: {
+    salutation: string;
+    first_name: string;
+    last_name: string;
+    international_prefix: string;
+    primary_phone_number: string;
+    phone_numbers?: B2BPhoneNumber[];
+  };
+}
+
 // ─────────────────────────────────────────────
 // Workshop Registration
 //

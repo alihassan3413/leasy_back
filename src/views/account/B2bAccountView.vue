@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import AccountDetail from '@/components/account/b2b/AccountDetail.vue';
+import ContactPerson from '@/components/account/b2b/ContactPerson.vue';
+import DeleteAccount from '@/components/account/b2b/DeleteAccount.vue';
+import ManagePassword from '@/components/account/b2b/ManagePassword.vue';
+
 </script>
 
 <template>

@@ -8,10 +8,12 @@ const props = withDefaults(defineProps<{
   placeholder?: string
   type?: string
   required?: boolean
+  disabled?: boolean
 }>(), {
   placeholder: '',
   type: 'text',
   required: false,
+  disabled: false,
 })
 
 const { value, errorMessage, meta, handleChange } = useField<string>(() => props.name)
@@ -24,6 +26,7 @@ const { value, errorMessage, meta, handleChange } = useField<string>(() => props
     :placeholder="placeholder"
     :type="type"
     :required="required"
+    :disabled="disabled"
     :error="meta.touched ? errorMessage : ''"
     class="w-full"
     @update:model-value="handleChange"

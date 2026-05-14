@@ -8,6 +8,8 @@ import { b2bSchema } from "@/validations/b2b.validation";
 import RegisterLayout from "@/layouts/RegisterLayout.vue";
 
 const b2bStore = useB2BStore();
+const router = useRouter();
+const showSuccess = ref(false)
 
 interface FormValues {
   company: {
@@ -59,6 +61,9 @@ const prefixMap: Record<string, string> = {
 };
 
 const onSubmit = handleSubmit(async (formValues) => {
+  b2bStore.error = ''
+  b2bStore.status = 'loading'
+
   const payload = {
     company_name: formValues.company.firmenname,
     vat_id: formValues.company.ustIdNr,
@@ -80,8 +85,30 @@ const onSubmit = handleSubmit(async (formValues) => {
     },
   };
 
-  await b2bStore.create(payload);
+  try {
+    await b2bStore.create(payload)
+
+    b2bStore.status = 'success'
+
+    // this was missing
+    showSuccess.value = true
+  } catch (error) {
+    b2bStore.status = 'error'
+    b2bStore.error = 'Registrierung fehlgeschlagen'
+    console.error(error)
+  }
 });
+
+function skipOnboarding(): void {
+  b2bStore.error = ''
+  b2bStore.status = 'idle'
+  void router.push({ name: 'dashboard-b2b' })
+}
+
+function onSuccessOk(): void {
+  showSuccess.value = false
+  void void router.push({ name: 'dashboard-b2b' })
+}
 </script>
 
 <template>
@@ -114,6 +141,15 @@ const onSubmit = handleSubmit(async (formValues) => {
         <template #submit-button>
 
           <Button
+            type="button"
+            variant="outline"
+            button-classes="rounded-[5px] py-2 px-8 text-sm font-bold hover:opacity-90 mr-4"
+            @click="skipOnboarding"
+          >
+            Später ausfüllen
+          </Button>
+
+          <Button
             type="submit"
             button-classes="px-8 py-2.5 rounded-[5px] text-sm font-bold leading-normal not-italic"
           >
@@ -127,5 +163,14 @@ const onSubmit = handleSubmit(async (formValues) => {
     </form>
 
   </RegisterLayout>
+    <AppModal
+        :open="showSuccess"
+        title="Vielen Dank!"
+        message="Ihre Registrierung war erfolgreich. Sie werden zum Dashboard weitergeleitet."
+        icon="material-symbols:check-circle-outline"
+        confirm-text="OK"
+        @confirm="onSuccessOk"
+        @close="showSuccess = false"
+      />
 
 </template>

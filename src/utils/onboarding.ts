@@ -8,7 +8,8 @@ export function getOnBoardingRouteName(role: UserRole): string {
             return "register-workshop";
         case "B2C":
             return "b2c-register";
+        case "ADMIN":
         default:
-            return "dashboard";
+            return "admin";
     }
 }

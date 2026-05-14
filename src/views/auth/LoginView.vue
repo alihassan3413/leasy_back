@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useField, useForm } from "vee-validate";
 
 import Button from "@/components/ui/Button.vue";
@@ -17,6 +17,7 @@ interface LoginFormValues {
 const authStore = useAuthStore();
 const { status, error } = storeToRefs(authStore);
 const router = useRouter();
+const route = useRoute();
 
 const { handleSubmit, setErrors } = useForm<LoginFormValues>({
   validationSchema: loginSchema,
@@ -33,7 +34,8 @@ const onSubmit = handleSubmit(async (values) => {
   };
   try {
     await authStore.login(payload);
-      router.push({ name: "dashboard" });
+    const redirect = typeof route.query.redirect === "string" ? route.query.redirect : null;
+    void router.push(redirect && redirect.startsWith("/") ? redirect : "/");
   } catch (err) {
     const apiError = err as {
       message: string;

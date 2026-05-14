@@ -8,10 +8,12 @@ const props = withDefaults(defineProps<{
   options: { label: string; value: string | number }[]
   placeholder?: string
   required?: boolean
+  disabled?: boolean
   width?: string
 }>(), {
   placeholder: 'Bitte wählen',
   required: false,
+  disabled: false,
 })
 
 // useField connects this specific component to the Vee-Validate form 
@@ -27,6 +29,7 @@ const { value, errorMessage, meta } = useField<string>(() => props.name)
       :options="options"
       :placeholder="placeholder"
       :width="width"
+      :disabled="disabled"
     />
     
     <span 

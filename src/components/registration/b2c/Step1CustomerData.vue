@@ -46,7 +46,7 @@ const onSubmit = handleSubmit((values) => {
 function skipOnboarding(): void {
   store.error = ''
   store.status = 'idle'
-  router.push({ name: 'dashboard' })
+  void router.push({ name: 'dashboard-b2c' })
 }
 </script>
 
