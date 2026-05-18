@@ -103,15 +103,10 @@ export const routes: RouteRecordRaw[] = [
         path: "b2b",
         name: "b2b-account",
         component: () => import("@/views/account/B2bAccountView.vue"),
-<<<<<<< HEAD
         meta: { title: "B2B Account", roles: ["B2B"] },
       },
 
       // Shared across all authenticated roles.
-=======
-        meta: { title: "B2B Account" },
-      },
->>>>>>> 48f52ed9f72f5e70ba9370c80a85f526e2accf41
       {
         path: "setting",
         name: "setting",

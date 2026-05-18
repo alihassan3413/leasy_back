@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { normalizeApiError } from "@/api/client/error";
@@ -10,13 +9,6 @@ import type {
   B2BProfile,
   B2BProfileUpdatePayload,
 } from "@/types";
-=======
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { normalizeApiError } from '@/api/client/error'
-import type { B2BCreateComapnyPayload, B2BCreateResponse } from '@/types'
-import { b2bApi } from '@/api/b2b/b2b'
->>>>>>> 48f52ed9f72f5e70ba9370c80a85f526e2accf41
 
 type Status = "idle" | "loading" | "success" | "error";
 
