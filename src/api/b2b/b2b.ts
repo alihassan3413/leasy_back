@@ -2,6 +2,7 @@ import { get, post, patch } from "../client/request";
 import type {
   B2BCreateComapnyPayload,
   B2BCreateResponse,
+  B2BLogoUploadResponse,
   B2BProfile,
   B2BProfileUpdatePayload,
 } from "@/types";
@@ -12,6 +13,17 @@ export const b2bApi = {
       "/b2b/create",
       payload,
     );
+  },
+
+  uploadLogo(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    return post<B2BLogoUploadResponse, FormData>(
+      "/image/logos/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
   },
 
   getProfile(userId: string) {

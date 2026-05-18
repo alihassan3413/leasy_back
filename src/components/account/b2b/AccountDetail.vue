@@ -87,38 +87,84 @@ const onSubmit = handleSubmit(async (formValues) => {
   const profile = b2bStore.profile;
   if (!profile) return;
 
-  // Preserve current contact data so the contact section isn't wiped.
-  const primaryPhone = profile.contact.phone_numbers.find((p) => p.is_primary_contact);
-  const payload: B2BProfileUpdatePayload = {
-    company_name: formValues.firmenname,
-    vat_id: formValues.ustIdNr,
-    logo_url: profile.logo_url,
-    contact_email: profile.contact_email,
-    address: {
-      street: formValues.address.strasse,
-      number: formValues.address.nr,
-      zip_code: formValues.address.plz,
-      city: formValues.address.ort,
-      country: profile.address.country,
-    },
-    contact: {
-      salutation: profile.contact.salutation,
-      first_name: profile.contact.first_name,
-      last_name: profile.contact.last_name,
-      international_prefix: primaryPhone?.international_prefix ?? "+49",
-      primary_phone_number: primaryPhone?.phone_number ?? "",
-      phone_numbers: profile.contact.phone_numbers,
-    },
-  };
-
   try {
+    let updatedLogoUrl = profile.logo_url ?? "";
+
+    if (logoFile.value) {
+      updatedLogoUrl = await b2bStore.uploadLogo(logoFile.value);
+    }
+
+    const primaryPhone = profile.contact.phone_numbers.find(
+      (p) => p.is_primary_contact,
+    );
+
+    const payload: B2BProfileUpdatePayload = {
+      company_name: formValues.firmenname,
+      vat_id: formValues.ustIdNr,
+      logo_url: updatedLogoUrl,
+      contact_email: profile.contact_email,
+      address: {
+        street: formValues.address.strasse,
+        number: formValues.address.nr,
+        zip_code: formValues.address.plz,
+        city: formValues.address.ort,
+        country: profile.address.country,
+      },
+      contact: {
+        salutation: profile.contact.salutation,
+        first_name: profile.contact.first_name,
+        last_name: profile.contact.last_name,
+        international_prefix: primaryPhone?.international_prefix ?? "+49",
+        primary_phone_number: primaryPhone?.phone_number ?? "",
+        phone_numbers: profile.contact.phone_numbers,
+      },
+    };
+
     await b2bStore.updateProfile(profile.b2b, payload);
+
+    logoUrl.value = updatedLogoUrl;
     logoFile.value = null;
     isEditMode.value = false;
   } catch (err) {
     console.error("Failed to update B2B profile:", err);
   }
 });
+
+// const onSubmit = handleSubmit(async (formValues) => {
+//   const profile = b2bStore.profile;
+//   if (!profile) return;
+
+//   const primaryPhone = profile.contact.phone_numbers.find((p) => p.is_primary_contact);
+//   const payload: B2BProfileUpdatePayload = {
+//     company_name: formValues.firmenname,
+//     vat_id: formValues.ustIdNr,
+//     logo_url: profile.logo_url,
+//     contact_email: profile.contact_email,
+//     address: {
+//       street: formValues.address.strasse,
+//       number: formValues.address.nr,
+//       zip_code: formValues.address.plz,
+//       city: formValues.address.ort,
+//       country: profile.address.country,
+//     },
+//     contact: {
+//       salutation: profile.contact.salutation,
+//       first_name: profile.contact.first_name,
+//       last_name: profile.contact.last_name,
+//       international_prefix: primaryPhone?.international_prefix ?? "+49",
+//       primary_phone_number: primaryPhone?.phone_number ?? "",
+//       phone_numbers: profile.contact.phone_numbers,
+//     },
+//   };
+
+//   try {
+//     await b2bStore.updateProfile(profile.b2b, payload);
+//     logoFile.value = null;
+//     isEditMode.value = false;
+//   } catch (err) {
+//     console.error("Failed to update B2B profile:", err);
+//   }
+// });
 
 const toggleEditMode = () => {
   if (isEditMode.value && b2bStore.profile) {

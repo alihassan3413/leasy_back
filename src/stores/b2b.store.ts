@@ -17,6 +17,7 @@ export const useB2BStore = defineStore("b2b", () => {
   const error = ref("");
   const profile = ref<B2BProfile | null>(null);
   const createResult = ref<B2BCreateResponse | null>(null);
+  const logoUrl = ref("");
 
   async function create(payload: B2BCreateComapnyPayload) {
     status.value = "loading";
@@ -26,6 +27,25 @@ export const useB2BStore = defineStore("b2b", () => {
       createResult.value = res;
       status.value = "success";
       return res;
+    } catch (err) {
+      const apiError = normalizeApiError(err);
+      error.value = apiError.message;
+      status.value = "error";
+      throw err;
+    }
+  }
+
+  async function uploadLogo(file: File) {
+    status.value = "loading";
+    error.value = "";
+    try {
+      const res = await b2bApi.uploadLogo(file);
+
+      const uploadedLogoUrl = res.signed_url;
+
+      logoUrl.value = uploadedLogoUrl;
+
+      return uploadedLogoUrl;
     } catch (err) {
       const apiError = normalizeApiError(err);
       error.value = apiError.message;
@@ -58,7 +78,7 @@ export const useB2BStore = defineStore("b2b", () => {
     status.value = "loading";
     error.value = "";
     try {
-      await b2bApi.updateProfile(b2bId, payload);
+      await b2bApi.updateProfile(b2bId, payload);      
       // PATCH returns a plain string, not the updated profile — re-fetch.
       await fetchProfile();
     } catch (err) {
@@ -77,5 +97,7 @@ export const useB2BStore = defineStore("b2b", () => {
     create,
     fetchProfile,
     updateProfile,
+    uploadLogo,
+    logoUrl,
   };
 });
