@@ -1,17 +1,26 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { Icon } from "@iconify/vue";
 import DdfExpanded from "./DdfExpanded.vue";
 import type { Vehicle } from "./vehicle.types";
 
-defineProps<{ vehicle: Vehicle }>();
+const props = defineProps<{ vehicle: Vehicle }>();
+
+const emit = defineEmits<{
+  select: [vehicle: Vehicle | null];
+}>();
+
 const expanded = ref(false);
 
 const iconClasses = computed(() => [
   "text-[40px] text-primary transition-transform duration-200",
-      
 ]);
 
+function toggleExpand() {
+  if (props.vehicle.completed) return;
+  expanded.value = !expanded.value;
+  emit("select", expanded.value ? props.vehicle : null);
+}
 </script>
 
 <template>
@@ -40,7 +49,7 @@ const iconClasses = computed(() => [
     </TableCell>
     <TableCell class="h-[40px] w-[180px] px-3">
       <div class="flex items-center justify-start gap-4">
-        <!-- Play icon — teal for active, grey for completed -->
+        <!-- Play icon -->
         <button class="transition-opacity hover:opacity-70">
           <Icon
             icon="solar:play-bold"
@@ -49,15 +58,13 @@ const iconClasses = computed(() => [
           />
         </button>
 
-        <!-- Notification badge — only when vehicle has notifications -->
+        <!-- Notification badge -->
         <div
           v-if="vehicle.notifications"
           class="flex size-[19px] items-center justify-center rounded-full bg-custom-orange text-[13px] font-bold text-white"
-         
         >
           {{ vehicle.notifications }}
         </div>
-
 
         <!-- Archive icon -->
         <button class="transition-opacity hover:opacity-70">
@@ -68,11 +75,11 @@ const iconClasses = computed(() => [
           />
         </button>
 
-        <!-- Caret — rotates when expanded; all rows show it, only active rows toggle -->
+        <!-- Caret — rotates when expanded -->
         <button
-          class="transition-transform foucs:outline-none"
+          class="transition-transform focus:outline-none"
           :class="expanded ? 'rotate-180' : ''"
-          @click="vehicle.completed ? null : (expanded = !expanded)"
+          @click="toggleExpand"
         >
           <Icon icon="ic:round-arrow-drop-down" :class="iconClasses" />
         </button>

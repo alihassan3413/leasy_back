@@ -5,6 +5,10 @@ import type { Vehicle } from '@/components/dashboard/vehicle.types'
 defineProps<{
   vehicles: Vehicle[]
 }>()
+
+const emit = defineEmits<{
+  select: [vehicle: Vehicle | null]
+}>()
 </script>
 
 <template>
@@ -35,6 +39,7 @@ defineProps<{
           v-for="vehicle in vehicles"
           :key="vehicle.id"
           :vehicle="vehicle"
+          @select="emit('select', $event)"
         />
       </TableBody>
     </Table>

@@ -11,6 +11,12 @@ const b2bStore = useB2BStore();
 const router = useRouter();
 const showSuccess = ref(false)
 
+const logoFile = ref<File | null>(null);
+
+  function onLogoChange(file: File | null): void {
+    logoFile.value = file;
+  }
+
 interface FormValues {
   company: {
     firmenname: string;
@@ -61,41 +67,45 @@ const prefixMap: Record<string, string> = {
 };
 
 const onSubmit = handleSubmit(async (formValues) => {
-  b2bStore.error = ''
-  b2bStore.status = 'loading'
-
-  const payload = {
-    company_name: formValues.company.firmenname,
-    vat_id: formValues.company.ustIdNr,
-    logo_url: "",
-    contact_email: formValues.admin.email,
-    address: {
-      street: formValues.company.strasse,
-      number: formValues.company.nr,
-      zip_code: formValues.company.plz,
-      city: formValues.company.ort,
-      country: "Germany",
-    },
-    contact: {
-      salutation: formValues.admin.anrede,
-      first_name: formValues.admin.vorname,
-      last_name: formValues.admin.nachname,
-      international_prefix: prefixMap[formValues.admin.vorwahl],
-      primary_phone_number: formValues.admin.telefon,
-    },
-  };
+  b2bStore.error = "";
+  b2bStore.status = "loading";
 
   try {
-    await b2bStore.create(payload)
+    let uploadedLogoUrl = "";
 
-    b2bStore.status = 'success'
+    if (logoFile.value) {
+      uploadedLogoUrl = await b2bStore.uploadLogo(logoFile.value);
+    }    
 
-    // this was missing
-    showSuccess.value = true
+    const payload = {
+      company_name: formValues.company.firmenname,
+      vat_id: formValues.company.ustIdNr,
+      logo_url: uploadedLogoUrl,
+      contact_email: formValues.admin.email,
+      address: {
+        street: formValues.company.strasse,
+        number: formValues.company.nr,
+        zip_code: formValues.company.plz,
+        city: formValues.company.ort,
+        country: "Germany",
+      },
+      contact: {
+        salutation: formValues.admin.anrede,
+        first_name: formValues.admin.vorname,
+        last_name: formValues.admin.nachname,
+        international_prefix: prefixMap[formValues.admin.vorwahl],
+        primary_phone_number: formValues.admin.telefon,
+      },
+    };
+
+    await b2bStore.create(payload);
+
+    b2bStore.status = "success";
+    showSuccess.value = true;
   } catch (error) {
-    b2bStore.status = 'error'
-    b2bStore.error = 'Registrierung fehlgeschlagen'
-    console.error(error)
+    b2bStore.status = "error";
+    b2bStore.error = "Registrierung fehlgeschlagen";
+    console.error(error);
   }
 });
 
@@ -134,7 +144,7 @@ function onSuccessOk(): void {
 
     <form @submit.prevent="onSubmit" class="w-full">
 
-      <CompanyRegister />
+      <CompanyRegister @logo-change="onLogoChange" />
 
       <CompanyAdminRegistration>
 

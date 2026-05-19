@@ -316,6 +316,14 @@ export interface B2BCreateComapnyPayload {
   };
 }
 
+export interface B2BLogoUploadResponse {
+  key: string;
+  content_type: string;
+  object_url: string;
+  signed_url: string;
+  expires_in_seconds: number;
+}
+
 export interface B2BCreateResponse {
   b2b_id: string;
   contact_id: string;
@@ -485,4 +493,29 @@ export interface WorkshopUpdatePayload {
       is_primary_contact?: boolean;
     }[];
   };
+}
+
+// ─────────────────────────────────────────────
+// ORDER CREATION
+// ─────────────────────────────────────────────
+
+export interface Station {
+  station_id: string;
+  provider: string;
+  name: string;
+  strasse: string;
+  plz: string;
+  ort: string;
+  bundesland: string;
+  land: string;
+}
+
+export interface CreateOrderPayload {
+  remarks: string;
+  station_id: string;
+  termin: string;
+}
+
+export interface CreateOrderResponse {
+  [key: string]: unknown;
 }

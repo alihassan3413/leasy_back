@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import type { Vehicle } from '@/components/dashboard/vehicle.types'
 import B2bDdfExpanded from './b2bDdfExpanded.vue';
 
 const props = defineProps<{ vehicle: Vehicle }>()
+
+const emit = defineEmits<{
+  select: [vehicle: Vehicle | null]
+}>()
 
 const expanded = ref(false)
 
@@ -22,12 +27,16 @@ const manualStatus = computed(() => {
 
 const iconClasses = computed(() => [
   "text-[40px] text-primary transition-transform duration-200",
- 
 ]);
 
 console.log(props.vehicle);
 
 
+function toggleExpand() {
+  if (props.vehicle.completed) return
+  expanded.value = !expanded.value
+  emit('select', expanded.value ? props.vehicle : null)
+}
 </script>
 
 <template>
@@ -99,7 +108,7 @@ console.log(props.vehicle);
         <button
           class="transition-transform focus:outline-none"
           :class="expanded ? 'rotate-180' : ''"
-          @click="vehicle.completed ? null : (expanded = !expanded)"
+          @click="toggleExpand"
         >
           <Icon icon="ic:round-arrow-drop-down" :class="iconClasses" />
         </button>

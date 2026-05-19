@@ -4,11 +4,14 @@ import { Icon } from "@iconify/vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "@/composables/useAuth";
 import type { UserRole } from "@/types";
+import { useB2BStore } from "@/stores/b2b.store";
 
 const isHovered = ref(false);
 const route = useRoute();
 const router = useRouter();
 const { user, logout } = useAuth();
+const b2bStore = useB2BStore();
+
 
 interface NavItem {
   label: string;
@@ -77,6 +80,11 @@ const avatarInitial = computed(
     "?",
 );
 
+const avatarLogoUrl = computed ( () => {
+  if (user.value?.role !== "B2B") return "";
+  return b2bStore.logoUrl;
+})
+
 function isActive(item: NavItem): boolean {
   if (route.name === item.name) return true;
   return item.aliases?.includes(route.name as string) ?? false;
@@ -85,6 +93,20 @@ function isActive(item: NavItem): boolean {
 function navigateTo(name: string) {
   void router.push({ name });
 }
+
+watch(
+  () => user.value?.role,
+  async (role) => {
+    if (role !== "B2B") return;
+
+    try {
+      await b2bStore.fetchProfile();
+    } catch (error) {
+      console.error("Failed to fetch B2B profile for sidebar:", error);
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -101,14 +123,22 @@ function navigateTo(name: string) {
       :class="isHovered ? 'gap-4 px-5' : 'justify-center px-0'"
     >
       <Avatar class="size-[70px] shrink-0 border-2 border-green-gray">
+        <AvatarImage
+        v-if="avatarLogoUrl"
+        :src="avatarLogoUrl"
+        :alt="displayName || 'Company logo'"
+        class="object-cover"        
+         />
+        
         <AvatarFallback
+        
           class="text-xl font-bold"
           style="background-color: #b7c2c2; color: #10393b"
         >
           {{ avatarInitial }}
+
         </AvatarFallback>
       </Avatar>
-
       <div v-if="isHovered" class="min-w-0 overflow-hidden">
         <p class="truncate text-[14px] font-bold uppercase text-white">
           {{ displayName }}
