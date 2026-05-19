@@ -1,5 +1,55 @@
 <script setup lang="ts">
 import FormTextField from '@/components/ui/form/FormTextField.vue'
+
+const emit = defineEmits<{
+  logoChange:[file: File | null];
+}>();
+
+const logoPreview = ref("");
+const selectedFileName = ref("");
+
+const MAX_FILE_SIZE = 8 * 1024 * 1024; 
+
+function setLogoFile(file: File | null): void {
+  if (!file) {
+    logoPreview.value = "";
+    selectedFileName.value = "";
+    emit("logoChange", null);
+    return;
+  }
+  const allowdTypes = ["image/jpeg" , "image/png"];
+
+  if (!allowdTypes.includes(file.type)) {
+    alert("Bitte laden Sie nur JPG oder PNG Dateien hoch.");
+    emit("logoChange", null);
+    return;
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    alert("Die Datei darf maximal 8MB groß sein.");
+    emit("logoChange", null);
+    return;
+  }
+
+  selectedFileName.value = file.name;
+  logoPreview.value = URL.createObjectURL(file);
+  emit("logoChange", file);
+
+}
+
+function onFileChange(event: Event): void{
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0] ?? null;
+  setLogoFile(file);
+}
+
+function onDrop(event: DragEvent): void {
+  event.preventDefault();
+  const file = event.dataTransfer?.files[0] ?? null;
+  setLogoFile(file);
+}
+
+
 </script>
 
 <template>
@@ -88,10 +138,31 @@ import FormTextField from '@/components/ui/form/FormTextField.vue'
           <label
             class="border border-dashed border-green-gray bg-white rounded-[5px] p-10 flex flex-col items-center justify-center cursor-pointer hover:border-custom-turquoise transition-colors"
             @dragover.prevent
+            @drop="onDrop"
           >
-            <input type="file" class="hidden" accept=".pdf,.jpg,.png" />
+            <input 
+             type="file"
+             class="hidden"
+             accept=".jpeg,.jpg,.png"
+             @change="onFileChange"
+               />
+                 <template v-if="logoPreview">
+                    <img
+                      :src="logoPreview"
+                      alt="Logo Vorschau"
+                      class="h-20 w-20 object-contain mb-3"
+                    />
 
-            <p class="text-center">
+                    <span class="text-primary text-sm font-bold">
+                      {{ selectedFileName }}
+                    </span>
+
+                    <span class="text-custom-green text-sm underline mt-1">
+                      Anderes Logo auswählen
+                    </span>
+                </template>
+
+            <p v-else class="text-center">
               <span class="text-primary text-sm font-bold leading-normal not-italic">
                 Datei hierher ziehen oder zum <br />
                 Hochladen
@@ -104,7 +175,7 @@ import FormTextField from '@/components/ui/form/FormTextField.vue'
               <br />
 
               <span class="text-custom-black text-[12px] tracking-[1px] font-normal leading-normal not-italic block">
-                PDF, JPG oder PNG • 8MB max
+                 JPG oder PNG • 8MB max
               </span>
 
             </p>

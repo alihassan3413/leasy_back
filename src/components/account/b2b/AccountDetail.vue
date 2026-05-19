@@ -33,27 +33,7 @@ const { handleSubmit, resetForm, setFieldValue, isSubmitting } =
     },
   });
 
-watch(
-  () => b2bStore.profile,
-  (profile) => {
-    if (!profile) return;
-    resetForm({
-      values: {
-        firmenname: profile.company_name,
-        ustIdNr: profile.vat_id ?? "",
-        address: {
-          strasse: profile.address.street,
-          nr: profile.address.number,
-          zusaetzlicheAnschrift: profile.address.additional_address ?? "",
-          plz: profile.address.zip_code,
-          ort: profile.address.city,
-        },
-      },
-    });
-    logoUrl.value = profile.logo_url ?? null;
-  },
-  { immediate: true },
-);
+
 
 const triggerLogoUpload = () => {
   if (!isEditMode.value) return;
@@ -87,38 +67,49 @@ const onSubmit = handleSubmit(async (formValues) => {
   const profile = b2bStore.profile;
   if (!profile) return;
 
-  // Preserve current contact data so the contact section isn't wiped.
-  const primaryPhone = profile.contact.phone_numbers.find((p) => p.is_primary_contact);
-  const payload: B2BProfileUpdatePayload = {
-    company_name: formValues.firmenname,
-    vat_id: formValues.ustIdNr,
-    logo_url: profile.logo_url,
-    contact_email: profile.contact_email,
-    address: {
-      street: formValues.address.strasse,
-      number: formValues.address.nr,
-      zip_code: formValues.address.plz,
-      city: formValues.address.ort,
-      country: profile.address.country,
-    },
-    contact: {
-      salutation: profile.contact.salutation,
-      first_name: profile.contact.first_name,
-      last_name: profile.contact.last_name,
-      international_prefix: primaryPhone?.international_prefix ?? "+49",
-      primary_phone_number: primaryPhone?.phone_number ?? "",
-      phone_numbers: profile.contact.phone_numbers,
-    },
-  };
-
   try {
+    let updatedLogoKey = profile.logo_url ?? "";
+
+    if (logoFile.value) {
+      updatedLogoKey = await b2bStore.uploadLogo(logoFile.value);
+    }
+
+    const primaryPhone = profile.contact.phone_numbers.find(
+      (p) => p.is_primary_contact,
+    );
+
+    const payload: B2BProfileUpdatePayload = {
+      company_name: formValues.firmenname,
+      vat_id: formValues.ustIdNr,
+      logo_url: updatedLogoKey,
+      contact_email: profile.contact_email,
+      address: {
+        street: formValues.address.strasse,
+        number: formValues.address.nr,
+        zip_code: formValues.address.plz,
+        city: formValues.address.ort,
+        country: profile.address.country,
+      },
+      contact: {
+        salutation: profile.contact.salutation,
+        first_name: profile.contact.first_name,
+        last_name: profile.contact.last_name,
+        international_prefix: primaryPhone?.international_prefix ?? "+49",
+        primary_phone_number: primaryPhone?.phone_number ?? "",
+        phone_numbers: profile.contact.phone_numbers,
+      },
+    };
+
     await b2bStore.updateProfile(profile.b2b, payload);
+
+    logoUrl.value = b2bStore.logoUrl || null;
     logoFile.value = null;
     isEditMode.value = false;
   } catch (err) {
     console.error("Failed to update B2B profile:", err);
   }
 });
+
 
 const toggleEditMode = () => {
   if (isEditMode.value && b2bStore.profile) {
@@ -136,11 +127,45 @@ const toggleEditMode = () => {
         },
       },
     });
-    logoUrl.value = profile.logo_url ?? null;
+    logoUrl.value = b2bStore.logoUrl || null;
     logoFile.value = null;
   }
   isEditMode.value = !isEditMode.value;
 };
+
+
+watch(
+  () => b2bStore.profile,
+  (profile) => {
+    if (!profile) return;
+    resetForm({
+      values: {
+        firmenname: profile.company_name,
+        ustIdNr: profile.vat_id ?? "",
+        address: {
+          strasse: profile.address.street,
+          nr: profile.address.number,
+          zusaetzlicheAnschrift: profile.address.additional_address ?? "",
+          plz: profile.address.zip_code,
+          ort: profile.address.city,
+        },
+      },
+    });
+    logoUrl.value = b2bStore.logoUrl || null;
+  },
+  { immediate: true },
+);
+
+
+watch(
+  () => b2bStore.logoUrl,
+  (newLogoUrl) => {
+    if (!logoFile.value) {
+      logoUrl.value = newLogoUrl || null;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

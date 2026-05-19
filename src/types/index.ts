@@ -316,6 +316,14 @@ export interface B2BCreateComapnyPayload {
   };
 }
 
+export interface B2BLogoUploadResponse {
+  key: string;
+  content_type: string;
+  object_url: string;
+  signed_url: string;
+  expires_in_seconds: number;
+}
+
 export interface B2BCreateResponse {
   b2b_id: string;
   contact_id: string;
