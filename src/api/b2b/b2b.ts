@@ -26,6 +26,10 @@ export const b2bApi = {
     });
   },
 
+  getLogoSignedUrl(logokey: string) {
+    return get<B2BLogoUploadResponse>(`/image/${logokey}/signed-url`);
+  },
+
   getProfile(userId: string) {
     return get<B2BProfile>(`/b2b/user_id/${userId}`);
   },

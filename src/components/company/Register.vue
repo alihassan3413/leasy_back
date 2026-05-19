@@ -50,9 +50,6 @@ function onDrop(event: DragEvent): void {
 }
 
 
-
-  
-
 </script>
 
 <template>

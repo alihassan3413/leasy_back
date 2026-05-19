@@ -82,7 +82,7 @@ const avatarInitial = computed(
 
 const avatarLogoUrl = computed ( () => {
   if (user.value?.role !== "B2B") return "";
-  return b2bStore.profile?.logo_url ?? "";
+  return b2bStore.logoUrl;
 })
 
 function isActive(item: NavItem): boolean {
