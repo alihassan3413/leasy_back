@@ -6,6 +6,10 @@ defineProps<{
   vehicles: Vehicle[]
   completedVehicles: Vehicle[]
 }>()
+
+const emit = defineEmits<{
+  select: [vehicle: Vehicle | null];
+}>()
 </script>
 
 <template>
@@ -24,12 +28,12 @@ defineProps<{
         </TableRow>
       </TableHeader>
 
-      
       <TableBody>
         <VehicleRow
           v-for="vehicle in vehicles"
           :key="vehicle.id"
           :vehicle="vehicle"
+          @select="emit('select', $event)"
         />
         <TableRow
           v-if="completedVehicles.length"
@@ -44,6 +48,7 @@ defineProps<{
           v-for="vehicle in completedVehicles"
           :key="vehicle.id"
           :vehicle="vehicle"
+          @select="emit('select', $event)"
         />
       </TableBody>
     </Table>

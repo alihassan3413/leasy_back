@@ -486,3 +486,28 @@ export interface WorkshopUpdatePayload {
     }[];
   };
 }
+
+// ─────────────────────────────────────────────
+// ORDER CREATION
+// ─────────────────────────────────────────────
+
+export interface Station {
+  station_id: string;
+  provider: string;
+  name: string;
+  strasse: string;
+  plz: string;
+  ort: string;
+  bundesland: string;
+  land: string;
+}
+
+export interface CreateOrderPayload {
+  remarks: string;
+  station_id: string;
+  termin: string;
+}
+
+export interface CreateOrderResponse {
+  [key: string]: unknown;
+}
