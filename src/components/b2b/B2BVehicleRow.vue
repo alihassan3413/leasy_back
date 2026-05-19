@@ -3,16 +3,30 @@ import { Icon } from '@iconify/vue'
 import type { Vehicle } from '@/components/dashboard/vehicle.types'
 import B2bDdfExpanded from './b2bDdfExpanded.vue';
 
-defineProps<{ vehicle: Vehicle }>()
+const props = defineProps<{ vehicle: Vehicle }>()
 
 const expanded = ref(false)
 
+const manualStatuses = ["Eingeplant", "Planung", "Erledigt"];
+
+const manualStatus = computed(() => {
+  const id = props.vehicle.id || props.vehicle.licensePlate || "";
+
+  const index =
+    id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0) %
+    manualStatuses.length;
+
+  return manualStatuses[index];
+});
 
 
 const iconClasses = computed(() => [
   "text-[40px] text-primary transition-transform duration-200",
  
 ]);
+
+console.log(props.vehicle);
+
 
 </script>
 
@@ -34,7 +48,21 @@ const iconClasses = computed(() => [
       {{ vehicle.returnStart }}
     </TableCell>
      <TableCell class="h-[40px] w-[160px] truncate px-3 text-[16px] text-custom-black leading-normal not-italic font-normal">
-      {{ vehicle.status }}
+      
+      
+     <div class="flex items-center gap-2">
+    <span
+      class="size-2.5 rounded-full"
+      :class="{
+        'bg-[#EA7A55]': manualStatus === 'Eingeplant',
+        'bg-[#8FA1A1]': manualStatus === 'Planung',
+        'bg-[#2FC59A]': manualStatus === 'Erledigt',
+      }"
+    />
+    <span class="font-bold text-[#10393B]">
+      {{ manualStatus }}
+    </span>
+  </div>
     </TableCell>
     <TableCell class="h-[40px] w-[180px] truncate px-3 text-[16px] text-custom-black leading-normal not-italic font-normal">
       {{ vehicle.driver }}

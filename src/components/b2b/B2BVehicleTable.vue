@@ -21,7 +21,7 @@ defineProps<{
           <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Leasingende</TableHead>
           <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Rückgabestart</TableHead>
 
-          <!-- ✅ NEW COLUMN -->
+          <!--  NEW COLUMN -->
           <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Status</TableHead>
 
           <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Fahrzeugnutzer</TableHead>
