@@ -63,6 +63,6 @@ onMounted(async () => {
     <B2BVehicleTable v-else :vehicles="vehicles" @select="selectedVehicle = $event" />
 
     <AddVehicleModal v-model:open="addVehicleOpen" />
-    <OrderCreationModal v-model:open="orderModalOpen" :vehicle="selectedVehicle" />
+    <OrderCreationModal v-model:open="orderModalOpen" :vehicle="selectedVehicle" @success="b2bVehicleStore.fetchVehicles(authStore.user!.id)" />
   </div>
 </template>

@@ -97,7 +97,7 @@ async function refreshLogoSignedUrl() {
     status.value = "loading";
     error.value = "";
     try {
-      const res = await b2bApi.getProfile(userId);
+      const res = await b2bApi.getProfile(userId);      
       profile.value = res;
       if (res.logo_url){
         logoKey.value = res.logo_url;
@@ -128,6 +128,33 @@ async function refreshLogoSignedUrl() {
     }
   }
 
+  async function deleteLogo(logoKeyToDelete?: string) {
+  const key = logoKeyToDelete || logoKey.value || profile.value?.logo_url;
+
+  if (!key) return;
+
+  status.value = "loading";
+  error.value = "";
+
+  try {
+    await b2bApi.deleteLogo(key);
+
+    logoUrl.value = "";
+    logoKey.value = "";
+
+    if (profile.value) {
+      profile.value.logo_url = "";
+    }
+
+    status.value = "success";
+  } catch (err) {
+    const apiError = normalizeApiError(err);
+    error.value = apiError.message;
+    status.value = "error";
+    throw err;
+  }
+}
+
   return {
     status,
     error,
@@ -137,6 +164,7 @@ async function refreshLogoSignedUrl() {
     fetchProfile,
     updateProfile,
     uploadLogo,
+    deleteLogo,
     logoUrl,
     logoKey,
     refreshLogoSignedUrl,

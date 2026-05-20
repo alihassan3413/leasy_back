@@ -7,6 +7,10 @@ import type { Station } from "@/types";
 import type { Vehicle } from "../vehicle.types";
 import AppMapPicker from "@/components/ui/AppMapPicker.vue";
 import Switch from "@/components/ui/switch/Switch.vue";
+import { useForm } from "vee-validate";
+import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
+
+const {values} = useForm();
 
 const props = defineProps<{
   open: boolean;
@@ -15,13 +19,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "update:open": [value: boolean];
+  "success": [];
 }>();
 
-// ── Service selection ────────────────────────────────────────────────────────
-const tuvsudActive = ref(true);
-// DEKRA not ready — switch is visible but disabled
 
-// ── Stations ─────────────────────────────────────────────────────────────────
+const tuvsudActive = ref(true);
+
 const stations = ref<Station[]>([]);
 const stationsLoading = ref(false);
 const stationOpen = ref(false);
@@ -41,7 +44,6 @@ async function fetchStations() {
   }
 }
 
-// ── Map ───────────────────────────────────────────────────────────────────────
 const mapLat = ref<number | null>(null);
 const mapLng = ref<number | null>(null);
 
@@ -68,19 +70,18 @@ function selectStation(station: Station) {
   geocodeStation(station);
 }
 
-// ── Termin ────────────────────────────────────────────────────────────────────
 const terminDate = ref("");
 const terminTime = ref("");
 
+// Replace terminIso with:
 const terminIso = computed(() => {
-  if (!terminDate.value || !terminTime.value) return "";
-  return `${terminDate.value}T${terminTime.value}:00+02:00`;
+  const raw = values.terminDate as string; 
+  if (!raw || !terminTime.value) return "";
+  return `${raw}T${terminTime.value}:00+02:00`;
 });
 
-// ── Remarks ───────────────────────────────────────────────────────────────────
 const remarks = ref("");
 
-// ── Submit ────────────────────────────────────────────────────────────────────
 const isSubmitting = ref(false);
 
 const canSubmit = computed(() =>
@@ -98,6 +99,7 @@ async function handleSubmit() {
       termin: terminIso.value,
     });
     toast.success("Auftrag erfolgreich erstellt.");
+    emit("success");
     close();
   } catch {
     toast.error("Auftrag konnte nicht erstellt werden.");
@@ -106,7 +108,7 @@ async function handleSubmit() {
   }
 }
 
-// ── Lifecycle ─────────────────────────────────────────────────────────────────
+//  Lifecycle 
 watch(
   () => props.open,
   (opened) => {
@@ -128,7 +130,7 @@ function close() {
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
-      class="p-0 gap-0 overflow-visible"
+      class="p-0 gap-0 flex flex-col max-h-[90vh] overflow-hidden"
       style="
         width: 680px;
         max-width: 680px;
@@ -150,7 +152,7 @@ function close() {
         </button>
       </div>
 
-      <div class="flex flex-col gap-5 px-9 py-6">
+      <div class="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-9 py-6">
         <!-- Service switches -->
         <div class="flex flex-col gap-3">
           <p class="text-[16px] font-bold" style="color: #10393b">
@@ -232,7 +234,7 @@ function close() {
 
         <!-- Map -->
         <div
-          class="h-[220px] w-full overflow-hidden rounded-[5px] border"
+          class="h-[220px] shrink-0 w-full overflow-hidden rounded-[5px] border"
           style="border-color: #b7c2c2"
         >
           <AppMapPicker
@@ -244,17 +246,11 @@ function close() {
 
         <!-- Termin row -->
         <div class="flex gap-4">
-          <div class="flex flex-1 flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color: #10393b">
-              Datum
-            </label>
-            <input
-              v-model="terminDate"
-              type="date"
-              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
-              style="border-color: #b7c2c2; color: #000"
-            />
-          </div>
+          <CalendarDateField
+            name="terminDate"
+            label="Datum"
+            class="flex-1"
+           /> 
           <div class="flex flex-1 flex-col gap-1">
             <label class="text-[16px] font-bold" style="color: #10393b">
               Uhrzeit

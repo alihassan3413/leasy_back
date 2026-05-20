@@ -14,37 +14,79 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const logoUrl = ref<string | null>(null);
 const logoFile = ref<File | null>(null);
 
+const logoDeleted = ref(false);
 onMounted(async () => {
   await b2bStore.fetchProfile();
 });
 
-const { handleSubmit, resetForm, setFieldValue, isSubmitting } =
-  useForm({
-    initialValues: {
-      firmenname: "",
-      ustIdNr: "",
-      address: {
-        strasse: "",
-        nr: "",
-        zusaetzlicheAnschrift: "",
-        plz: "",
-        ort: "",
-      },
+const deleteLogo = async () => {
+  if (!isEditMode.value) return;
+
+  const oldLogoKey = b2bStore.profile?.logo_url;
+
+  logoFile.value = null;
+  logoUrl.value = null;
+  logoDeleted.value = true;
+
+  b2bStore.logoUrl = "";
+  b2bStore.logoKey = "";
+
+  if (fileInput.value) {
+    fileInput.value.value = "";
+  }
+
+  if (oldLogoKey) {
+    try {
+      await b2bStore.deleteLogo(oldLogoKey);
+    } catch (err) {
+      console.error("Failed to delete logo:", err);
+    }
+  }
+};
+
+const { handleSubmit, resetForm, setFieldValue, isSubmitting } = useForm({
+  initialValues: {
+    firmenname: "",
+    ustIdNr: "",
+    address: {
+      strasse: "",
+      nr: "",
+      zusaetzlicheAnschrift: "",
+      plz: "",
+      ort: "",
     },
-  });
-
-
+  },
+});
 
 const triggerLogoUpload = () => {
   if (!isEditMode.value) return;
   fileInput.value?.click();
 };
 
+const MAX_FILE_SIZE = 8 * 1024 * 1024;
+
 const onFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
+
   if (!file) return;
+
+  const allowedTypes = ["image/jpeg", "image/png"];
+
+  if (!allowedTypes.includes(file.type)) {
+    alert("Bitte laden Sie nur JPG oder PNG Dateien hoch.");
+    target.value = "";
+    return;
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    alert("Die Datei darf maximal 8MB groß sein.");
+    target.value = "";
+    return;
+  }
+
   logoFile.value = file;
+  logoDeleted.value = false;
   logoUrl.value = URL.createObjectURL(file);
 };
 
@@ -70,7 +112,9 @@ const onSubmit = handleSubmit(async (formValues) => {
   try {
     let updatedLogoKey = profile.logo_url ?? "";
 
-    if (logoFile.value) {
+    if (logoDeleted.value) {
+      updatedLogoKey = "";
+    } else if (logoFile.value) {
       updatedLogoKey = await b2bStore.uploadLogo(logoFile.value);
     }
 
@@ -104,12 +148,12 @@ const onSubmit = handleSubmit(async (formValues) => {
 
     logoUrl.value = b2bStore.logoUrl || null;
     logoFile.value = null;
+    logoDeleted.value = false;
     isEditMode.value = false;
   } catch (err) {
     console.error("Failed to update B2B profile:", err);
   }
 });
-
 
 const toggleEditMode = () => {
   if (isEditMode.value && b2bStore.profile) {
@@ -129,10 +173,14 @@ const toggleEditMode = () => {
     });
     logoUrl.value = b2bStore.logoUrl || null;
     logoFile.value = null;
+    logoDeleted.value = false;
+
+    if (fileInput.value) {
+      fileInput.value.value = "";
+    }
   }
   isEditMode.value = !isEditMode.value;
 };
-
 
 watch(
   () => b2bStore.profile,
@@ -156,11 +204,10 @@ watch(
   { immediate: true },
 );
 
-
 watch(
   () => b2bStore.logoUrl,
   (newLogoUrl) => {
-    if (!logoFile.value) {
+    if (!logoFile.value && !logoDeleted.value) {
       logoUrl.value = newLogoUrl || null;
     }
   },
@@ -192,37 +239,53 @@ watch(
       <div class="flex items-end gap-8">
         <!-- Logo box: explicit pixel size, won't collapse -->
         <div class="flex shrink-0 flex-col items-start gap-3">
-          <div
-            class="flex h-[88px] w-[97px] items-center justify-center overflow-hidden rounded-lg border border-[#D9E2E2] bg-custom-gray transition-colors"
-            :class="
-              isEditMode
-                ? 'cursor-pointer hover:bg-[#F0F2F2]'
-                : 'cursor-default'
-            "
-            @click="triggerLogoUpload"
-          >
-            <img
-              v-if="logoUrl"
-              :src="logoUrl"
-              alt="Firmenlogo"
-              class="size-full object-cover"
-            />
-            <Icon
-              v-else
-              icon="mdi:image-outline"
-              class="size-16 text-green-gray"
-            />
+          <div class="relative">
+            <div
+              class="flex h-[88px] w-[97px] items-center justify-center overflow-hidden rounded-lg border border-[#D9E2E2] bg-custom-gray transition-colors"
+              :class="
+                isEditMode
+                  ? 'cursor-pointer hover:bg-[#F0F2F2]'
+                  : 'cursor-default'
+              "
+              @click="triggerLogoUpload"
+            >
+              <img
+                v-if="logoUrl && !logoDeleted"
+                :key="logoUrl"
+                :src="logoUrl"
+                alt="Firmenlogo"
+                class="size-full object-cover"
+                @error="logoUrl = null"
+              />
+
+              <Icon
+                v-else
+                icon="mdi:image-outline"
+                class="size-16 text-green-gray"
+              />
+            </div>
+
+            <button
+              v-if="isEditMode && logoUrl"
+              type="button"
+              class="absolute -right-2 -top-2 flex size-7 items-center justify-center rounded-full bg-white text-red-500 shadow hover:bg-red-50"
+              @click.stop="deleteLogo"
+            >
+              <Icon icon="mdi:trash-can-outline" class="size-5" />
+            </button>
           </div>
+
           <span
             v-if="isEditMode"
             class="whitespace-nowrap text-base font-normal text-custom-black"
           >
             Laden Sie ihr Logo auf
           </span>
+
           <input
             ref="fileInput"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png"
             class="hidden"
             @change="onFileChange"
           />
