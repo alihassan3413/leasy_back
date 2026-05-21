@@ -9,6 +9,18 @@ defineProps<{
 const emit = defineEmits<{
   select: [vehicle: Vehicle | null]
 }>()
+
+const expandedId = ref<string | null>(null)
+
+function handleToggle(vehicle: Vehicle) {
+  if (expandedId.value === vehicle.id) {
+    expandedId.value = null
+    emit('select', null)
+  } else {
+    expandedId.value = vehicle.id
+    emit('select', vehicle)
+  }
+}
 </script>
 
 <template>
@@ -39,7 +51,8 @@ const emit = defineEmits<{
           v-for="vehicle in vehicles"
           :key="vehicle.id"
           :vehicle="vehicle"
-          @select="emit('select', $event)"
+          :is-expanded="expandedId === vehicle.id"
+          @toggle="handleToggle(vehicle)"
         />
       </TableBody>
     </Table>
