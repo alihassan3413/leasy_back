@@ -7,11 +7,9 @@ import Step1CustomerData from '@/components/registration/b2c/Step1CustomerData.v
 import Step2VehicleData from '@/components/registration/b2c/Step2VehicleData.vue'
 import Step3Appointment from '@/components/registration/b2c/Step3Appointment.vue'
 import Step4PaymentMethod from '@/components/registration/b2c/Step4PaymentMethod.vue'
-import Button from '@/components/ui/Button.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 
 import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'
-import { CheckCircle2 } from 'lucide-vue-next'
 
 const store = useB2CRegistrationStore()
 const router = useRouter()

@@ -22,7 +22,7 @@ const b2bVehicleStore = useB2BVehicleStore();
 const b2bStore = useB2BStore();
 const authStore = useAuthStore();
 
-// ── Form state ──────────────────────────────────────────────────────────────
+//  Form state 
 const city = ref("");
 const district = ref("");
 const number = ref("");
@@ -52,7 +52,7 @@ const markeOptions = [
 ];
 const nutzerOptions = ["Christin Mechtild", "Thorsten Jung", "Marcus Dietrich"];
 
-// ── Edit vs Add mode ─────────────────────────────────────────────────────────
+// Edit vs Add mode
 const isEditMode = computed(() => !!props.vehicle);
 
 const markeIconClasses = computed(() => [
@@ -94,7 +94,7 @@ watch(
   },
 );
 
-// ── Dirty tracking (edit mode button activation) ─────────────────────────────
+
 const isDirty = ref(false);
 watch(
   [
@@ -144,7 +144,7 @@ async function handleSubmit() {
     model: modell.value,
     leasing_end_date: leasingende.value,
     vin: fin.value.trim().toUpperCase(),
-    first_registration_date: rueckgabestart.value, // Mapping Rückgabestart to first_registration_date
+    first_registration_date: rueckgabestart.value, 
   };
 
   console.log("Submitting Vehicle Payload:", payload);
@@ -193,7 +193,7 @@ async function handleSubmit() {
     >
       <!-- Header -->
       <div
-        class="flex h-[50px] items-center justify-between px-9 max-w-[700px]"
+        class="flex h-12.5 items-center justify-between px-9 max-w-175"
         style="background-color: #fafafa; border-bottom: 1px solid #b7c2c2"
       >
         <span class="text-[20px] font-bold" style="color: #10393b">{{
@@ -216,7 +216,7 @@ async function handleSubmit() {
       <!-- Form — 2 columns -->
       <div class="flex gap-8 px-8 pb-6 pt-4">
         <!-- Left column -->
-        <div class="flex w-[308px] flex-col gap-4">
+        <div class="flex w-77 flex-col gap-4">
           <!-- Kennzeichen -->
           <div class="flex flex-col gap-1">
             <label class="text-[16px] font-bold text-black"
@@ -227,17 +227,15 @@ async function handleSubmit() {
             </label>
             <!-- German plate widget -->
             <div
-              class="flex h-[36px] items-center rounded-[5px] border"
+              class="flex h-9 items-center rounded-[5px] border"
               style="background: #ececec; border-color: #b7c2c2"
             >
               <!-- EU blue strip -->
               <div
-                class="flex h-full w-[22px] shrink-0 flex-col items-center justify-center rounded-l-[4px]"
+                class="flex h-full w-5.5 shrink-0 flex-col items-center justify-center rounded-l-[4px]"
                 style="background: #00339b"
               >
-                <span class="text-[8px] font-bold text-white leading-none mb-1"
-                  >★</span
-                >
+                <Icon icon="tabler:circle-dotted" class="size-6 text-[#FECD00]" />
                 <span class="text-[14px] font-bold text-white leading-none"
                   >D</span
                 >
@@ -297,7 +295,7 @@ async function handleSubmit() {
               >Marke</label
             >
             <div
-              class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
+              class="flex h-9.25 cursor-pointer items-center justify-between rounded-[5px] border px-2"
               style="border-color: #b7c2c2"
               @click="
                 markeOpen = !markeOpen;
@@ -313,13 +311,13 @@ async function handleSubmit() {
             </div>
             <div
               v-if="markeOpen"
-              class="absolute top-full z-50 mt-1 max-h-[150px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
+              class="absolute top-full z-50 mt-1 max-h-37.5 w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
               style="border-color: #b7c2c2"
             >
               <div
                 v-for="opt in markeOptions"
                 :key="opt"
-                class="flex h-[30px] cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
+                class="flex h-7.5 cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
                 style="color: #000"
                 @click="
                   marke = opt;
@@ -338,7 +336,7 @@ async function handleSubmit() {
             >
             <input
               v-model="modell"
-              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
+              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color: #b7c2c2; color: #000"
             />
           </div>
@@ -349,7 +347,7 @@ async function handleSubmit() {
               >Leasingende</label
             >
             <div
-              class="relative flex h-[37px] items-center rounded-[5px] border"
+              class="relative flex h-9.25 items-center rounded-[5px] border"
               style="border-color: #b7c2c2"
             >
               <input
@@ -363,7 +361,7 @@ async function handleSubmit() {
         </div>
 
         <!-- Right column -->
-        <div class="flex w-[308px] flex-col gap-4">
+        <div class="flex w-77 flex-col gap-4">
           <!-- FIN -->
           <div class="flex flex-col gap-1">
             <label class="text-[16px] font-bold text-black"
@@ -374,7 +372,7 @@ async function handleSubmit() {
             </label>
             <input
               v-model="fin"
-              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
+              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color: #b7c2c2; color: #000"
             />
           </div>
@@ -387,7 +385,7 @@ async function handleSubmit() {
             <input
               v-model="rueckgabestart"
               type="date"
-              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
+              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color: #b7c2c2; color: #000"
             />
           </div>
@@ -399,7 +397,7 @@ async function handleSubmit() {
             >
             <input
               v-model="status"
-              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
+              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color: #b7c2c2; color: #000"
               placeholder="Status"
             />
@@ -411,7 +409,7 @@ async function handleSubmit() {
               >Fahrzeugnutzer</label
             >
             <div
-              class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
+              class="flex h-9.25 cursor-pointer items-center justify-between rounded-[5px] border px-2"
               style="border-color: #b7c2c2"
               @click="
                 nutzerOpen = !nutzerOpen;
@@ -437,7 +435,7 @@ async function handleSubmit() {
               <div
                 v-for="opt in nutzerOptions"
                 :key="opt"
-                class="flex h-[30px] cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
+                class="flex h-7.5 cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
                 style="color: #000"
                 @click="
                   fahrzeugnutzer = opt;
@@ -452,7 +450,7 @@ async function handleSubmit() {
           <!-- Bestätigen button — right-aligned, bottom -->
           <div class="mt-auto flex justify-end pt-4">
             <button
-              class="h-[30px] w-[150px] rounded-[5px] text-[14px] font-bold text-white transition-opacity"
+              class="h-7.5 w-37.5 rounded-[5px] text-[14px] font-bold text-white transition-opacity"
               :style="
                 buttonActive ? 'background:#EF8450' : 'background:#B7C2C2'
               "
