@@ -21,10 +21,15 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
   "success": [];
 }>();
+const selectedService = ref<"tuvsud" | "dekra">("tuvsud");
 
 
 const tuvsudActive = ref(true);
 
+//  Service selection 
+// const tuvsudActive = ref(true);
+
+//  Stations 
 const stations = ref<Station[]>([]);
 const stationsLoading = ref(false);
 const stationOpen = ref(false);
@@ -36,7 +41,7 @@ async function fetchStations() {
   mapLat.value = null;
   mapLng.value = null;
   try {
-    stations.value = await vehicleApi.getStations("tuvsud");
+    stations.value = await vehicleApi.getStations(selectedService.value);
   } catch {
     toast.error("Stationen konnten nicht geladen werden.");
   } finally {
@@ -44,6 +49,7 @@ async function fetchStations() {
   }
 }
 
+// Map 
 const mapLat = ref<number | null>(null);
 const mapLng = ref<number | null>(null);
 
@@ -60,7 +66,7 @@ async function geocodeStation(station: Station) {
       mapLng.value = parseFloat(data[0].lon);
     }
   } catch {
-    // silent — map just won't show a marker
+    
   }
 }
 
@@ -70,6 +76,7 @@ function selectStation(station: Station) {
   geocodeStation(station);
 }
 
+// Termin 
 const terminDate = ref("");
 const terminTime = ref("");
 
@@ -80,8 +87,10 @@ const terminIso = computed(() => {
   return `${raw}T${terminTime.value}:00+02:00`;
 });
 
+// Remarks
 const remarks = ref("");
 
+//  Submit 
 const isSubmitting = ref(false);
 
 const canSubmit = computed(() =>
@@ -93,7 +102,7 @@ async function handleSubmit() {
 
   isSubmitting.value = true;
   try {
-    await vehicleApi.createOrder("tuvsud", props.vehicle.id, {
+    await vehicleApi.createOrder(selectedService.value, props.vehicle.id, {
       remarks: remarks.value,
       station_id: selectedStation.value!.station_id,
       termin: terminIso.value,
@@ -113,7 +122,7 @@ watch(
   () => props.open,
   (opened) => {
     if (!opened) return;
-    tuvsudActive.value = true;
+    selectedService.value = "tuvsud";
     terminDate.value = "";
     terminTime.value = "";
     remarks.value = "";
@@ -159,20 +168,28 @@ function close() {
             Service wählen
           </p>
           <div class="flex flex-col gap-2">
-            <Switch v-model="tuvsudActive" label="TÜV SÜD" />
-            <!-- DEKRA not yet available -->
-            <div class="flex items-center justify-between w-full opacity-40">
-              <span class="text-base font-normal text-custom-black">DEKRA</span>
-              <button
-                type="button"
-                disabled
-                class="relative inline-flex h-5.5 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent bg-[#C1C9C9]"
-              >
-                <span
-                  class="pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow ring-0 translate-x-0"
+            <!-- TÜV SÜD -->
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="tuvsud"
+                  v-model="selectedService"
+                  class="accent-primary size-4"
+                  @change="fetchStations"
                 />
-              </button>
-            </div>
+                <span class="text-base text-custom-black">TÜV SÜD</span>
+              </label>
+            <!-- DEKRA — selectable but shows empty dropdown -->
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="dekra"
+                  v-model="selectedService"
+                  class="accent-primary size-4"
+                  @change="fetchStations"
+                />
+                <span class="text-base text-custom-black">DEKRA</span>
+              </label>
           </div>
         </div>
 

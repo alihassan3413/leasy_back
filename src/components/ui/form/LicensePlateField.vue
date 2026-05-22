@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Icon } from '@iconify/vue';
 import { useField } from 'vee-validate'
 
 interface Props {
@@ -37,66 +38,32 @@ const {
 
     <div class="flex items-stretch rounded-[5px] border border-green-gray">
       <div
-        class="flex h-[34px] w-9 shrink-0 flex-col items-center justify-center gap-0.5 rounded-l-[5px] bg-primary py-1"
-      >
-        <div
-          class="flex flex-col overflow-hidden rounded-sm"
-          style="width: 18px; height: 12px"
-        >
-          <div style="flex: 1; background: #000" />
-          <div style="flex: 1; background: #D00" />
-          <div style="flex: 1; background: #FFCE00" />
-        </div>
+        class="flex h-11 w-9 shrink-0 flex-col items-center justify-center gap-0.5 rounded-l-[5px] bg-[#00339b] py-1">
+        <Icon icon="tabler:circle-dotted" class="size-6 text-[#FECD00]" />
+        <span class="text-[12px] font-bold text-white leading-none">D</span>
 
-        <span class="text-[9px] font-bold leading-none text-white">
-          D
-        </span>
       </div>
 
-      <input
-        v-model="city"
-        type="text"
-        placeholder="ABC"
-        maxlength="3"
-        class="h-[34px] w-0 flex-1 border-x border-green-gray bg-white px-2 text-center text-sm font-medium uppercase outline-none"
-        :class="cityError ? 'border-red-400 bg-red-50' : ''"
-      >
-
-      <input
-        v-model="letters"
-        type="text"
-        placeholder="DE"
-        maxlength="2"
-        class="h-[34px] w-0 flex-1 border-r border-green-gray bg-white px-2 text-center text-sm font-medium uppercase outline-none"
-        :class="lettersError ? 'border-red-400 bg-red-50' : ''"
-      >
-
-      <input
-        v-model="numbers"
-        type="text"
-        placeholder="1234"
-        maxlength="5"
-        class="h-[34px] w-0 flex-1 border-r border-green-gray bg-white px-2 text-center text-sm font-medium uppercase outline-none"
-        :class="numbersError ? 'border-red-400 bg-red-50' : ''"
-      >
-
-      <div
-        class="flex h-[34px] w-9 shrink-0 items-center justify-center rounded-r-[5px] bg-white"
-      >
-        <div
-          class="flex h-6 w-6 items-center justify-center rounded-full border-2 border-primary"
+      <input v-model="city" type="text" placeholder="ABC" maxlength="3"
+        class="h-11 w-0 flex-1 border-x border-green-gray bg-transparent px-2 text-green-gray text-center text-base font-extrabold uppercase outline-none"
         >
-          <span class="text-[7px] font-bold leading-none text-primary">
-            TÜV
-          </span>
-        </div>
+      <div class="p-1 border flex flex-col gap-1">
+        <Icon icon="cib:circle" class="w-3 h-3 text-custom-black" />
+        <Icon icon="mdi:badge-outline" class="w-3.5 h-3.5 text-custom-black" />
       </div>
+
+      <input v-model="letters" type="text" placeholder="DE" maxlength="2"
+        class="h-11 w-0 flex-1 border-r border-green-gray bg-transparent px-2 text-green-gray text-center text-base font-extrabold uppercase outline-none"
+        >
+
+      <input v-model="numbers" type="text" placeholder="1234" maxlength="5"
+        class="h-11 w-0 flex-1 border-r border-green-gray bg-transparent px-2 text-green-gray text-center text-base font-extrabold uppercase outline-none"
+       >
+
+
     </div>
 
-    <p
-      v-if="cityError || lettersError || numbersError"
-      class="mt-1 text-xs text-red-500"
-    >
+    <p v-if="cityError || lettersError || numbersError" class="mt-1 text-xs text-red-500">
       {{ cityError || lettersError || numbersError }}
     </p>
   </div>

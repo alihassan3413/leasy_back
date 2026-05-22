@@ -1,20 +1,43 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { Icon } from '@iconify/vue'
 import type { Vehicle } from '@/components/dashboard/vehicle.types'
 import B2bDdfExpanded from './b2bDdfExpanded.vue';
 
-const props = defineProps<{ vehicle: Vehicle }>()
+const props = defineProps<{
+   vehicle: Vehicle
+   isExpanded: boolean
+  }>()
 
 const emit = defineEmits<{
-  select: [vehicle: Vehicle | null]
+  toggle: []
 }>()
 
-const expanded = ref(false)
+function handleClick() {
+  if (props.vehicle.completed) return
+  emit('toggle')
+}
+
+
+const manualStatuses = ["Eingeplant", "Planung", "Erledigt"];
+
+const manualStatus = computed(() => {
+  const id = props.vehicle.id || props.vehicle.licensePlate || "";
+
+  const index =
+    id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0) %
+    manualStatuses.length;
+
+  return manualStatuses[index];
+});
+
 
 const iconClasses = computed(() => [
   "text-[40px] text-primary transition-transform duration-200",
 ]);
+
+console.log(props.vehicle);
+
 
 function toggleExpand() {
   if (props.vehicle.completed) return
@@ -25,8 +48,10 @@ function toggleExpand() {
 
 <template>
   <TableRow
-    class="border-b border-green-gray hover:bg-transparent"
-    style="background-color: #FAFAFA; height: 40px"
+    class="border-b border-green-gray cursor-pointer"
+    :class="isExpanded ? 'bg-gray-200' : 'bg-white'"
+    style="height: 40px"
+    @click="handleClick"
   >
     <TableCell class="h-[40px] truncate px-3 text-[16px] font-medium text-custom-black leading-normal not-italic font-normal">
       {{ vehicle.licensePlate }}
@@ -41,7 +66,21 @@ function toggleExpand() {
       {{ vehicle.returnStart }}
     </TableCell>
      <TableCell class="h-[40px] w-[160px] truncate px-3 text-[16px] text-custom-black leading-normal not-italic font-normal">
-      {{ vehicle.status }}
+      
+      
+     <div class="flex items-center gap-2">
+    <span
+      class="size-2.5 rounded-full"
+      :class="{
+        'bg-[#EA7A55]': manualStatus === 'Eingeplant',
+        'bg-[#8FA1A1]': manualStatus === 'Planung',
+        'bg-[#2FC59A]': manualStatus === 'Erledigt',
+      }"
+    />
+    <span class="font-bold text-[#10393B]">
+      {{ manualStatus }}
+    </span>
+  </div>
     </TableCell>
     <TableCell class="h-[40px] w-[180px] truncate px-3 text-[16px] text-custom-black leading-normal not-italic font-normal">
       {{ vehicle.driver }}
@@ -77,13 +116,12 @@ function toggleExpand() {
         <!-- Caret — rotates when expanded; all rows show it, only active rows toggle -->
         <button
           class="transition-transform focus:outline-none"
-          :class="expanded ? 'rotate-180' : ''"
-          @click="toggleExpand"
+          :class="isExpanded ? 'rotate-180' : ''"  
         >
           <Icon icon="ic:round-arrow-drop-down" :class="iconClasses" />
         </button>
       </div>
     </TableCell>
   </TableRow>
-  <B2bDdfExpanded v-if="expanded" :vehicle="vehicle" />
+  <B2bDdfExpanded v-if="isExpanded" :vehicle="vehicle" />
 </template>
