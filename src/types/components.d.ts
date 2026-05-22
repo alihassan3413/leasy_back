@@ -38,7 +38,7 @@ declare module 'vue' {
     B2bDdfExpanded: typeof import('./../components/b2b/b2bDdfExpanded.vue')['default']
     B2bModalsAssignmentModal: typeof import('./../components/b2b/modals/AssignmentModal.vue')['default']
     Badge: typeof import('./../components/ui/badge/Badge.vue')['default']
-    Button: typeof import('./../components/ui/Button.vue')['default']
+    Button: typeof import('./../components/ui/button/Button.vue')['default']
     Calendar: typeof import('./../components/ui/calendar/Calendar.vue')['default']
     CalendarCell: typeof import('./../components/ui/calendar/CalendarCell.vue')['default']
     CalendarCellTrigger: typeof import('./../components/ui/calendar/CalendarCellTrigger.vue')['default']

@@ -9,23 +9,46 @@ import CalendarDateField from '@/components/ui/form/CalendarDateField.vue'
 import { vehicleDataSchema } from '@/validations/b2c/vehicleData.schema'
 import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'
 import type { VehicleData } from '@/stores/b2cRegistration.store'
+import { useVehicleStore } from '@/stores/vehicle.store'
 
 const emit = defineEmits<{
   next: []
   back: []
 }>()
 
-const store = useB2CRegistrationStore()
+const store = useB2CRegistrationStore();
+const vehicleStore = useVehicleStore();
 
 const { handleSubmit } = useForm<VehicleData>({
   validationSchema: vehicleDataSchema,
   initialValues: store.vehicleData,
 })
 
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit( async(values) => {
   Object.assign(store.vehicleData, values)
 
-  emit('next')
+  const licensePlate = [
+    values.kennzeichenCity,
+    values.kennzeichenLetters,
+    values.kennzeichenNumbers,
+  ]
+  .filter(Boolean)
+  .join(' ')
+
+  try {
+    await vehicleStore.addVehicle({
+      license_plate: licensePlate,
+      first_registration_date: values.erstzulassungsdatum,
+      leasing_end_date: values.leasingende,
+      vin: values.fin,
+      make: values.marke,
+      model: values.modell,
+    })
+     emit('next')
+  } catch (error) {
+    console.error('Error adding vehicle:', error)
+  }
+ 
 })
 </script>
 
