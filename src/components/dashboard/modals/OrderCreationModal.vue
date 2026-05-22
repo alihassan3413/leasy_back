@@ -6,7 +6,6 @@ import { vehicleApi } from "@/api";
 import type { Station } from "@/types";
 import type { Vehicle } from "../vehicle.types";
 import AppMapPicker from "@/components/ui/AppMapPicker.vue";
-import Switch from "@/components/ui/switch/Switch.vue";
 import { useForm } from "vee-validate";
 import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
 
@@ -24,7 +23,6 @@ const emit = defineEmits<{
 const selectedService = ref<"tuvsud" | "dekra">("tuvsud");
 
 
-const tuvsudActive = ref(true);
 
 //  Service selection 
 // const tuvsudActive = ref(true);

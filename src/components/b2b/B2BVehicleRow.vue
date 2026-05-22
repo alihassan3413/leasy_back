@@ -36,14 +36,8 @@ const iconClasses = computed(() => [
   "text-[40px] text-primary transition-transform duration-200",
 ]);
 
-console.log(props.vehicle);
 
 
-function toggleExpand() {
-  if (props.vehicle.completed) return
-  expanded.value = !expanded.value
-  emit('select', expanded.value ? props.vehicle : null)
-}
 </script>
 
 <template>
@@ -116,7 +110,7 @@ function toggleExpand() {
         <!-- Caret — rotates when expanded; all rows show it, only active rows toggle -->
         <button
           class="transition-transform focus:outline-none"
-          :class="isExpanded ? 'rotate-180' : ''"  
+          :class="isExpanded ? 'rotate-180' : ''"
         >
           <Icon icon="ic:round-arrow-drop-down" :class="iconClasses" />
         </button>
