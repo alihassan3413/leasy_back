@@ -11,7 +11,7 @@ import type { Vehicle } from "@/components/dashboard/vehicle.types";
 
 const authStore = useAuthStore();
 const vehicleStore = useVehicleStore();
-const { vehicles, completedVehicles, isLoading } = storeToRefs(vehicleStore);
+const { vehicles, completedVehicles } = storeToRefs(vehicleStore);
 
 const addVehicleOpen = ref(false);
 const orderModalOpen = ref(false);
@@ -59,6 +59,6 @@ onMounted(() => {
 
     <!-- Modals -->
     <AddVehicleModal v-model:open="addVehicleOpen" />
-    <OrderCreationModal v-model:open="orderModalOpen" :vehicle="selectedVehicle" />
+    <OrderCreationModal v-model:open="orderModalOpen" :vehicle="selectedVehicle" @success="vehicleStore.fetchVehicles(authStore.user!.id)" />
   </div>
 </template>
