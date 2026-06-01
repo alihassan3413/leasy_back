@@ -49,6 +49,7 @@ const markeOptions = [
   "Skoda",
   "Ford",
   "Opel",
+  "Sonstige",
 ];
 const nutzerOptions = ["Christin Mechtild", "Thorsten Jung", "Marcus Dietrich"];
 
@@ -114,6 +115,26 @@ watch(
   },
 );
 
+const plateText = computed(() =>
+  `${city.value}${district.value}${number.value}`.replace(/\s+/g, ""),
+);
+
+const plateError = computed(() => {
+  if (!city.value && !district.value && !number.value) return ""
+  if (plateText.value.length > 8) {
+    return "Kennzeichen darf höchstens 8 Zeichen lang sein"
+  }
+  return ""
+})
+
+const finError = computed(() => {
+  if (!fin.value.trim()) return ""
+  if (fin.value.trim().length !== 17) {
+    return "FIN muss genau 17 Zeichen lang sein"
+  }
+  return ""
+})
+
 const isFormValid = computed(() => {
   return (
     city.value.trim() !== "" &&
@@ -122,7 +143,9 @@ const isFormValid = computed(() => {
     modell.value.trim() !== "" &&
     leasingende.value !== "" &&
     rueckgabestart.value !== "" &&
-    fin.value.trim() !== ""
+    fin.value.trim() !== "" &&
+    plateError.value === "" &&
+    finError.value === ""
   );
 });
 
@@ -248,7 +271,7 @@ async function handleSubmit() {
                 <input
                   v-model="city"
                   class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
-                  style="color: #b7c2c2"
+                  style="color: #1F2937"
                   placeholder="ABC"
                   maxlength="3"
                 />
@@ -268,7 +291,7 @@ async function handleSubmit() {
                 <input
                   v-model="district"
                   class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
-                  style="color: #b7c2c2"
+                  style="color: #1F2937"
                   placeholder="DE"
                   maxlength="2"
                 />
@@ -281,12 +304,16 @@ async function handleSubmit() {
                 <input
                   v-model="number"
                   class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
-                  style="color: #b7c2c2"
+                  style="color: #1F2937"
                   placeholder="1234"
                   maxlength="5"
                 />
               </div>
             </div>
+
+            <p v-if="plateError" class="mt-1 text-xs text-red-500">
+              {{ plateError }}
+            </p>
           </div>
 
           <!-- Marke (dropdown) -->
@@ -375,6 +402,9 @@ async function handleSubmit() {
               class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color: #b7c2c2; color: #000"
             />
+            <p v-if="finError" class="mt-1 text-xs text-red-500">
+              {{ finError }}
+            </p>
           </div>
 
           <!-- Rückgabestart -->

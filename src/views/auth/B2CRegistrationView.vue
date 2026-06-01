@@ -97,6 +97,6 @@ function onSuccessOk(): void {
     icon="material-symbols:check-circle-outline"
     confirm-text="OK"
     @confirm="onSuccessOk"
-    @close="showSuccess = false"
+    @close="onSuccessOk"
   />
 </template>

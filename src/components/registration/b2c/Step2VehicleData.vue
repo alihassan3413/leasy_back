@@ -21,7 +21,7 @@ const vehicleStore = useVehicleStore();
 
 const { handleSubmit } = useForm<VehicleData>({
   validationSchema: vehicleDataSchema,
-  initialValues: store.vehicleData,
+  initialValues: { ...store.vehicleData },
 })
 
 const onSubmit = handleSubmit( async(values) => {

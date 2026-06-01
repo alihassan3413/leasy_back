@@ -134,6 +134,7 @@ const onSubmit = handleSubmit((values) => {
           <CalendarDateField
             name="datum"
             label="Datum"
+            :minDaysAhead="3"
           />
 
           <FormSelectField

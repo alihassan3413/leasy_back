@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { Icon } from '@iconify/vue'
 import type { Vehicle } from '../dashboard/vehicle.types';
 import AddVehicleModal from '../dashboard/modals/AddVehicleModal.vue';
 import UploadDocumentModal from '../dashboard/modals/UploadDocumentModal.vue';
+import { vehicleApi } from '@/api'
 
 
 const props = defineProps<{ vehicle: Vehicle }>()
@@ -11,6 +12,25 @@ const props = defineProps<{ vehicle: Vehicle }>()
 const editVehicleOpen = ref(false)
 const uploadDocsOpen = ref(false)
 console.log(props.vehicle);
+const documents = ref<any[]>([])
+
+async function loadDocuments() {
+  try {
+    if (!props.vehicle?.id) return
+    documents.value = await vehicleApi.getVehicleDocuments(props.vehicle.id)
+  } catch (err) {
+    console.error('Failed to load vehicle documents:', err)
+    documents.value = []
+  }
+}
+
+onMounted(() => {
+  void loadDocuments()
+})
+
+watch(() => props.vehicle?.id, () => {
+  void loadDocuments()
+})
 
 </script>
 
@@ -144,8 +164,8 @@ console.log(props.vehicle);
           </div>
 
           <div class="flex flex-col gap-3 px-6">
-            <div v-for="doc in vehicle.leasingDocuments" :key="doc" class="flex items-center justify-between">
-              <span class="text-[14px]" style="color:#2E3E3F">{{ doc }}</span>
+            <div v-for="doc in documents" :key="doc.id" class="flex items-center justify-between">
+              <a :href="doc.url || '#'" target="_blank" rel="noreferrer" class="text-[14px] hover:underline" style="color:#2E3E3F">{{ doc.file_name || doc.document_type }}</a>
               <Icon icon="mdi:file-download-outline" class="size-4 shrink-0" style="color:#01B990" />
             </div>
           </div>
@@ -247,5 +267,5 @@ console.log(props.vehicle);
 
   <!-- Modals -->
   <AddVehicleModal v-model:open="editVehicleOpen" :vehicle="props.vehicle" />
-  <UploadDocumentModal v-model:open="uploadDocsOpen" />
+  <UploadDocumentModal v-model:open="uploadDocsOpen" :vehicleId="props.vehicle.id" @uploaded="loadDocuments" />
 </template>

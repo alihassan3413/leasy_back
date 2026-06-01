@@ -14,6 +14,7 @@ export interface User {
   bankData?: BankData;
   companyId?: string;
   workshopId?: string;
+  profileCompleted?: boolean;
 }
 
 export interface BankData {
@@ -145,6 +146,14 @@ export interface CreateVehiclePayload {
   vin: string;
   make: string;
   model: string;
+}
+
+export interface VehicleDocument {
+  id: string;
+  document_type: string;
+  file_name?: string;
+  created_at?: string;
+  url?: string;
 }
 
 export interface Vehicle {

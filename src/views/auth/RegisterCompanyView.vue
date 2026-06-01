@@ -156,7 +156,7 @@ function onSuccessOk(): void {
             button-classes="rounded-[5px] py-2 px-8 text-sm font-bold hover:opacity-90 mr-4"
             @click="skipOnboarding"
           >
-            Später ausfüllen
+            Jetzt überspringen
           </Button>
 
           <Button
@@ -180,7 +180,7 @@ function onSuccessOk(): void {
         icon="material-symbols:check-circle-outline"
         confirm-text="OK"
         @confirm="onSuccessOk"
-        @close="showSuccess = false"
+        @close="onSuccessOk"
       />
 
 </template>

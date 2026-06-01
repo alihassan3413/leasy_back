@@ -6,8 +6,12 @@ type CalendarDay = {
   monthOffset: -1 | 0 | 1
 }
 
-export function useAppointmentCalendar(selectedDate: Ref<string | undefined>) {
+export function useAppointmentCalendar(
+  selectedDate: Ref<string | undefined>,
+  options: { minDaysAhead?: number } = {},
+) {
   const today = new Date()
+  const minDaysAhead = options.minDaysAhead ?? 0
 
   const calendarYear = ref(today.getFullYear())
   const calendarMonth = ref(today.getMonth())
@@ -117,7 +121,26 @@ export function useAppointmentCalendar(selectedDate: Ref<string | undefined>) {
     return `${year}-${month}-${day}`
   }
 
+  function getMinSelectableDate(): Date {
+    const minDate = new Date(today)
+    minDate.setDate(minDate.getDate() + minDaysAhead)
+    minDate.setHours(0, 0, 0, 0)
+    return minDate
+  }
+
+  function isSelectableDay(calendarDay: CalendarDay): boolean {
+    const date = new Date(
+      calendarYear.value,
+      calendarMonth.value + calendarDay.monthOffset,
+      calendarDay.day,
+    )
+    date.setHours(0, 0, 0, 0)
+    return date >= getMinSelectableDate()
+  }
+
   function selectDay(calendarDay: CalendarDay): void {
+    if (!isSelectableDay(calendarDay)) return
+
     selectedDate.value = getDateFromCalendarDay(calendarDay)
     datePopoverOpen.value = false
   }
@@ -142,5 +165,7 @@ export function useAppointmentCalendar(selectedDate: Ref<string | undefined>) {
     nextYear,
     selectDay,
     isSelectedDay,
+    isSelectableDay,
+    getMinSelectableDate,
   }
 }
