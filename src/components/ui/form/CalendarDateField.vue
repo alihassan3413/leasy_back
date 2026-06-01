@@ -11,11 +11,13 @@ interface Props {
   label: string;
   placeholder?: string;
   helpText?: string;
+  minDaysAhead?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: "TT.MM.JJJJ",
   helpText: "",
+  minDaysAhead: 0,
 });
 
 const { value, errorMessage } = useField<string | undefined>(props.name);
@@ -34,7 +36,8 @@ const {
   nextYear,
   selectDay,
   isSelectedDay,
-} = useAppointmentCalendar(value);
+  isSelectableDay,
+} = useAppointmentCalendar(value, { minDaysAhead: props.minDaysAhead });
 </script>
 
 <template>
@@ -147,10 +150,10 @@ const {
             class="mx-auto flex h-6 w-6 items-center justify-center rounded-[6px] transition"
             :class="{
               'bg-custom-green text-white': isSelectedDay(calendarDay),
-              'text-custom-black hover:border hover:border-custom-green': !isSelectedDay(
-                calendarDay
-              ),
+              'text-custom-black hover:border hover:border-custom-green': !isSelectedDay(calendarDay) && isSelectableDay(calendarDay),
+              'cursor-not-allowed opacity-40 text-green-gray': !isSelectableDay(calendarDay),
             }"
+            :disabled="!isSelectableDay(calendarDay)"
             @click="selectDay(calendarDay)"
           >
             {{ calendarDay.day }}

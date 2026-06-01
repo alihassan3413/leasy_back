@@ -1,23 +1,41 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
+import { vehicleApi } from '@/api'
+import type { VehicleDocument } from '@/types'
+import { useVehicleStore } from '@/stores/vehicle.store'
+import { useB2BVehicleStore } from '@/stores/b2bVehicle.store'
+import { useAuthStore } from '@/stores/auth.store'
 
-defineProps<{ open: boolean }>()
+const props = defineProps<{ open: boolean; vehicleId?: string }>()
 const emit = defineEmits<{
   'update:open': [value: boolean]
+  uploaded: [doc: VehicleDocument]
 }>()
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
 const selectedFile = ref<File | null>(null)
-
+const selectedDocType = ref('')
+const uploadError = ref('')
+const isLoading = ref(false)
+const documents = ref<VehicleDocument[]>([])
 const docsOpen = ref(false)
-const selectedDoc = ref('')
-const docOptions = ['Gutachten', 'Vorschäden', 'Leasingvertrag', 'Sonstiges']
 
-function close() { emit('update:open', false) }
+const docOptions = [
+  { label: 'Leasingvertrag', value: 'Leasingvertrag' },
+  { label: 'Vorschaden', value: 'vorschaden' },
+  { label: 'Gutachten', value: 'gutachten' },
+  { label: 'Sonstiges', value: 'Sonstiges' },
+]
 
-function openFilePicker() { fileInput.value?.click() }
+function close() {
+  emit('update:open', false)
+}
+
+function openFilePicker() {
+  fileInput.value?.click()
+}
 
 function onFileChange(e: Event) {
   const input = e.target as HTMLInputElement
@@ -28,6 +46,101 @@ function onDrop(e: DragEvent) {
   isDragging.value = false
   selectedFile.value = e.dataTransfer?.files?.[0] ?? null
 }
+
+async function fetchDocuments() {
+  if (!props.vehicleId) return
+
+  isLoading.value = true
+  uploadError.value = ''
+
+  try {
+    documents.value = await vehicleApi.getVehicleDocuments(props.vehicleId)
+  } catch (err) {
+    console.error('Failed to fetch vehicle documents:', err)
+    uploadError.value = 'Dokumente konnten nicht geladen werden.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function uploadDocument() {
+  if (!props.vehicleId) {
+    uploadError.value = 'Kein Fahrzeug ausgewählt.'
+    return
+  }
+
+  if (!selectedDocType.value) {
+    uploadError.value = 'Bitte wählen Sie einen Dokumenttyp aus.'
+    return
+  }
+
+  if (!selectedFile.value) {
+    uploadError.value = 'Bitte wählen Sie eine Datei zum Hochladen aus.'
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('document_type', selectedDocType.value)
+  formData.append('file', selectedFile.value)
+
+  isLoading.value = true
+  uploadError.value = ''
+
+  try {
+    const newDoc = await vehicleApi.uploadVehicleDocument(props.vehicleId, formData)
+    selectedFile.value = null
+    selectedDocType.value = ''
+    await fetchDocuments()
+
+    // refresh vehicle lists in stores so dashboard shows the newly uploaded document
+    try {
+      const auth = useAuthStore()
+      const vehicleStore = useVehicleStore()
+      const b2bStore = useB2BVehicleStore()
+      if (auth.user?.id) {
+        // refresh both stores where applicable
+        void vehicleStore.fetchVehicles(auth.user.id)
+        void b2bStore.fetchVehicles(auth.user.id)
+      }
+    } catch (err) {
+      // non-fatal if stores not available
+      console.warn('Could not refresh vehicle stores after upload', err)
+    }
+
+    emit('uploaded', newDoc)
+  } catch (err) {
+    console.error('Upload fehlgeschlagen:', err)
+    uploadError.value = 'Dokument konnte nicht hochgeladen werden.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function deleteDocument(documentId: string) {
+  if (!props.vehicleId) return
+
+  isLoading.value = true
+  uploadError.value = ''
+
+  try {
+    await vehicleApi.deleteVehicleDocument(props.vehicleId, documentId)
+    documents.value = documents.value.filter((doc) => doc.id !== documentId)
+  } catch (err) {
+    console.error('Löschen fehlgeschlagen:', err)
+    uploadError.value = 'Dokument konnte nicht gelöscht werden.'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+watch(
+  () => props.open,
+  async (open) => {
+    if (open) {
+      await fetchDocuments()
+    }
+  },
+)
 </script>
 
 <template>
@@ -94,9 +207,9 @@ function onDrop(e: DragEvent) {
           </div>
         </div>
 
-        <!-- Right: uploaded documents dropdown -->
-        <div class="flex w-[308px] flex-col gap-2">
-          <span class="text-[16px] font-bold" style="color:#000">Hochgeladene Dokumente</span>
+        <!-- Right: upload options and document list -->
+        <div class="flex w-[308px] flex-col gap-3">
+          <span class="text-[16px] font-bold" style="color:#000">Dokumenttyp wählen</span>
 
           <div class="relative">
             <div
@@ -104,23 +217,60 @@ function onDrop(e: DragEvent) {
               style="border-color:#B7C2C2"
               @click="docsOpen = !docsOpen"
             >
-              <span class="text-[14px]" :style="selectedDoc ? 'color:#000' : 'color:#B7C2C2'">
-                {{ selectedDoc || 'Dokument wählen' }}
+              <span class="text-[14px]" :style="selectedDocType ? 'color:#000' : 'color:#B7C2C2'">
+                {{ selectedDocType || 'Dokumenttyp wählen' }}
               </span>
               <Icon :icon="docsOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'" class="size-4" style="color:#2E3E3F" />
             </div>
 
-            <!-- Dropdown list -->
             <div v-if="docsOpen" class="absolute top-full z-50 mt-1 w-full rounded-[5px] border bg-white shadow-md" style="border-color:#B7C2C2">
               <div
                 v-for="opt in docOptions"
-                :key="opt"
+                :key="opt.value"
                 class="flex h-[30px] cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
-                :style="opt === 'Sonstiges' ? 'color:#B7C2C2' : 'color:#000'"
-                @click="selectedDoc = opt; docsOpen = false"
-              >{{ opt }}</div>
+                :style="opt.value === 'Sonstiges' ? 'color:#1F2937' : 'color:#000'"
+                @click="selectedDocType = opt.value; docsOpen = false"
+              >{{ opt.label }}</div>
             </div>
           </div>
+
+          <div class="rounded-[5px] border border-[#D1D5DB] bg-white p-3">
+            <p class="mb-2 text-[14px] font-semibold" style="color:#000">Vorhandene Dokumente</p>
+
+            <div v-if="isLoading" class="text-[13px]" style="color:#6B7280">Lade Dokumente...</div>
+            <div v-else-if="documents.length === 0" class="text-[13px]" style="color:#6B7280">Keine Dokumente vorhanden.</div>
+
+            <div v-else class="flex flex-col gap-2">
+              <div
+                v-for="doc in documents"
+                :key="doc.id"
+                class="flex items-center justify-between rounded-[5px] border px-3 py-2"
+                style="border-color:#E5E7EB"
+              >
+                <div>
+                  <p class="text-[14px] font-medium" style="color:#111827">{{ doc.file_name || doc.document_type }}</p>
+                  <p class="text-[12px]" style="color:#6B7280">{{ doc.document_type }}</p>
+                </div>
+                <button
+                  type="button"
+                  class="text-[13px] font-semibold text-[#EF4444] hover:text-[#B91C1C]"
+                  @click="deleteDocument(doc.id)"
+                >
+                  Löschen
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p v-if="uploadError" class="text-[13px] text-[#B91C1C]">{{ uploadError }}</p>
+
+          <button
+            class="h-[36px] rounded-[5px] bg-[#01B990] px-4 text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+            :disabled="isLoading"
+            @click="uploadDocument"
+          >
+            {{ isLoading ? 'Lädt...' : 'Hochladen' }}
+          </button>
         </div>
       </div>
 

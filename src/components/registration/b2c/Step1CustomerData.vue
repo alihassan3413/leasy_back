@@ -8,6 +8,7 @@ import FormSelectField from '@/components/ui/form/B2CSelectField.vue'
 
 import { customerDataSchema } from '@/validations/b2c/customerData.schema'
 import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'
+import { useAuthStore } from '@/stores/auth.store'
 import type { CustomerData } from '@/stores/b2cRegistration.store'
 
 defineProps<{ loading?: boolean }>()
@@ -16,6 +17,7 @@ const emit = defineEmits<{ next: [] }>()
 
 const router = useRouter()
 const store = useB2CRegistrationStore()
+const authStore = useAuthStore()
 
 const anredeOptions = [
   { value: 'Herr', label: 'Herr' },
@@ -46,6 +48,11 @@ const onSubmit = handleSubmit((values) => {
 function skipOnboarding(): void {
   store.error = ''
   store.status = 'idle'
+
+  if (authStore.user) {
+    authStore.user.profileCompleted = true
+  }
+
   void router.push({ name: 'dashboard-b2c' })
 }
 </script>
@@ -152,7 +159,7 @@ function skipOnboarding(): void {
             button-classes="rounded-[5px] py-2 px-8 text-sm font-bold !bg-custom-orange text-white hover:opacity-90"
             @click="skipOnboarding"
           >
-            Später ausfüllen
+            Jetzt überspringen
           </Button>
 
           <Button

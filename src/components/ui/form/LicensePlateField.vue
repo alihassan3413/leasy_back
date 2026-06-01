@@ -45,7 +45,7 @@ const {
       </div>
 
       <input v-model="city" type="text" placeholder="ABC" maxlength="3"
-        class="h-11 w-0 flex-1 border-x border-green-gray bg-transparent px-2 text-green-gray text-center text-base font-extrabold uppercase outline-none"
+        class="h-11 w-0 flex-1 border-x border-green-gray bg-transparent px-2 text-custom-black text-center text-base font-extrabold uppercase outline-none"
         >
       <div class="p-1 border flex flex-col gap-1">
         <Icon icon="cib:circle" class="w-3 h-3 text-custom-black" />
@@ -53,11 +53,11 @@ const {
       </div>
 
       <input v-model="letters" type="text" placeholder="DE" maxlength="2"
-        class="h-11 w-0 flex-1 border-r border-green-gray bg-transparent px-2 text-green-gray text-center text-base font-extrabold uppercase outline-none"
+        class="h-11 w-0 flex-1 border-r border-green-gray bg-transparent px-2 text-custom-black text-center text-base font-extrabold uppercase outline-none"
         >
 
       <input v-model="numbers" type="text" placeholder="1234" maxlength="5"
-        class="h-11 w-0 flex-1 border-r border-green-gray bg-transparent px-2 text-green-gray text-center text-base font-extrabold uppercase outline-none"
+        class="h-11 w-0 flex-1 border-r border-green-gray bg-transparent px-2 text-custom-black text-center text-base font-extrabold uppercase outline-none"
        >
 
 
