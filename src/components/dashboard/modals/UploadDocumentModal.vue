@@ -11,6 +11,7 @@ const props = defineProps<{ open: boolean; vehicleId?: string }>()
 const emit = defineEmits<{
   'update:open': [value: boolean]
   uploaded: [doc: VehicleDocument]
+  changed: []
 }>()
 
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -125,6 +126,22 @@ async function deleteDocument(documentId: string) {
   try {
     await vehicleApi.deleteVehicleDocument(props.vehicleId, documentId)
     documents.value = documents.value.filter((doc) => doc.id !== documentId)
+
+    // refresh vehicle lists in stores so dashboard shows updated state
+    try {
+      const auth = useAuthStore()
+      const vehicleStore = useVehicleStore()
+      const b2bStore = useB2BVehicleStore()
+      if (auth.user?.id) {
+        void vehicleStore.fetchVehicles(auth.user.id)
+        void b2bStore.fetchVehicles(auth.user.id)
+      }
+    } catch (err) {
+      console.warn('Could not refresh vehicle stores after delete', err)
+    }
+
+    // notify parent components that documents changed
+    emit('changed')
   } catch (err) {
     console.error('Löschen fehlgeschlagen:', err)
     uploadError.value = 'Dokument konnte nicht gelöscht werden.'

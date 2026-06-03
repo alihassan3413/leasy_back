@@ -436,5 +436,5 @@ watch(() => props.vehicle?.id, () => {
 
   <!-- Modals -->
   <AddVehicleModal v-model:open="editVehicleOpen" :vehicle="props.vehicle" />
-  <UploadDocumentModal v-model:open="uploadDocsOpen" :vehicleId="props.vehicle.id" @uploaded="loadDocuments" />
+  <UploadDocumentModal v-model:open="uploadDocsOpen" :vehicleId="props.vehicle.id" @uploaded="loadDocuments" @changed="loadDocuments" />
 </template>
