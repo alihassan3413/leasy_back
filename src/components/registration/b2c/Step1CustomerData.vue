@@ -67,7 +67,7 @@ function skipOnboarding(): void {
       </h2>
 
       <p class="mt-1 text-sm text-green-gray">
-        Bitte ergänzen Sie Ihre Kundendaten oder füllen Sie diese später aus.
+        Bitte ergänzen Sie Ihre Kundendaten oder Jetzt überspringen.
       </p>
     </div>
 
