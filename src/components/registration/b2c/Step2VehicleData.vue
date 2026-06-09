@@ -3,6 +3,7 @@ import { useForm } from 'vee-validate'
 
 import Button from '@/components/ui/Button.vue'
 import FormTextField from '@/components/ui/form/FormTextField.vue'
+import FormSelectField from '@/components/ui/form/B2CSelectField.vue'
 import LicensePlateField from '@/components/ui/form/LicensePlateField.vue'
 import CalendarDateField from '@/components/ui/form/CalendarDateField.vue'
 

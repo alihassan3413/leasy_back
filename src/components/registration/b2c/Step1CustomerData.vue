@@ -33,7 +33,7 @@ const landOptions = [
 
 const { handleSubmit } = useForm<CustomerData>({
   validationSchema: customerDataSchema,
-  initialValues: { ...store.customerData },
+  initialValues: { ...store.customerData, email: (authStore.user && authStore.user.email) ? authStore.user.email : store.customerData.email },
 })
 
 const onSubmit = handleSubmit((values) => {

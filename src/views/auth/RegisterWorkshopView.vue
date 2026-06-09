@@ -6,19 +6,21 @@ import AccountDetail from "@/components/Workshop/AccountDetail.vue";
 import LegalNotice from "@/components/Workshop/LegalNotice.vue";
 import GeneralTerms from "@/components/Workshop/GeneralTerms.vue";
 import { useWorkshopStore } from "@/stores/workshop.store";
+import { useAuthStore } from '@/stores/auth.store'
 import { useForm } from "vee-validate";
 import { workshopSchema } from "@/validations/workshop.validation";
 import { useRouter } from "vue-router";
 import type { WorkshopCreatePayload } from "@/types";
 
 const workshopStore = useWorkshopStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 const { handleSubmit, isSubmitting } = useForm({
   validationSchema: workshopSchema,
   initialValues: {
     firmenname: "",
-    email: "",
+    email: authStore.user && authStore.user.email ? authStore.user.email : "",
     address: {
       strasse: "",
       nr: "",

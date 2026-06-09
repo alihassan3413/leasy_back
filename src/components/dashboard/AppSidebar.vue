@@ -42,7 +42,10 @@ const navByRole: Record<UserRole, NavItem[]> = {
     { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
   ],
   ADMIN: [
-    { label: "Admin Panel", icon: "mdi:shield-crown-outline", name: "admin" },
+    { label: "Dashboard", icon: "mdi:view-dashboard-outline", name: "admin" },
+    { label: "Kunden / Benutzer", icon: "mdi:account-group-outline", name: "admin-users" },
+    { label: "Fahrzeuge", icon: "mdi:car-outline", name: "admin-vehicles" },
+    { label: "Alle Aufträge", icon: "mdi:file-document-outline", name: "admin-orders" },
     { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
   ],
 };

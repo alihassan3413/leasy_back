@@ -40,16 +40,18 @@ function onBack(): void {
 async function onFinalSubmit(): Promise<void> {
   store.status = 'loading'
 
-  await new Promise((resolve) => setTimeout(resolve, 800))
+  await new Promise((resolve) => setTimeout(resolve, 300))
 
   store.status = 'success'
   showSuccess.value = true
 }
 
-function onSuccessOk(): void {
+async function onSuccessOk(): Promise<void> {
   showSuccess.value = false
+
+  await router.push({ name: 'dashboard-b2c' })
+
   store.reset()
-  void router.push({ name: 'dashboard-b2c' })
 }
 </script>
 

@@ -83,6 +83,130 @@ export interface ResetPasswordPayload {
   password: string;
 }
 
+export interface AdminSummaryResponse {
+  total_b2c_customers: number;
+  total_b2b_customers: number;
+  total_vehicles: number;
+  total_orders: number;
+  active_orders: number;
+  completed_orders: number;
+  pending_inspections: number;
+}
+
+export type AdminUserType = 'B2C' | 'B2B'
+
+export interface AdminUser {
+  user_id: string;
+  user_email: string;
+  user_type: string;
+  is_active: boolean;
+  profile_id: number;
+  image_url: string | null;
+  contact_id: string;
+  salutation: string;
+  first_name: string;
+  last_name: string;
+  address_id: string;
+  street: string;
+  number: string;
+  additional_address: string;
+  zip_code: string;
+  city: string;
+  country: string;
+  created_at: string;
+}
+
+export interface AdminUserListResponse {
+  page: number;
+  limit: number;
+  total: number;
+  total_active: number;
+  total_inactive: number;
+  data: AdminUser[];
+}
+
+export interface AdminVehicleHistoryItem {
+  auftragsnummer: string;
+  confirmation_date: string | null;
+  created_at: string;
+  id: string;
+  leasyback_partner: string;
+  order_status: string;
+  response_status: number;
+  sent_at: string;
+}
+
+export interface AdminVehicle {
+  vehicle_id: string;
+  license_plate: string;
+  first_registration_date: string;
+  leasing_end_date: string;
+  vin: string;
+  make: string;
+  model: string;
+  vehicle_belongs: 'B2B' | 'B2C';
+  b2b_id: string | null;
+  b2c_user_id: string | null;
+  assigned_profile_id: number | null;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  user_email: string;
+  user_type: string;
+  company_name: string | null;
+  current_order_id: string | null;
+  current_auftragsnummer: string | null;
+  current_order_status: string | null;
+  current_order_created_at: string | null;
+  order_history: AdminVehicleHistoryItem[];
+  documents: unknown[];
+}
+
+export interface AdminVehicleListResponse {
+  page: number;
+  limit: number;
+  total: number;
+  total_active: number;
+  total_completed: number;
+  total_confirmed: number;
+  total_inspected: number;
+  total_delivered: number;
+  data: AdminVehicle[];
+}
+
+export interface AdminOrder {
+  id: string;
+  vehicle_id: string;
+  auftragsnummer: string;
+  leasyback_partner: string;
+  order_status: string;
+  sent_at: string;
+  created_at: string;
+  response_status: number;
+  license_plate: string;
+  vin: string;
+  make: string;
+  model: string;
+  user_id: string;
+  user_email: string;
+  user_type: string;
+  b2b_id: string | null;
+  company_name: string | null;
+  confirmation_date: string | null;
+}
+
+export interface AdminOrderListResponse {
+  page: number;
+  limit: number;
+  total: number;
+  total_active: number;
+  total_completed: number;
+  total_confirmed: number;
+  total_inspected: number;
+  total_delivered: number;
+  data: AdminOrder[];
+}
+
 // ─────────────────────────────────────────────
 // API ERROR (standardized shape)
 // ─────────────────────────────────────────────
