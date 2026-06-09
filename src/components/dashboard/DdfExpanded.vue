@@ -1,440 +1,582 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
 import { Icon } from "@iconify/vue";
-import type { Vehicle } from "./vehicle.types";
+import type { Vehicle, Offer } from "./vehicle.types";
 import AddVehicleModal from "./modals/AddVehicleModal.vue";
 import UploadDocumentModal from "./modals/UploadDocumentModal.vue";
-import { vehicleApi } from '@/api'
+import { vehicleApi } from "@/api";
 
 const props = defineProps<{ vehicle: Vehicle }>();
 
 const editVehicleOpen = ref(false);
 const uploadDocsOpen = ref(false);
-const documents = ref<any[]>([])
+const documents = ref<any[]>([]);
+
+// Mock data for offers if backend doesn't provide any
+const mockOffers: Offer[] = [
+  {
+    id: "01",
+    name: "Göhler Werkstatt",
+    cost: 1866,
+    saving: 36,
+    address: "Musterstraße 123, 12345 Berlin",
+    distance: "227km distance",
+    recommended: false,
+    accepted: false,
+  },
+  {
+    id: "02",
+    name: "HanseMerkur",
+    cost: 2555,
+    saving: 85,
+    address: "Beispielstraße 456, 67890 Hamburg",
+    distance: "406km distance",
+    recommended: false,
+    accepted: false,
+  },
+  {
+    id: "03",
+    name: "ATU Lüneburg",
+    cost: 1755,
+    saving: 59,
+    address: "Teststraße 789, 21073 Lüneburg",
+    distance: "405km distance",
+    recommended: true,
+    accepted: true,
+  },
+];
+
+// Mock data for timeline if backend doesn't provide any
+const mockTimeline = [
+  {
+    datetime: "",
+    label: "STATUS: ATU LÜNEBURG",
+    sublabel: "",
+  },
+  {
+    datetime: "29.02.2025\n10:30 Uhr",
+    label: "DEKRA",
+    sublabel: "Hugo-Eckener-Straße 26, 50829\nKöln",
+  },
+  {
+    datetime: "29.02.2025\n10:30 Uhr",
+    label: "DEKRA",
+    sublabel: "Hugo-Eckener-Straße 26, 50829\nKöln",
+  },
+  {
+    datetime: "16.03.2025\n11:30 Uhr",
+    label: "Dekra-Bericht",
+    sublabel: "",
+  },
+  {
+    datetime: "21.03.2025\n13:00 Uhr",
+    label: "Schätzung angenommen",
+    sublabel: "",
+  },
+  {
+    datetime: "21.03.2025\n13:00 Uhr",
+    label: "Schätzung angenommen",
+    sublabel: "",
+  },
+];
+
+// Mock data for documents
+const mockLeasingDocuments = [
+  "Leasing Vertrag",
+  "TÜV Certifikat",
+  "Damage Log",
+];
+
+const mockReturnDocuments = ["Leasing Vertrag", "TÜV Certifikat", "Damage Log"];
+
+// Computed properties with fallback to mock data
+const timelineData = computed(() => {
+  if (props.vehicle.timeline && props.vehicle.timeline.length > 0) {
+    return props.vehicle.timeline;
+  }
+  return mockTimeline;
+});
+
+const offersData = computed(() => {
+  if (props.vehicle.offers && props.vehicle.offers.length > 0) {
+    return props.vehicle.offers;
+  }
+  return mockOffers;
+});
+
+const leasingDocumentsData = computed(() => {
+  if (
+    props.vehicle.leasingDocuments &&
+    props.vehicle.leasingDocuments.length > 0
+  ) {
+    return props.vehicle.leasingDocuments;
+  }
+  return mockLeasingDocuments;
+});
+
+const returnDocumentsData = computed(() => {
+  if (
+    props.vehicle.returnDocuments &&
+    props.vehicle.returnDocuments.length > 0
+  ) {
+    return props.vehicle.returnDocuments;
+  }
+  return mockReturnDocuments;
+});
+
+const acceptedOffer = computed(() => {
+  return offersData.value.find((o) => o.accepted);
+});
 
 async function loadDocuments() {
   try {
-    if (!props.vehicle?.id) return
-    documents.value = await vehicleApi.getVehicleDocuments(props.vehicle.id)
+    if (!props.vehicle?.id) return;
+    documents.value = await vehicleApi.getVehicleDocuments(props.vehicle.id);
   } catch (err) {
-    console.error('Failed to load vehicle documents:', err)
-    documents.value = []
+    console.error("Failed to load vehicle documents:", err);
+    documents.value = [];
   }
 }
 
 onMounted(() => {
-  void loadDocuments()
-})
+  void loadDocuments();
+});
 
-watch(() => props.vehicle?.id, () => {
-  void loadDocuments()
-})
+watch(
+  () => props.vehicle?.id,
+  () => {
+    void loadDocuments();
+  },
+);
 </script>
 
 <template>
   <TableRow class="border-0 hover:bg-transparent">
     <TableCell colspan="6" class="max-w-0 p-0 overflow-x-auto">
-      <!-- 5 panels side by side, each a separate card with gap -->
-      <div
-        class="flex gap-2.5 border-t border-green-gray bg-white p-2"
-        style="min-width: max-content"
-      >
-        <div
-          v-if="vehicle.workshopName"
-          class="flex max-w-[350px] shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white"
-          style="border-color: #ececec"
-        >
-          <!-- Header -->
-          <div class="px-6 py-5">
-            <p
-              class="text-[16px] font-bold text-custom-black leading-tight"
-            >
-              Status bei: {{ vehicle.workshopName }}
-            </p>
-          </div>
+      <!-- Main container with 3 columns -->
+      <div class="flex gap-4 bg-[#EFEFEF] p-4" style="min-width: max-content">
+        <!-- Column 1: Timeline + Vehicle Docs + Return Docs -->
+        <div class="flex flex-col gap-4" style="width: 320px">
+          <!-- Timeline Card -->
+          <div
+            class="flex flex-col overflow-hidden rounded-[16px] border bg-white"
+            style="border-color: #ececec"
+          >
+            <div class="px-6 py-5 flex items-center justify-between">
+              <p
+                class="text-[20px] font-bold text-[#2e3e3f] leading-tight uppercase"
+              >
+                {{ timelineData[0]?.label || "STATUS: ATU LÜNEBURG" }}
+              </p>
+              <button class="text-[#01b990] hover:opacity-70">
+                <Icon icon="mdi:dots-vertical" class="size-7" />
+              </button>
+            </div>
 
-          <!-- Timeline rows -->
-          <div class="flex-1 px-0">
-            <div
-              v-for="(entry, i) in vehicle.timeline"
-              :key="i"
-              class="flex items-start"
-            >
-              <!-- Date column -->
-              <div class="w-25 shrink-0 px-3 py-1 text-right">
-                <span
-                  class="whitespace-pre-line text-[14px] text-custom-black leading-tight"
-                  
-                  >{{ entry.datetime }}</span
-                >
-              </div>
-
-              <!-- Status bar column: dot + line -->
-              <div class="relative flex w-5 shrink-0 flex-col items-center">
-                <!-- Line above dot (not on first) -->
+            <!-- Timeline rows -->
+            <div class="flex-1 px-6 pb-5">
+              <div
+                v-for="(entry, i) in timelineData.slice(1)"
+                :key="i"
+                class="relative flex items-start pb-6"
+              >
+                <!-- Vertical line -->
                 <div
-                  v-if="i > 0"
-                  class="w-0.5 flex-1"
-                  :style="
-                    i >= vehicle.timeline.length - 1
-                      ? 'background:#01B990; min-height:8px'
-                      : 'background:#B7C2C2; min-height:8px'
-                  "
+                  v-if="i < timelineData.slice(1).length - 1"
+                  class="absolute left-[8px] top-5 w-0.5 h-full"
+                  :style="i <= 1 ? 'background:#01B990' : 'background:#B7C2C2'"
                 />
+
                 <!-- Dot -->
                 <div
-                  class="size-2 shrink-0 rounded-full"
-                  :style="
-                    i >= vehicle.timeline.length - 1
-                      ? 'background:#01B990'
-                      : 'background:#B7C2C2'
-                  "
+                  class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
+                  :style="i <= 1 ? 'background:#01B990' : 'background:#B7C2C2'"
                 />
-                <!-- Line below dot (not on last) -->
-                <div
-                  v-if="i < vehicle.timeline.length - 1"
-                  class="w-0.5 flex-1"
-                  style="background: #b7c2c2; min-height: 8px"
-                />
-              </div>
 
-              <!-- Label column -->
-              <div class="min-w-0 flex-1 px-3 py-1">
-                <!-- DEKRA entry: show green DEKRA text + address -->
-                <template v-if="entry.label === 'DEKRA'">
-                  <span class="text-[13px] font-bold" style="color: #01b990"
-                    >DEKRA</span
-                  >
-                  <p
-                    v-if="entry.sublabel"
-                    class="text-[14px] text-wrap font-normal leading-tight"
-                    style="color: #2e3e3f"
-                  >
-                    {{ entry.sublabel }}
+                <!-- Content -->
+                <div class="min-w-0 flex-1 pl-5">
+                  <!-- Date/time -->
+                  <p class="text-[14px] text-[#2e3e3f] font-medium mb-1">
+                    {{ entry.datetime.replace("\n", " - ") }}
                   </p>
-                </template>
-                <!-- Normal entry -->
-                <template v-else>
-                  <span
-                    class="block wrap-break-word text-[14px] font-normal"
-                    style="color: #2e3e3f"
-                    >{{ entry.label }}</span
-                  >
-                </template>
+
+                  <!-- Label -->
+                  <template v-if="entry.label === 'DEKRA'">
+                    <p
+                      class="text-[16px] font-bold mb-1"
+                      style="color: #01b990"
+                    >
+                      DEKRA
+                    </p>
+                    <p
+                      v-if="entry.sublabel"
+                      class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
+                    >
+                      {{ entry.sublabel }}
+                    </p>
+                  </template>
+                  <template v-else>
+                    <p class="text-[14px] text-[#2e3e3f] font-normal">
+                      {{ entry.label }}
+                    </p>
+                  </template>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="h-4" />
+          <!-- Vehicle Docs Card -->
+          <div
+            class="relative flex flex-col rounded-[16px] border bg-white"
+            style="border-color: #ececec"
+          >
+            <button
+              @click="uploadDocsOpen = true"
+              class="absolute right-4 top-4 transition-opacity hover:opacity-60"
+            >
+              <Icon
+                icon="mdi:download-outline"
+                class="size-5 shrink-0"
+                style="color: #01b990"
+              />
+            </button>
+            <div class="px-6 py-5">
+              <p class="text-[18px] font-bold" style="color: #2e3e3f">
+                Vehicle Docs
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-2 px-6 pb-5">
+              <div
+                v-for="(doc, i) in leasingDocumentsData"
+                :key="i"
+                class="flex items-center justify-between"
+              >
+                <span class="text-[13px]" style="color: #2e3e3f">
+                  {{ doc }}
+                </span>
+                <Icon
+                  icon="mdi:download-outline"
+                  class="size-5 shrink-0"
+                  style="color: #01b990"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Return Docs Card -->
+          <div
+            class="relative flex flex-col rounded-[16px] border bg-white"
+            style="border-color: #ececec"
+          >
+            <button
+              class="absolute right-4 top-4 transition-opacity hover:opacity-60"
+            >
+              <Icon
+                icon="mdi:download-outline"
+                class="size-5 shrink-0"
+                style="color: #01b990"
+              />
+            </button>
+            <div class="px-6 py-5">
+              <p class="text-[18px] font-bold" style="color: #2e3e3f">
+                Return Docs
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-2 px-6 pb-5">
+              <div
+                v-for="(doc, i) in returnDocumentsData"
+                :key="i"
+                class="flex items-center justify-between"
+              >
+                <span class="text-[13px]" style="color: #2e3e3f">
+                  {{ doc }}
+                </span>
+                <Icon
+                  icon="mdi:download-outline"
+                  class="size-5 shrink-0"
+                  style="color: #01b990"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-      
-          <!-- Panel 2: Angebote  -->
-        <div
-          class="flex w-90 shrink-0 flex-col rounded-[5px] border bg-white"
-          style="border-color: #ececec"
-        >
-          <div class="px-6 py-5">
-            <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
-          </div>
-          <div class="flex   justify-center ">
-            <p class="bg-custom-green text-base text-white font-medium  py-2 px-4 rounded-md"> This feature is to be appear soon 
-            </p>
-          </div>
+        <!-- Column 2: Angebote (Offers) -->
+        <div class="flex flex-col gap-4" style="width: 400px">
+          <div
+            class="flex flex-col rounded-[16px] border bg-white"
+            style="border-color: #ececec"
+          >
+            <div class="px-6 py-6">
+              <p class="text-[16px] font-bold" style="color: #2e3e3f">
+                Angebote
+              </p>
+            </div>
 
-          <!-- Offer rows -->
-          <!-- <div class="flex flex-col gap-3 px-6">
-            <div
-              v-for="offer in vehicle.offers"
-              :key="offer.id"
-              class="flex flex-col"
-            >
-              
-              <div class="flex items-center justify-between">
-                <span
-                  class="text-[14px] font-bold"
-                  :style="offer.accepted ? 'color:#2E3E3F' : 'color:#B7C2C2'"
-                  >{{ offer.id }} - {{ offer.name }}</span
+            <!-- Offer rows -->
+            <div class="flex flex-col gap-5 px-6">
+              <div
+                v-for="offer in offersData"
+                :key="offer.id"
+                class="flex items-center gap-4 rounded-[50px] border py-2 px-4"
+                :style="
+                  offer.accepted
+                    ? 'border-color: #EF8450; background: rgba(239, 132, 80, 0.08)'
+                    : 'border-color: #ECECEC; background: white'
+                "
+              >
+                <!-- Radio circle -->
+                <div
+                  class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1"
+                  :style="
+                    offer.accepted
+                      ? 'border-color: #EF8450; background: #EF8450'
+                      : 'border-color: #B7C2C2; background: white'
+                  "
                 >
-                <div class="flex items-center gap-2">
-                  <span
-                    class="text-[14px]"
-                    :style="offer.accepted ? 'color:#2E3E3F' : 'color:#B7C2C2'"
-                    >{{ offer.cost }} €</span
-                  >
-                  
                   <div
-                    class="flex size-3.75 shrink-0 items-center justify-center rounded-full border"
-                    :style="
-                      offer.accepted
-                        ? 'border-color:#EF8450'
-                        : 'border-color:#B7C2C2'
-                    "
-                  >
-                    <div
-                      v-if="offer.accepted"
-                      class="size-2.25 rounded-full"
-                      style="background: #ef8450"
-                    />
+                    v-if="offer.accepted"
+                    class="w-4.5 h-4.5 rounded-full bg-white"
+                  ></div>
+                </div>
+
+                <!-- Content -->
+                <div class="flex flex-col gap-1 flex-1 min-w-0">
+                  <div class="flex justify-between items-start gap-3">
+                    <p
+                      class="text-[14px] font-bold flex-1 min-w-0 break-words"
+                      :style="
+                        offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
+                      "
+                    >
+                      {{ offer.id }} - {{ offer.name }}
+                    </p>
+                    <p
+                      class="text-[16px] font-normal flex-shrink-0"
+                      :style="
+                        offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
+                      "
+                    >
+                      {{ offer.cost.toLocaleString("de-DE") }} €
+                    </p>
+                  </div>
+                  <div class="flex justify-between items-center gap-3">
+                    <p class="text-[12px] flex-1" style="color: #b7c2c2">
+                      {{ offer.distance || "227km distance" }}
+                    </p>
+                    <p
+                      v-if="offer.saving > 0"
+                      class="text-[16px] font-normal flex-shrink-0"
+                      style="color: #ef8450"
+                    >
+                      Savings: {{ offer.saving }} €
+                    </p>
                   </div>
                 </div>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-[12px]" style="color: #b7c2c2">{{
-                  offer.address
-                }}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-[12px]" style="color: #b7c2c2"
-                  >Entferung: {{ offer.distance }}</span
-                >
-                <span class="text-[12px]" style="color: #b7c2c2"
-                  >Ersparnis: {{ offer.saving }}€</span
-                >
+            </div>
+
+            <!-- Accept button -->
+            <div class="mt-6 px-6">
+              <button
+                class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
+                style="background: #e0e0e0; color: #9e9e9e"
+              >
+                Accept offer (Payment required)
+              </button>
+            </div>
+
+            <!-- Accepted offer box -->
+            <div v-if="acceptedOffer" class="px-6 pb-6 pt-5">
+              <div
+                class="flex items-center justify-between rounded-[50px] px-7 py-2.5"
+                style="background: #ef8450"
+              >
+                <span class="text-[14px] font-normal text-white">
+                  Accepted Offer: {{ acceptedOffer.id }}
+                  {{ acceptedOffer.name }}
+                </span>
+                <span class="text-[16px] font-normal text-white">
+                  {{ acceptedOffer.cost.toLocaleString("de-DE") }} €
+                </span>
               </div>
             </div>
-          </div> -->
+          </div>
+        </div>
 
-          <!-- Accept button -->
-          <!-- <div class="mt-4 px-6">
+        <!-- Column 3: Assigned To + Vehicle Specs -->
+        <div class="flex flex-col gap-4" style="width: 325px">
+          <!-- Assigned To Card -->
+          <div
+            class="relative flex flex-col rounded-[24px] border bg-white p-8"
+            style="border-color: #ececec"
+          >
             <button
-              class="w-full rounded-[5px] py-2 text-[14px] font-bold"
-              :style="
-                vehicle.offers.some((o) => o.accepted)
-                  ? 'background:#B7C2C2; color:#FAFAFA'
-                  : 'background:#EF8450; color:#FAFAFA'
-              "
+              @click="editVehicleOpen = true"
+              class="absolute right-5 top-5 transition-opacity hover:opacity-60"
             >
-              Kostenpflichtig Annehmen
+              <Icon
+                icon="mdi:pencil-outline"
+                class="size-[18px] shrink-0"
+                style="color: #01b990"
+              />
             </button>
-          </div> -->
-
-          <!-- Accepted offer box -->
-          <!-- <div class="px-6 pb-5 pt-3">
-            <p class="mb-2 text-[14px] font-bold" style="color: #2e3e3f">
-              Angenommenes Angebot
-            </p>
-            <div
-              class="flex items-center justify-between rounded-[5px] px-4 py-1.5"
-              style="border: 1px solid #01b990"
-            >
-              <span class="text-[14px] font-bold" style="color: #2e3e3f">
-                {{ vehicle.offers.find((o) => o.accepted)?.id }}
-                {{ vehicle.offers.find((o) => o.accepted)?.name }}
-              </span>
-              <span class="text-[14px] font-bold" style="color: #2e3e3f">
-                {{ vehicle.offers.find((o) => o.accepted)?.cost }} €
-              </span>
+            <div class="pb-6">
+              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
+                Assigned To
+              </p>
             </div>
-          </div> -->
-        </div>
 
-        
-        <!-- Panel 3: Fahrzeug Dokumente -->
-        <div
-          class="relative flex w-60 shrink-0 flex-col rounded-[5px] border bg-white"
-          style="border-color: #ececec"
-        >
-          <button
-            @click="uploadDocsOpen = true"
-            class="absolute right-3 top-3 transition-opacity hover:opacity-60"
-          >
-            <Icon
-              icon="mdi:pencil-outline"
-              class="size-5 shrink-0"
-              style="color: #01b990"
-            />
-          </button>
-          <div class="px-6 py-8">
-            <p class="text-[16px] font-bold" style="color: #2e3e3f">
-              Fahrzeug Dokumente
-            </p>
+            <!-- Avatar + Name row -->
+            <div class="flex items-start gap-6 pb-6">
+              <Avatar class="size-[64px] shrink-0">
+                <AvatarFallback
+                  class="text-xl font-bold"
+                  style="background-color: #d9d9d9; color: #2e3e3f"
+                >
+                  {{
+                    vehicle.driverFirstName ? vehicle.driverFirstName[0] : "M"
+                  }}
+                </AvatarFallback>
+              </Avatar>
+              <div class="flex flex-col gap-2 pt-2">
+                <p class="text-[16px] font-bold" style="color: #2e3e3f">
+                  Marcus Dietrich
+                </p>
+                <p class="text-[12px] font-semibold" style="color: #01b990">
+                  Primary Driver
+                </p>
+              </div>
+            </div>
+
+            <!-- Last Activity -->
+            <div class="pb-5">
+              <p
+                class="text-[10px] font-medium uppercase"
+                style="color: #8f9ba7; letter-spacing: 0.5px"
+              >
+                Last Activity
+              </p>
+              <div class="flex items-center justify-between pt-2">
+                <p class="text-[14px] font-normal" style="color: #2e3e3f">
+                  12.03.2025 · Refuel
+                </p>
+                <p class="text-[14px] font-bold" style="color: #2e3e3f">
+                  Getankt
+                </p>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="h-px bg-gray-200 mb-5"></div>
+
+            <!-- Contact Fields -->
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center gap-4">
+                <Icon
+                  icon="mdi:phone-outline"
+                  class="size-[18px] shrink-0"
+                  style="color: #5a6b7a"
+                />
+                <span class="text-[14px] font-normal" style="color: #2e3e3f">
+                  17655874354
+                </span>
+              </div>
+              <div class="flex items-center gap-4">
+                <Icon
+                  icon="mdi:map-marker-outline"
+                  class="size-[18px] shrink-0"
+                  style="color: #5a6b7a"
+                />
+                <span class="text-[14px] font-normal" style="color: #2e3e3f">
+                  Radestraße 12, 35037 Marburg
+                </span>
+              </div>
+            </div>
           </div>
 
-            <div class="flex flex-col gap-3 px-6">
-            <div
-              v-for="doc in documents"
-              :key="doc.id"
-              class="flex items-center justify-between"
+          <!-- Vehicle Specs Card -->
+          <div
+            class="relative flex flex-col overflow-hidden rounded-[16px] border bg-white"
+            style="border-color: #ececec"
+          >
+            <button
+              @click="editVehicleOpen = true"
+              class="absolute right-4 top-4 transition-opacity hover:opacity-60"
             >
-              <a :href="doc.url || '#'" target="_blank" rel="noreferrer" class="text-[14px] hover:underline" style="color: #2e3e3f">{{ doc.file_name || doc.document_type }}</a>
               <Icon
-                icon="mdi:file-download-outline"
-                class="size-4 shrink-0"
+                icon="mdi:pencil-outline"
+                class="size-5 shrink-0"
                 style="color: #01b990"
               />
+            </button>
+            <div class="px-6 py-5">
+              <p class="text-[18px] font-bold" style="color: #2e3e3f">
+                Vehicle Specs
+              </p>
             </div>
-          </div>
 
-          <div class="px-6 pb-2 pt-5">
-            <p class="text-[14px] font-normal" style="color: #2e3e3f">
-              Rückgabe Dokumente
-            </p>
-          </div>
-
-          <div class="flex flex-col gap-3 px-6 pb-5">
-            <div
-              v-for="doc in vehicle.returnDocuments"
-              :key="doc"
-              class="flex items-center justify-between"
-            >
-              <span class="text-[14px]" style="color: #2e3e3f">{{ doc }}</span>
-              <Icon
-                icon="mdi:file-download-outline"
-                class="size-4 shrink-0"
-                style="color: #01b990"
-              />
+            <div class="flex flex-col gap-3 px-6 pb-5">
+              <div class="flex items-center justify-between">
+                <span class="text-[13px] text-custom-black">
+                  License Plate
+                </span>
+                <span class="text-[13px] font-medium" style="color: #2e3e3f">
+                  {{ vehicle.licensePlate }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[13px] text-custom-black"> Modell </span>
+                <span class="text-[13px] font-medium" style="color: #2e3e3f">
+                  {{ vehicle.brand }} {{ vehicle.model }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[13px] text-custom-black"> Mileage </span>
+                <span class="text-[13px] font-medium" style="color: #2e3e3f">
+                  {{
+                    vehicle.kilometerstand !== "N/A"
+                      ? vehicle.kilometerstand
+                      : "15.416 km"
+                  }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[13px] text-custom-black">
+                  Leasing Provider
+                </span>
+                <span class="text-[13px] font-medium" style="color: #2e3e3f">
+                  {{
+                    vehicle.leasinggeber !== "N/A"
+                      ? vehicle.leasinggeber
+                      : "VW Leasing"
+                  }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[13px] text-custom-black">
+                  Return Deadline
+                </span>
+                <span class="text-[13px] font-medium" style="color: #2e3e3f">
+                  {{ vehicle.leasingAbgabetermin || "25.05.2025" }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-
         
-          <!-- Panel 4: Fahrzeug Daten   -->
-        <div
-          class="relative flex w-47.5 xl:w-60.5 shrink-0 flex-col overflow-hidden rounded-[5px] border bg-white"
-          style="border-color: #ececec"
-        >
-          <button
-            @click="editVehicleOpen = true"
-            class="absolute right-3 top-3 transition-opacity hover:opacity-60"
-          >
-            <Icon
-              icon="mdi:pencil-outline"
-              class="size-5 shrink-0"
-              style="color: #01b990"
-            />
-          </button>
-          <div class="px-5 py-8">
-            <p class="text-[16px] font-bold" style="color: #2e3e3f">
-              Fahrzeug Daten
-            </p>
-          </div>
-
-          <div class="flex flex-col gap-4 px-5 pb-5">
-            <div class="flex flex-col">
-              <span class="text-[14px] text-custom-black"
-                >Kennzeichen:</span
-              >
-              <span class="text-[14px] font-medium" style="color: #2e3e3f">{{
-                vehicle.licensePlate
-              }}</span>
-            </div>
-            <div class="flex flex-col">
-              <span class="text-[14px] text-custom-black" >Modell:</span>
-              <span class="text-[14px] font-medium" style="color: #2e3e3f"
-                >{{ vehicle.brand }} {{ vehicle.model }}</span
-              >
-            </div>
-            <div class="flex flex-col">
-              <span class="text-[14px] text-custom-black"
-                >Kilometerstand:</span
-              >
-              <span class="text-[14px] font-medium" style="color: #2e3e3f">{{
-                vehicle.kilometerstand
-              }}</span>
-            </div>
-            <div class="flex flex-col">
-              <span class="text-[14px] text-custom-black"
-                >Leasinggeber:</span
-              >
-              <span class="text-[14px] font-medium" style="color: #2e3e3f">{{
-                vehicle.leasinggeber
-              }}</span>
-            </div>
-            <div class="flex min-w-0 flex-col">
-              <span class="wrap-break-word text-[14px] text-custom-black"
-                >Leasing Abgabetermin:</span
-              >
-              <span class="text-[14px] font-medium" style="color: #2e3e3f">{{
-                vehicle.leasingAbgabetermin
-              }}</span>
-            </div>
-          </div>
-        </div>
-
-        
-        <!-- Panel 5: Zugewiesen an   -->
-        <div
-          class="relative flex min-w-50 max-w-80 flex-1 flex-col rounded-[5px] border bg-white"
-          style="border-color: #ececec"
-        >
-          <button
-            @click="editVehicleOpen = true"
-            class="absolute right-3 top-3 transition-opacity hover:opacity-60"
-          >
-            <Icon
-              icon="mdi:pencil-outline"
-              class="size-5 shrink-0"
-              style="color: #01b990"
-            />
-          </button>
-          <div class="px-6 py-7">
-            <p class="text-[16px] font-bold" style="color: #2e3e3f">
-              Zugewiesen an
-            </p>
-          </div>
-
-          <!-- Centered avatar -->
-          <div class="flex justify-center pb-4">
-            <Avatar class="size-20">
-              <AvatarFallback
-                class="text-2xl font-bold"
-                style="background-color: #d9d9d9; color: #2e3e3f"
-              >
-                {{ vehicle.driverFirstName ? vehicle.driverFirstName[0] : "?" }}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-
-          <!-- Fields -->
-          <div class="flex flex-col gap-3 px-6 pb-5">
-            <div>
-              <span class="text-[14px] font-bold" style="color: #2e3e3f"
-                >Vorname:
-              </span>
-              <span class="text-[14px]" style="color: #2e3e3f">{{
-                vehicle.driverFirstName
-              }}</span>
-            </div>
-            <div>
-              <span class="text-[14px] font-bold" style="color: #2e3e3f"
-                >Nachname:
-              </span>
-              <span class="text-[14px]" style="color: #2e3e3f">{{
-                vehicle.driverLastName
-              }}</span>
-            </div>
-            <div>
-              <span class="text-[14px] font-bold" style="color: #2e3e3f"
-                >Tel.:
-              </span>
-              <span class="text-[14px]" style="color: #2e3e3f">{{
-                vehicle.driverPhone
-              }}</span>
-            </div>
-            <div class="flex flex-col">
-              <span class="text-[14px] font-bold" style="color: #2e3e3f"
-                >Nutzungsadresse:</span
-              >
-              <span class="text-[14px]" style="color: #2e3e3f">{{
-                vehicle.usageAddress
-              }}</span>
-            </div>
-            <div class="flex flex-col">
-              <span class="text-[14px] font-bold" style="color: #2e3e3f"
-                >Aktivitäten:</span
-              >
-              <span class="text-[14px]" style="color: #2e3e3f">{{
-                vehicle.lastActivity
-              }}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </TableCell>
   </TableRow>
 
   <!-- Modals -->
   <AddVehicleModal v-model:open="editVehicleOpen" :vehicle="props.vehicle" />
-  <UploadDocumentModal v-model:open="uploadDocsOpen" :vehicleId="props.vehicle.id" @uploaded="loadDocuments" @changed="loadDocuments" />
+  <UploadDocumentModal
+    v-model:open="uploadDocsOpen"
+    :vehicleId="props.vehicle.id"
+    @uploaded="loadDocuments"
+    @changed="loadDocuments"
+  />
 </template>
