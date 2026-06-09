@@ -13,9 +13,17 @@ import type {
 
 export const authApi = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
-    const raw = await post<RawLoginResponse, LoginPayload>('/auth/login', payload, {
-      skipAuth: true,
-    })
+    const raw = await post<RawLoginResponse, LoginPayload>(
+      '/auth/login',
+      payload,
+      {
+        skipAuth: true,
+        headers: {
+          Origin: 'https://app.leasyback.com',
+        },
+      },
+    )
+
     return mapLoginResponse(raw, payload.user_email)
   },
 

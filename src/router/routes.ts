@@ -8,19 +8,10 @@ declare module "vue-router" {
     requiresAuth?: boolean;
     guestOnly?: boolean;
     roles?: UserRole[];
-    /**
-     * Onboarding routes — users land here after first signup to complete
-     * their profile. The guard skips the "redirect to dashboard if
-     * authenticated" rule for these specifically.
-     */
     isOnboarding?: boolean;
   }
 }
 
-/**
- * Resolve the right dashboard for the current user.
- * Used by `/` and the catch-all so role-mismatched redirects don't loop.
- */
 const dashboardForCurrentUser = (): RouteLocationRaw => {
   const auth = useAuthStore();
   switch (auth.userRole) {
@@ -29,9 +20,6 @@ const dashboardForCurrentUser = (): RouteLocationRaw => {
     case "B2C":
       return { name: "dashboard-b2c" };
     case "WORKSHOP":
-      // Workshops don't have a dashboard route of their own yet — send
-      // them to their onboarding/account flow. Adjust if/when a
-      // workshop dashboard view is added.
       return { name: "register-workshop" };
     case "ADMIN":
       return { name: "admin" };
@@ -41,7 +29,7 @@ const dashboardForCurrentUser = (): RouteLocationRaw => {
 };
 
 export const routes: RouteRecordRaw[] = [
-  // ─── Auth (guest only) ──────────────────────────────────────────
+  // ─── Guest-only auth pages ──────────────────────────────────────
   {
     path: "/auth",
     component: () => import("@/layouts/AuthLayout.vue"),
@@ -69,16 +57,13 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
 
-  // ─── Authenticated app ──────────────────────────────────────────
+  // ─── B2B / B2C / Workshop app (uses AppLayout with its own navbar) ─
   {
     path: "/",
     component: () => import("@/layouts/AppLayout.vue"),
     meta: { requiresAuth: true },
     children: [
-      // Smart root: send each role to its own dashboard.
       { path: "", redirect: dashboardForCurrentUser },
-
-      // Dashboards — one per role.
       {
         path: "dashboard-b2c",
         name: "dashboard-b2c",
@@ -91,8 +76,6 @@ export const routes: RouteRecordRaw[] = [
         component: () => import("@/views/DashboardB2B.vue"),
         meta: { title: "B2B Dashboard", roles: ["B2B"] },
       },
-
-      // Account views — B2C and B2B only (workshops don't have one).
       {
         path: "b2c",
         name: "b2c-account",
@@ -105,8 +88,6 @@ export const routes: RouteRecordRaw[] = [
         component: () => import("@/views/account/B2bAccountView.vue"),
         meta: { title: "B2B Account", roles: ["B2B"] },
       },
-
-      // Shared across all authenticated roles.
       {
         path: "setting",
         name: "setting",
@@ -122,59 +103,59 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
 
-  // ─── Onboarding (post-signup profile completion) ────────────────
-  // These are authenticated routes that users hit AFTER signing up,
-  // before they've completed their profile. `isOnboarding: true` tells
-  // the guard not to bounce them back to a dashboard.
+  // ─── Admin (completely separate — uses AdminLayout, NO AppLayout) ─
+  {
+    path: "/admin",
+    component: () => import("@/layouts/AdminLayout.vue"),
+    meta: { requiresAuth: true, roles: ["ADMIN"] },
+    children: [
+      {
+        path: "",
+        name: "admin",
+        component: () => import("@/views/AdminPanel.vue"),
+        meta: { title: "Admin Dashboard", roles: ["ADMIN"] },
+      },
+      {
+        path: "kunden",
+        name: "admin-kunden",
+        component: () => import("@/views/admin/UsersView.vue"),
+        meta: { title: "Kunden & Benutzer", roles: ["ADMIN"] },
+      },
+      {
+        path: "fahrzeuge",
+        name: "admin-fahrzeuge",
+        component: () => import("@/views/admin/VehiclesView.vue"),
+        meta: { title: "Fahrzeuge", roles: ["ADMIN"] },
+      },
+      {
+        path: "auftraege",
+        name: "admin-auftraege",
+        component: () => import("@/views/admin/OrdersView.vue"),
+        meta: { title: "Alle Aufträge", roles: ["ADMIN"] },
+      },
+    ],
+  },
+
+  // ─── Onboarding (post-signup) ────────────────────────────────────
   {
     path: "/register/company",
     name: "register-company",
     component: () => import("@/views/auth/RegisterCompanyView.vue"),
-    meta: {
-      title: "Company Registration",
-      requiresAuth: true,
-      roles: ["B2B"],
-      isOnboarding: true,
-    },
+    meta: { title: "Company Registration", requiresAuth: true, roles: ["B2B"], isOnboarding: true },
   },
   {
     path: "/register/workshop",
     name: "register-workshop",
     component: () => import("@/views/auth/RegisterWorkshopView.vue"),
-    meta: {
-      title: "Workshop Registration",
-      requiresAuth: true,
-      roles: ["WORKSHOP"],
-      isOnboarding: true,
-    },
+    meta: { title: "Workshop Registration", requiresAuth: true, roles: ["WORKSHOP"], isOnboarding: true },
   },
   {
     path: "/register/b2c",
     name: "b2c-register",
     component: () => import("@/views/auth/B2CRegistrationView.vue"),
-    meta: {
-      title: "B2C Registrierung",
-      requiresAuth: true,
-      roles: ["B2C"],
-      isOnboarding: true,
-    },
+    meta: { title: "B2C Registrierung", requiresAuth: true, roles: ["B2C"], isOnboarding: true },
   },
 
-  // ─── Admin ──────────────────────────────────────────────────────
-  // Was previously commented out — anyone could visit /admin. Restored.
-  {
-    path: "/admin",
-    name: "admin",
-    component: () => import("@/views/admin/AdminPanel.vue"),
-    meta: {
-      title: "Admin Panel",
-      requiresAuth: true,
-      roles: ["ADMIN"],
-    },
-  },
-
-  // ─── Catch-all ──────────────────────────────────────────────────
-  // Send unknown URLs through the smart root redirect, which handles
-  // both authenticated (→ their dashboard) and guest (→ login) cases.
+  // ─── Catch-all ───────────────────────────────────────────────────
   { path: "/:pathMatch(.*)*", redirect: "/" },
 ];

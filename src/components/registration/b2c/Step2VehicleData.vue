@@ -3,6 +3,7 @@ import { useForm } from 'vee-validate'
 
 import Button from '@/components/ui/Button.vue'
 import FormTextField from '@/components/ui/form/FormTextField.vue'
+import FormSelectField from '@/components/ui/form/B2CSelectField.vue'
 import LicensePlateField from '@/components/ui/form/LicensePlateField.vue'
 import CalendarDateField from '@/components/ui/form/CalendarDateField.vue'
 
@@ -92,16 +93,28 @@ const onSubmit = handleSubmit( async(values) => {
           placeholder="Fahrzeugidentifikationsnummer"
         />
 
-        <FormTextField
+        <FormSelectField
           name="marke"
           label="Marke"
-          placeholder="z.B. BMW"
+          :options="[
+            { label: 'VW', value: 'VW' },
+            { label: 'BMW', value: 'BMW' },
+            { label: 'Mercedes', value: 'Mercedes' },
+            { label: 'Audi', value: 'Audi' },
+            { label: 'Renault', value: 'Renault' },
+            { label: 'Toyota', value: 'Toyota' },
+            { label: 'Peugeot', value: 'Peugeot' },
+            { label: 'Skoda', value: 'Skoda' },
+            { label: 'Ford', value: 'Ford' },
+            { label: 'Opel', value: 'Opel' },
+            { label: 'Sonstige', value: 'Sonstige' },
+          ]"
         />
 
         <FormTextField
           name="modell"
           label="Modell"
-          placeholder="z.B. 3er"
+          placeholder="z.B. 3er oder Sonstige"
         />
       </div>
 

@@ -3,11 +3,13 @@ import CompanyRegister from "@/components/company/Register.vue";
 import CompanyAdminRegistration from "@/components/company/AdminRegistration.vue";
 import Button from "@/components/ui/Button.vue";
 import { useB2BStore } from "@/stores/b2b.store";
+import { useAuthStore } from '@/stores/auth.store'
 import { useForm } from "vee-validate";
 import { b2bSchema } from "@/validations/b2b.validation";
 import RegisterLayout from "@/layouts/RegisterLayout.vue";
 
 const b2bStore = useB2BStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const showSuccess = ref(false)
 
@@ -53,7 +55,7 @@ const { handleSubmit } = useForm<FormValues>({
       anrede: "herr",
       vorname: "",
       nachname: "",
-      email: "",
+      email: authStore.user && authStore.user.email ? authStore.user.email : "",
       vorwahl: "de",
       telefon: "",
     },
@@ -115,9 +117,9 @@ function skipOnboarding(): void {
   void router.push({ name: 'dashboard-b2b' })
 }
 
-function onSuccessOk(): void {
+async function onSuccessOk(): Promise<void> {
   showSuccess.value = false
-  void void router.push({ name: 'dashboard-b2b' })
+  await router.push({ name: 'dashboard-b2b' })
 }
 </script>
 

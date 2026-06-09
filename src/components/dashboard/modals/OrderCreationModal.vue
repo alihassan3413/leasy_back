@@ -264,6 +264,7 @@ function close() {
           <CalendarDateField
             name="terminDate"
             label="Datum"
+            :minDaysAhead="3"
             class="flex-1"
            /> 
           <div class="flex flex-1 flex-col gap-1">
