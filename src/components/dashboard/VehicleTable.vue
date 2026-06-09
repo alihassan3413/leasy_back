@@ -26,18 +26,19 @@ function handleToggle(vehicle: Vehicle) {
 </script>
 
 <template>
-  <div class="rounded-[5px] border border-green-gray overflow-x-auto">
+  <div class="rounded-[12px] overflow-hidden border border-gray-100 shadow-sm">
     <Table>
       <TableHeader>
         <TableRow
-          style="background-color: #01B990; height: 40px"
+          style="background-color: #01B990; height: 44px"
         >
-          <TableHead class="px-3 text-[18px]  font-normal text-white">Kennzeichen</TableHead>
-          <TableHead class="px-3 text-[18px] font-normal text-white">Modell</TableHead>
-          <TableHead class="px-3 text-[18px] font-normal text-white">Leasingende</TableHead>
-          <TableHead class="px-3 text-[18px] font-normal text-white">Rückgabestart</TableHead>
-          <TableHead class="px-3 text-[18px] font-normal text-white">Fahrzeugnutzer</TableHead>
-          <TableHead class="px-3 text-left text-[18px] font-normal text-white">Optionen</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Kennzeichen</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Modell</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Leasingende</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Rückgabestart</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Status</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Fahrzeugnutzer</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white text-right">Optionen</TableHead>
         </TableRow>
       </TableHeader>
 
@@ -52,9 +53,9 @@ function handleToggle(vehicle: Vehicle) {
         <TableRow
           v-if="completedVehicles.length"
           class="border-0 hover:bg-transparent"
-          style="background-color: #01B990; height: 40px"
+          style="background-color: #01B990; height: 44px"
         >
-          <TableCell colspan="6" class="h-[40px] px-3 text-[13px] font-bold text-white">
+          <TableCell colspan="7" class="h-[44px] px-4 text-[13px] font-bold text-white">
             Abgeschlossene Vorgänge
           </TableCell>
         </TableRow>

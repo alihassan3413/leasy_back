@@ -1,89 +1,124 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Icon } from "@iconify/vue";
 import DdfExpanded from "./DdfExpanded.vue";
 import type { Vehicle } from "./vehicle.types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const props = defineProps<{
-   vehicle: Vehicle
-   isExpanded: boolean
-  }>();
+  vehicle: Vehicle;
+  isExpanded: boolean;
+}>();
 
 const emit = defineEmits<{
-  toggle: []
+  toggle: [];
 }>();
 function handleClick() {
-  if (props.vehicle.completed) return
-  emit('toggle')
+  if (props.vehicle.completed) return;
+  emit("toggle");
 }
 
 const iconClasses = computed(() => [
-  "text-[40px] text-primary transition-transform duration-200",
+  "text-[32px] text-gray-400 transition-transform duration-200",
 ]);
 
+const activeAction = ref<string | null>(null);
 
-
+function handleAction(action: string) {
+  activeAction.value = action;
+  // Add your action logic here
+  console.log(`${action} clicked for vehicle:`, vehicle.licensePlate);
+}
 </script>
 
 <template>
   <TableRow
-    class="border-b border-green-gray cursor-pointer"
-    style="height: 40px"
-    :class="isExpanded ? 'bg-gray-200' : 'bg-white'"
+    class="border-b border-[#f0f5f5] cursor-pointer"
+    style="height: 52px"
+    :class="isExpanded ? 'bg-gray-50' : 'bg-white'"
     @click="handleClick"
   >
     <TableCell
-      class="h-[40px] truncate px-3 text-[16px] font-medium text-custom-black"
+      class="h-[52px] truncate px-4 text-[14px] font-medium text-gray-700"
     >
       {{ vehicle.licensePlate }}
     </TableCell>
-    <TableCell class="h-[40px] truncate px-3 text-[16px] text-custom-black">
+    <TableCell class="h-[52px] truncate px-4 text-[14px] text-gray-600">
       {{ vehicle.brand }} {{ vehicle.model }}
     </TableCell>
-    <TableCell class="h-[40px] w-[160px] px-3 text-[16px] text-custom-black">
+    <TableCell class="h-[52px] px-4 text-[14px] text-gray-600">
       {{ vehicle.leaseEnd }}
     </TableCell>
-    <TableCell class="h-[40px] w-[130px] px-3 text-[16px] text-custom-black">
+    <TableCell class="h-[52px] px-4 text-[14px] text-gray-600">
       {{ vehicle.returnStart }}
     </TableCell>
-    <TableCell
-      class="h-[40px] w-[180px] truncate px-3 text-[16px] text-custom-black"
-    >
+    <TableCell class="h-[52px] px-4">
+      <div class="flex items-center gap-2">
+        <span
+          class="w-3 h-3 rounded-full"
+          style="background-color: #ef8450"
+        ></span>
+        <span class="text-[14px] text-gray-600">Eingeplant</span>
+      </div>
+    </TableCell>
+    <TableCell class="h-[52px] truncate px-4 text-[14px] text-gray-600">
       {{ vehicle.driver || "N/A" }}
     </TableCell>
-    <TableCell class="h-[40px] w-[180px] px-3">
-      <div class="flex items-center justify-start gap-4">
-        <!-- Play icon -->
-        <button class="transition-opacity hover:opacity-70">
-          <Icon
-            icon="solar:play-bold"
-            class="size-6 text-custom-green"
-            :style="vehicle.completed ? 'color: #B7C2C2' : '#01B990'"
-          />
-        </button>
-
-        <!-- Notification badge -->
-        <div
-          v-if="vehicle.notifications"
-          class="flex size-[19px] items-center justify-center rounded-full bg-custom-orange text-[13px] font-bold text-white"
-        >
-          {{ vehicle.notifications }}
-        </div>
-
-        <!-- Archive icon -->
-        <button class="transition-opacity hover:opacity-70">
-          <Icon
-            icon="mdi:archive-outline"
-            class="size-[24px]"
-            style="color: #2e3e3f"
-          />
-        </button>
+    <TableCell class="h-[52px] px-4 text-right">
+      <div class="flex items-center justify-end gap-1">
+        <!-- Three dots menu -->
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <button
+              class="transition-opacity hover:opacity-70 hover:bg-gray-100 p-1 rounded"
+              @click.stop
+            >
+              <Icon icon="mdi:dots-vertical" class="w-5 h-5 text-gray-400" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            class="w-56 rounded-xl shadow-lg border border-gray-100"
+          >
+            <DropdownMenuItem
+              @click="handleAction('Start Process')"
+              class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
+              :class="{ 'bg-gray-100': activeAction === 'Start Process' }"
+            >
+              <Icon icon="solar:play-bold" class="w-6 h-6 text-gray-600" />
+              <span class="text-gray-800 font-medium">Start Process</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              @click="handleAction('Assign Someone')"
+              class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
+              :class="{ 'bg-gray-100': activeAction === 'Assign Someone' }"
+            >
+              <Icon
+                icon="mdi:account-plus-outline"
+                class="w-6 h-6 text-gray-600"
+              />
+              <span class="text-gray-800 font-medium">Assign Someone</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              @click="handleAction('Archive')"
+              class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
+              :class="{ 'bg-gray-100': activeAction === 'Archive' }"
+            >
+              <Icon icon="mdi:archive-outline" class="w-6 h-6 text-gray-600" />
+              <span class="text-gray-800 font-medium">Archive</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <!-- Caret — rotates when expanded -->
         <button
           class="transition-transform focus:outline-none"
           :class="isExpanded ? 'rotate-180' : ''"
-          
         >
           <Icon icon="ic:round-arrow-drop-down" :class="iconClasses" />
         </button>
