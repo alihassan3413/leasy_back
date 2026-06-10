@@ -5,6 +5,7 @@ import FormTextField from "@/components/ui/form/FormTextField.vue";
 import FormSelectField from "@/components/ui/form/FormSelectField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import { useB2CStore } from "@/stores/b2c.store";
+import type { B2CProfileUpdatePayload } from "@/types";
 
 const b2cStore = useB2CStore();
 
@@ -39,8 +40,29 @@ watch(
   { immediate: true },
 );
 
-const onSubmit = handleSubmit((values) => {
+const onSubmit = handleSubmit(async (values) => {
   console.log("Contact form submitted:", values);
+
+  if (!b2cStore.profile) return;
+
+  const payload: B2CProfileUpdatePayload = {
+    address_id: b2cStore.profile.address.address_id,
+    contact_id: b2cStore.profile.contact.contact_id,
+    address: b2cStore.profile.address,
+    contact: {
+      salutation: values.anrede,
+      first_name: values.vorname,
+      last_name: values.nachname,
+    },
+    phones: b2cStore.profile.phones || [],
+  };
+
+  try {
+    await b2cStore.updateProfile(payload);
+    await b2cStore.fetchProfile(); // Refresh profile to show updated data
+  } catch (err) {
+    console.error("Failed to update contact person:", err);
+  }
 });
 </script>
 

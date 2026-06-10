@@ -5,12 +5,16 @@ import { Icon } from "@iconify/vue";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import FormSelectField from "@/components/ui/form/FormSelectField.vue";
 import Button from "@/components/ui/button/Button.vue";
+import AppMapPicker from "@/components/ui/AppMapPicker.vue";
 import profileImage from "@/assets/logo/B2bProfile-img.svg";
 import { useB2CStore } from "@/stores/b2c.store";
-import type { B2CProfileUpdatePayload } from "@/types";
+import { b2cApi } from "@/api";
+import type { B2CProfileUpdatePayload, B2CProfileCreatePayload } from "@/types";
 
 const b2cStore = useB2CStore();
 const isEditMode = ref(false);
+// When there's no profile, we start in edit mode to let them create one
+const isCreateMode = ref(false);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const avatarUrl = ref<string | null>(null);
@@ -47,7 +51,15 @@ const { handleSubmit, resetForm, setFieldValue, values, isSubmitting } =
 watch(
   () => b2cStore.profile,
   (profile) => {
-    if (!profile) return;
+    if (!profile) {
+      // No profile - start in view mode
+      isCreateMode.value = true;
+      isEditMode.value = false;
+      return;
+    }
+    // Profile exists - normal edit mode
+    isCreateMode.value = false;
+    isEditMode.value = false;
     resetForm({
       values: {
         anrede: profile.contact.salutation,
@@ -102,66 +114,99 @@ const onAddressFromMap = (resolved: ResolvedAddress) => {
 };
 
 const onSubmit = handleSubmit(async (formValues) => {
-  if (!b2cStore.profile) return;
-
-  const payload: B2CProfileUpdatePayload = {
-    address_id: b2cStore.profile.address.address_id,
-    contact_id: b2cStore.profile.contact.contact_id,
-    address: {
-      street: formValues.address.strasse,
-      number: formValues.address.nr,
-      additional_address: formValues.address.zusaetzlicheAnschrift,
-      zip_code: formValues.address.plz,
-      city: formValues.address.ort,
-      country: b2cStore.profile.address.country,
-      latitude: formValues.address.latitude,
-      longitude: formValues.address.longitude,
-    },
-    contact: {
-      salutation: formValues.anrede,
-      first_name: formValues.vorname,
-      last_name: formValues.nachname,
-    },
-    phones: b2cStore.profile.phones || [],
-  };
-
   try {
-    await b2cStore.updateProfile(payload);
+    if (isCreateMode.value) {
+      // Create new profile
+      const createPayload: B2CProfileCreatePayload = {
+        address: {
+          street: formValues.address.strasse,
+          number: formValues.address.nr,
+          additional_address: formValues.address.zusaetzlicheAnschrift,
+          zip_code: formValues.address.plz,
+          city: formValues.address.ort,
+          country: "Deutschland",
+          latitude: formValues.address.latitude,
+          longitude: formValues.address.longitude,
+        },
+        contact: {
+          salutation: formValues.anrede,
+          first_name: formValues.vorname,
+          last_name: formValues.nachname,
+        },
+        phones: [],
+      };
+      await b2cApi.createProfile(createPayload);
+    } else if (b2cStore.profile) {
+      // Update existing profile
+      const updatePayload: B2CProfileUpdatePayload = {
+        address_id: b2cStore.profile.address.address_id,
+        contact_id: b2cStore.profile.contact.contact_id,
+        address: {
+          street: formValues.address.strasse,
+          number: formValues.address.nr,
+          additional_address: formValues.address.zusaetzlicheAnschrift,
+          zip_code: formValues.address.plz,
+          city: formValues.address.ort,
+          country: b2cStore.profile.address.country,
+          latitude: formValues.address.latitude,
+          longitude: formValues.address.longitude,
+        },
+        contact: {
+          salutation: formValues.anrede,
+          first_name: formValues.vorname,
+          last_name: formValues.nachname,
+        },
+        phones: b2cStore.profile.phones || [],
+      };
+      await b2cStore.updateProfile(updatePayload);
+    }
+    // Refresh profile after create/update
+    await b2cStore.fetchProfile();
     avatarFile.value = null;
     isEditMode.value = false;
   } catch (err) {
-    console.error("Failed to update profile:", err);
+    console.error("Failed to save profile:", err);
   }
 });
 
 const toggleEditMode = () => {
-  if (isEditMode.value && b2cStore.profile) {
-    const profile = b2cStore.profile;
-    resetForm({
-      values: {
-        anrede: profile.contact.salutation,
-        vorname: profile.contact.first_name,
-        nachname: profile.contact.last_name,
-        address: {
-          strasse: profile.address.street,
-          nr: profile.address.number,
-          zusaetzlicheAnschrift: profile.address.additional_address ?? "",
-          plz: profile.address.zip_code,
-          ort: profile.address.city,
-          latitude: profile.address.latitude,
-          longitude: profile.address.longitude,
+  if (isEditMode.value) {
+    // Cancel edit
+    if (b2cStore.profile) {
+      const profile = b2cStore.profile;
+      resetForm({
+        values: {
+          anrede: profile.contact.salutation,
+          vorname: profile.contact.first_name,
+          nachname: profile.contact.last_name,
+          address: {
+            strasse: profile.address.street,
+            nr: profile.address.number,
+            zusaetzlicheAnschrift: profile.address.additional_address ?? "",
+            plz: profile.address.zip_code,
+            ort: profile.address.city,
+            latitude: profile.address.latitude,
+            longitude: profile.address.longitude,
+          },
         },
-      },
-    });
-    avatarUrl.value = profile.contact.avatar_url ?? null;
-    avatarFile.value = null;
+      });
+      avatarUrl.value = profile.contact.avatar_url ?? null;
+      avatarFile.value = null;
+    } else {
+      // Reset form if no profile
+      resetForm();
+      avatarUrl.value = null;
+      avatarFile.value = null;
+    }
   }
   isEditMode.value = !isEditMode.value;
 };
 </script>
 
 <template>
-  <div class="w-full rounded-[10px] border border-[#D9E2E2] bg-white px-10 py-6">
+  <div
+    class="w-full rounded-[10px] border border-[#D9E2E2] bg-white px-10 py-6"
+  >
     <!-- Header with Pencil / Close Icon -->
     <div class="mb-6 flex items-center justify-between">
       <h2 class="text-xl font-bold text-color-primary">Kontodaten</h2>
@@ -177,7 +222,19 @@ const toggleEditMode = () => {
       </button>
     </div>
 
-    <form @submit.prevent="onSubmit" class="space-y-8">
+    <!-- No profile message -->
+    <div v-if="!b2cStore.profile && !isEditMode" class="mb-6 text-center py-8">
+      <p class="text-lg text-gray-600">Sie haben noch kein Profil erstellt!</p>
+      <p class="text-sm text-gray-500 mt-2">
+        Klicken Sie auf den Stift-Button oben, um Ihr Profil zu erstellen.
+      </p>
+    </div>
+
+    <form
+      @submit.prevent="onSubmit"
+      class="space-y-8"
+      v-if="isEditMode || b2cStore.profile"
+    >
       <!-- Avatar + Contact info -->
       <div class="flex items-end gap-8">
         <!-- Avatar -->
@@ -239,8 +296,11 @@ const toggleEditMode = () => {
       <!-- Address Section -->
       <div class="space-y-4 pt-4">
         <p class="text-xl font-bold text-custom-black">
-          Bitte geben Sie die Adresse ein oder wählen Sie diese direkt in der
-          Karte aus.
+          {{
+            isCreateMode
+              ? "Bitte geben Sie Ihre Daten ein, um Ihr Profil zu erstellen."
+              : "Bitte geben Sie die Adresse ein oder wählen Sie diese direkt in der Karte aus."
+          }}
         </p>
 
         <div class="flex gap-6">
@@ -309,7 +369,13 @@ const toggleEditMode = () => {
           class="h-[34px] w-[150px] rounded-[5px] bg-custom-green text-sm font-bold text-white transition-all hover:bg-[#019d7a]"
           :disabled="isSubmitting"
         >
-          {{ isSubmitting ? "Wird gespeichert..." : "Speichern" }}
+          {{
+            isSubmitting
+              ? "Wird gespeichert..."
+              : isCreateMode
+                ? "Profil erstellen"
+                : "Speichern"
+          }}
         </Button>
       </div>
     </form>
