@@ -24,11 +24,22 @@ export const useB2CStore = defineStore("b2c", () => {
 
       status.value = "success";
       return profile.value;
-    } catch (err) {
+    } catch (err: any) {
+      // If it's a 404, that means the profile doesn't exist yet - that's okay
+      if (err.status === 404 || (err.response && err.response.status === 404)) {
+        profile.value = null;
+        status.value = "idle"; // Or "success" with null profile
+        return null;
+      }
       const apiError = normalizeApiError(err);
       error.value = apiError.message;
       status.value = "error";
-      throw err;
+      // Don't rethrow 404 errors, only other errors
+      if (
+        !(err.status === 404 || (err.response && err.response.status === 404))
+      ) {
+        throw err;
+      }
     }
   }
 
