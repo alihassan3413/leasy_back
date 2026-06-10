@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { Icon } from "@iconify/vue";
 import DdfExpanded from "./DdfExpanded.vue";
+import OrderCreationModal from "./modals/OrderCreationModal.vue";
 import type { Vehicle } from "./vehicle.types";
 import {
   DropdownMenu,
@@ -28,11 +29,13 @@ const iconClasses = computed(() => [
 ]);
 
 const activeAction = ref<string | null>(null);
+const orderModalOpen = ref(false);
 
 function handleAction(action: string) {
   activeAction.value = action;
-  // Add your action logic here
-  console.log(`${action} clicked for vehicle:`, vehicle.licensePlate);
+  if (action === "Start Process") {
+    orderModalOpen.value = true;
+  }
 }
 </script>
 
@@ -126,4 +129,5 @@ function handleAction(action: string) {
     </TableCell>
   </TableRow>
   <DdfExpanded v-if="isExpanded && !vehicle.completed" :vehicle="vehicle" />
+  <OrderCreationModal v-model:open="orderModalOpen" :vehicle="vehicle" />
 </template>

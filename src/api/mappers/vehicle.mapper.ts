@@ -86,10 +86,22 @@ export const mapVehicleResponseToVehicle = (
   }
 
   return {
+    // Original API fields
+    vehicle_id: response.vehicle_id,
+    license_plate: response.license_plate,
+    first_registration_date: response.first_registration_date,
+    leasing_end_date: response.leasing_end_date,
+    vin: response.vin,
+    make: response.make,
+    model: response.model,
+    vehicle_belongs: response.vehicle_belongs,
+    created_at: response.created_at,
+    updated_at: response.updated_at,
+    orders: response.orders || [],
+    // Mapped fields for backwards compatibility
     id: response.vehicle_id,
     licensePlate: response.license_plate,
     brand: response.make,
-    model: response.model,
     leaseEnd: formatDate(response.leasing_end_date),
     returnStart: formatDate(response.first_registration_date),
     driver: latestOrder?.request_payload?.ansprechpartner?.name || "",

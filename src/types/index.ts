@@ -235,8 +235,22 @@ export interface VehicleStatusResponse {
   orders: Array<{
     id: string;
     auftragsnummer: string;
+    created_at: string;
+    created_by_user_id: string;
     leasyback_partner: string;
+    order_confirmations: unknown[];
+    order_status: string;
     request_payload: {
+      auftrag?: {
+        auftragsnummer: string;
+        bemerkung: string;
+        fin: string;
+        hersteller: string;
+        kennzeichen: string;
+        modell: string;
+        produktkey: string;
+        vertragsnummer: string;
+      };
       besichtigungsort?: {
         name: string;
         strasse: string;
@@ -255,6 +269,9 @@ export interface VehicleStatusResponse {
         terminbestätigung?: unknown[];
       };
     };
+    response_body?: number;
+    response_status?: number;
+    sent_at?: string;
     status_updates: Array<{
       id: string;
       created_at: string;
