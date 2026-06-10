@@ -152,24 +152,24 @@ watch(
 
 <template>
   <TableRow class="border-0 hover:bg-transparent">
-    <TableCell colspan="6" class="max-w-0 p-0 overflow-x-auto">
+    <TableCell colspan="8" class="max-w-0  p-0 overflow-x-auto">
       <!-- Main container with 3 columns -->
       <div class="flex gap-4 bg-[#EFEFEF] p-4" style="min-width: max-content">
         <!-- Column 1: Timeline + Vehicle Docs + Return Docs -->
         <div class="flex flex-col gap-4" style="width: 320px">
           <!-- Timeline Card -->
           <div
-            class="flex flex-col overflow-hidden rounded-[16px] border bg-white"
+            class="flex flex-col overflow-hidden rounded-3xl border bg-white"
             style="border-color: #ececec"
           >
             <div class="px-6 py-5 flex items-center justify-between">
               <p
-                class="text-[20px] font-bold text-[#2e3e3f] leading-tight uppercase"
+                class="text-[16px] font-bold text-[#000000] leading-tight uppercase"
               >
                 {{ timelineData[0]?.label || "STATUS: ATU LÜNEBURG" }}
               </p>
               <button class="text-[#01b990] hover:opacity-70">
-                <Icon icon="mdi:dots-vertical" class="size-7" />
+                <Icon icon="mdi:dots-vertical" class="size-4.5" />
               </button>
             </div>
 
@@ -183,7 +183,7 @@ watch(
                 <!-- Vertical line -->
                 <div
                   v-if="i < timelineData.slice(1).length - 1"
-                  class="absolute left-[8px] top-5 w-0.5 h-full"
+                  class="absolute left-2 top-5 w-0.5 h-full"
                   :style="i <= 1 ? 'background:#01B990' : 'background:#B7C2C2'"
                 />
 
@@ -226,83 +226,85 @@ watch(
           </div>
 
           <!-- Vehicle Docs Card -->
-          <div
-            class="relative flex flex-col rounded-[16px] border bg-white"
-            style="border-color: #ececec"
-          >
-            <button
-              @click="uploadDocsOpen = true"
-              class="absolute right-4 top-4 transition-opacity hover:opacity-60"
+          <div class="flex gap-6">
+            <div
+              class="relative flex flex-col rounded-[40px] border bg-white min-w-[350px]"
+              style="border-color: #ececec"
             >
-              <Icon
-                icon="mdi:download-outline"
-                class="size-5 shrink-0"
-                style="color: #01b990"
-              />
-            </button>
-            <div class="px-6 py-5">
-              <p class="text-[18px] font-bold" style="color: #2e3e3f">
-                Vehicle Docs
-              </p>
-            </div>
-
-            <div class="flex flex-col gap-2 px-6 pb-5">
-              <div
-                v-for="(doc, i) in leasingDocumentsData"
-                :key="i"
-                class="flex items-center justify-between"
+              <button
+                @click="uploadDocsOpen = true"
+                class="absolute right-5 top-5 transition-opacity hover:opacity-60"
               >
-                <span class="text-[13px]" style="color: #2e3e3f">
-                  {{ doc }}
-                </span>
                 <Icon
-                  icon="mdi:download-outline"
-                  class="size-5 shrink-0"
+                  icon="mdi:pencil"
+                  class="size-[18.5px] shrink-0"
                   style="color: #01b990"
                 />
+              </button>
+              <div class="p-6">
+                <p class="text-[16px] font-semibold uppercase text-[#000000]">
+                  Vehicle Docs
+                </p>
+                <div class="h-px bg-gray-200 mt-2"></div>
+              </div>
+
+              <div class="flex flex-col gap-4 p-6 pt-0">
+                <div
+                  v-for="(doc, i) in leasingDocumentsData"
+                  :key="i"
+                  class="flex items-center justify-between"
+                >
+                  <span class="text-[14px] font-normal text-[#475569]">
+                    {{ doc }}
+                  </span>
+                  <Icon
+                    icon="material-symbols:download"
+                    class="size-[18.5px] shrink-0"
+                    style="color: #01b990"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Return Docs Card -->
-          <div
-            class="relative flex flex-col rounded-[16px] border bg-white"
-            style="border-color: #ececec"
-          >
-            <button
-              class="absolute right-4 top-4 transition-opacity hover:opacity-60"
+            <!-- Return Docs Card -->
+            <div
+              class="relative flex flex-col rounded-[40px] border bg-white min-w-[350px]"
+              style="border-color: #ececec"
             >
-              <Icon
-                icon="mdi:download-outline"
-                class="size-5 shrink-0"
-                style="color: #01b990"
-              />
-            </button>
-            <div class="px-6 py-5">
-              <p class="text-[18px] font-bold" style="color: #2e3e3f">
-                Return Docs
-              </p>
-            </div>
-
-            <div class="flex flex-col gap-2 px-6 pb-5">
-              <div
-                v-for="(doc, i) in returnDocumentsData"
-                :key="i"
-                class="flex items-center justify-between"
+              <button
+                class="absolute right-5 top-5 transition-opacity hover:opacity-60"
               >
-                <span class="text-[13px]" style="color: #2e3e3f">
-                  {{ doc }}
-                </span>
                 <Icon
-                  icon="mdi:download-outline"
-                  class="size-5 shrink-0"
+                  icon="mdi:pencil"
+                  class="size-[18.5px] shrink-0"
                   style="color: #01b990"
                 />
+              </button>
+              <div class="p-6">
+                <p class="text-[16px] font-semibold uppercase text-[#000000]">
+                  Return Docs
+                </p>
+              </div>
+
+              <div class="flex flex-col gap-2 p-6 pt-0">
+                <div
+                  v-for="(doc, i) in returnDocumentsData"
+                  :key="i"
+                  class="flex items-center justify-between"
+                >
+                  <span class="text-[14px] font-normal text-[#475569]">
+                    {{ doc }}
+                  </span>
+                  <Icon
+                    icon="material-symbols:download"
+                    class="size-[18.5px] shrink-0"
+                    style="color: #01b990"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
-
         <!-- Column 2: Angebote (Offers) -->
         <div class="flex flex-col gap-4" style="width: 400px">
           <div
@@ -414,17 +416,20 @@ watch(
             style="border-color: #ececec"
           >
             <button
-              @click="editVehicleOpen = true"
+              @click="uploadDocsOpen = true"
               class="absolute right-5 top-5 transition-opacity hover:opacity-60"
             >
               <Icon
-                icon="mdi:pencil-outline"
-                class="size-[18px] shrink-0"
+                icon="material-symbols-light:edit"
+                class="size-6 shrink-0"
                 style="color: #01b990"
               />
             </button>
             <div class="pb-6">
-              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
+              <p
+                class="text-[16px] font-normal uppercase"
+                style="color: #2e3e3f"
+              >
                 Assigned To
               </p>
             </div>
@@ -566,7 +571,6 @@ watch(
             </div>
           </div>
         </div>
-        
       </div>
     </TableCell>
   </TableRow>
