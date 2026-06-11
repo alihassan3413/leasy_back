@@ -91,6 +91,7 @@ export const useB2CRegistrationStore = defineStore("b2cRegistration", () => {
 
   const addressId = ref<string | null>(null);
   const contactId = ref<string | null>(null);
+  const vehicleId = ref<string | null>(null);
 
   const customerData = ref<CustomerData>(getDefaultCustomerData());
   const vehicleData = ref<VehicleData>(getDefaultVehicleData());
@@ -179,6 +180,7 @@ export const useB2CRegistrationStore = defineStore("b2cRegistration", () => {
     error.value = "";
     addressId.value = null;
     contactId.value = null;
+    vehicleId.value = null;
     customerData.value = getDefaultCustomerData();
     vehicleData.value = getDefaultVehicleData();
     appointmentData.value = getDefaultAppointmentData();
@@ -202,6 +204,7 @@ export const useB2CRegistrationStore = defineStore("b2cRegistration", () => {
     error,
     addressId,
     contactId,
+    vehicleId,
     customerData,
     vehicleData,
     appointmentData,

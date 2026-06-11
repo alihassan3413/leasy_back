@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { Icon } from "@iconify/vue";
 import { useField, useForm } from "vee-validate";
+import { toast } from "vue-sonner";
 
 import Button from "@/components/ui/Button.vue";
 import AppModal from "@/components/ui/AppModal.vue";
@@ -11,8 +12,10 @@ import FormSelectField from "@/components/ui/form/B2CSelectField.vue";
 
 import { appointmentSchema } from "@/validations/b2c/appointment.schema";
 import { useB2CRegistrationStore } from "@/stores/b2cRegistration.store";
-import { useBranches } from "@/composables/useBranches";
+import { useAuthStore } from "@/stores/auth.store";
+import { vehicleApi } from "@/api";
 import type { AppointmentData } from "@/stores/b2cRegistration.store";
+import type { Station } from "@/types";
 
 const emit = defineEmits<{
   next: [];
@@ -20,7 +23,9 @@ const emit = defineEmits<{
 }>();
 
 const store = useB2CRegistrationStore();
+const authStore = useAuthStore();
 const showConflictDialog = ref(false);
+const isSubmitting = ref(false);
 
 const uhrzeitOptions = [
   { value: "10:30", label: "10:30 Uhr" },
@@ -29,68 +34,107 @@ const uhrzeitOptions = [
   { value: "15:00", label: "15:00 Uhr" },
 ];
 
-const { handleSubmit } = useForm<AppointmentData>({
+const { handleSubmit, values, errors } = useForm<AppointmentData>({
   validationSchema: appointmentSchema,
-  initialValues: store.appointmentData,
+  initialValues: { ...store.appointmentData, service: "tuvsud" },
 });
 
-const { value: stadt } = useField<string>("stadt");
 const { value: uhrzeit } = useField<string>("uhrzeit");
 const { value: service } = useField<"tuvsud" | "dekra">("service");
 
-const { stadtOptions, allBranches, selectedBranch, geocodeBranch } =
-  useBranches(stadt, service);
-
+// Stations
+const stations = ref<Station[]>([]);
+const stationsLoading = ref(false);
 const stationOpen = ref(false);
-const selectedStation =
-  ref<ReturnType<typeof useBranches>["selectedBranch"]["value"]>(null);
+const selectedStation = ref<Station | null>(null);
+
+// Map
 const mapLat = ref<number | null>(null);
 const mapLng = ref<number | null>(null);
 
-function selectStation(station: typeof selectedStation.value) {
-  if (station) {
-    selectedStation.value = station;
-    stadt.value = station.id;
-    stationOpen.value = false;
-    geocodeSelectedStation(station);
+async function fetchStations() {
+  stationsLoading.value = true;
+  selectedStation.value = null;
+  mapLat.value = null;
+  mapLng.value = null;
+  try {
+    stations.value = await vehicleApi.getStations(service.value || "tuvsud");
+  } catch {
+    toast.error("Stationen konnten nicht geladen werden.");
+  } finally {
+    stationsLoading.value = false;
   }
 }
 
-async function geocodeSelectedStation(station: typeof selectedStation.value) {
-  if (station) {
-    const coords = await geocodeBranch(station);
-    if (coords) {
-      mapLat.value = coords.lat;
-      mapLng.value = coords.lng;
+async function geocodeStation(station: Station) {
+  const q = `${station.strasse}, ${station.plz} ${station.ort}, Germany`;
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+      { headers: { Accept: "application/json" } },
+    );
+    const data = await res.json();
+    if (data[0]) {
+      mapLat.value = parseFloat(data[0].lat);
+      mapLng.value = parseFloat(data[0].lon);
     }
-  }
+  } catch {}
 }
 
-watch(
-  () => stadt.value,
-  (newCity) => {
-    if (newCity && selectedBranch.value) {
-      selectedStation.value = selectedBranch.value;
-      geocodeSelectedStation(selectedBranch.value);
-    }
-  },
-  { immediate: true },
-);
+function selectStation(station: Station) {
+  selectedStation.value = station;
+  stationOpen.value = false;
+  geocodeStation(station);
+}
 
+// Watch service change to fetch stations
 watch(
   () => service.value,
   () => {
-    selectedStation.value = null;
-    mapLat.value = null;
-    mapLng.value = null;
+    fetchStations();
   },
+  { immediate: true },
 );
 
 function closeConflictDialog(): void {
   showConflictDialog.value = false;
 }
 
-const onSubmit = handleSubmit((values) => {
+// Termin ISO
+const terminIso = computed(() => {
+  const raw = values.datum as string;
+  if (!raw || !uhrzeit.value) return "";
+  return `${raw}T${uhrzeit.value}:00+02:00`;
+});
+
+const onSubmit = handleSubmit(async (values) => {
+  console.log("=== Step3Appointment Submit ===");
+  console.log("values:", values);
+  console.log("form errors:", errors.value);
+  console.log("selectedStation.value:", selectedStation.value);
+  console.log("terminIso.value:", terminIso.value);
+  console.log("store.vehicleId:", store.vehicleId);
+  console.log("authStore.user?.id:", authStore.user?.id);
+
+  if (!selectedStation.value) {
+    toast.error("Bitte wählen Sie eine Station aus.");
+    return;
+  }
+  if (!terminIso.value) {
+    toast.error("Bitte wählen Sie Datum und Uhrzeit aus.");
+    return;
+  }
+  if (!store.vehicleId) {
+    toast.error(
+      "Fahrzeug-ID fehlt. Bitte gehen Sie zurück und erstellen Sie das Fahrzeug erneut.",
+    );
+    return;
+  }
+  if (!authStore.user?.id) {
+    toast.error("Benutzer nicht angemeldet.");
+    return;
+  }
+
   Object.assign(store.appointmentData, values);
 
   const hasConflict = false;
@@ -100,7 +144,25 @@ const onSubmit = handleSubmit((values) => {
     return;
   }
 
-  emit("next");
+  isSubmitting.value = true;
+  try {
+    await vehicleApi.createOrder(
+      service.value || "tuvsud",
+      store.vehicleId,
+      {
+        remarks: "",
+        station_id: selectedStation.value.station_id,
+        termin: terminIso.value,
+      },
+      authStore.user.id,
+    );
+    toast.success("Auftrag erfolgreich erstellt.");
+    emit("next");
+  } catch {
+    toast.error("Auftrag konnte nicht erstellt werden.");
+  } finally {
+    isSubmitting.value = false;
+  }
 });
 </script>
 
@@ -162,7 +224,9 @@ const onSubmit = handleSubmit((values) => {
               {{
                 selectedStation
                   ? `${selectedStation.name} — ${selectedStation.ort}`
-                  : "Station wählen"
+                  : stationsLoading
+                    ? "Laden..."
+                    : "Station wählen"
               }}
             </span>
             <Icon
@@ -178,15 +242,22 @@ const onSubmit = handleSubmit((values) => {
             style="border-color: #b7c2c2; z-index: 9999"
           >
             <div
-              v-if="!allBranches.length"
+              v-if="stationsLoading"
+              class="px-3 py-2 text-[14px]"
+              style="color: #b7c2c2"
+            >
+              Laden...
+            </div>
+            <div
+              v-else-if="!stations.length"
               class="px-3 py-2 text-[14px]"
               style="color: #b7c2c2"
             >
               Keine Stationen gefunden
             </div>
             <div
-              v-for="station in allBranches"
-              :key="station.id"
+              v-for="station in stations"
+              :key="station.station_id"
               class="flex cursor-pointer flex-col px-3 py-2 hover:bg-gray-50"
               @click="selectStation(station)"
             >
@@ -210,45 +281,6 @@ const onSubmit = handleSubmit((values) => {
             :longitude="mapLng"
             :interactive="false"
           />
-        </div>
-
-        <!-- Selected branch details -->
-        <div
-          v-if="selectedStation"
-          class="grid grid-cols-1 gap-4 md:grid-cols-2"
-        >
-          <div
-            class="flex h-35 items-center justify-center rounded-[5px] bg-[#b7c2c2]/30"
-          >
-            <Icon
-              icon="material-symbols-light:location-on"
-              class="text-5xl text-custom-green"
-            />
-          </div>
-
-          <div
-            class="flex flex-col justify-center rounded-[5px] border border-custom-green bg-white p-3 text-xs"
-          >
-            <p class="font-bold text-primary">
-              {{ selectedStation.name }}
-            </p>
-
-            <p class="mt-2 text-custom-black">
-              {{ selectedStation.address }}
-            </p>
-
-            <p class="text-custom-black">
-              {{ selectedStation.phone }}
-            </p>
-
-            <p class="text-custom-black">
-              {{ selectedStation.email }}
-            </p>
-
-            <p class="mt-2 text-custom-black">
-              {{ selectedStation.distance }}
-            </p>
-          </div>
         </div>
       </div>
     </div>
@@ -289,8 +321,9 @@ const onSubmit = handleSubmit((values) => {
           <Button
             type="submit"
             button-classes="rounded-[5px] py-2 px-10 text-sm font-bold !bg-custom-green text-white hover:opacity-90"
+            :disabled="isSubmitting"
           >
-            Weiter
+            {{ isSubmitting ? "Lädt..." : "Weiter" }}
           </Button>
         </div>
       </form>

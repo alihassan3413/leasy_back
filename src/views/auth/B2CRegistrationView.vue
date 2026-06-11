@@ -25,20 +25,17 @@ async function onStep1Next(): Promise<void> {
 }
 
 function onNext(): void {
-  store.nextStep();
+  // If we're on step 3 and next is called, show success modal instead of going to step 4
+  if (store.currentStep === 3) {
+    store.status = "success";
+    showSuccess.value = true;
+  } else {
+    store.nextStep();
+  }
 }
 
 function onBack(): void {
   store.prevStep();
-}
-
-async function onFinalSubmit(): Promise<void> {
-  store.status = "loading";
-
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  store.status = "success";
-  showSuccess.value = true;
 }
 
 async function onSuccessOk(): Promise<void> {
@@ -73,7 +70,7 @@ async function onSuccessOk(): Promise<void> {
 
     <Step3Appointment
       v-if="store.currentStep === 3"
-      @next="onFinalSubmit"
+      @next="onNext"
       @back="onBack"
     />
 

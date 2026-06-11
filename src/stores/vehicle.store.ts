@@ -28,12 +28,29 @@ export const useVehicleStore = defineStore("vehicle", () => {
     }
   }
 
-  async function addVehicle(payload: CreateVehiclePayload) {
+  async function addVehicle(payload: CreateVehiclePayload): Promise<string> {
+    console.log("=== vehicleStore.addVehicle ===");
+    console.log("payload:", payload);
+
     isLoading.value = true;
     error.value = null;
     try {
-     const response =  await vehicleApi.createVehicle(payload);
-     console.log("response",response);
+      const response = await vehicleApi.createVehicle(payload);
+      console.log("Full API response:", response);
+
+      // Try to get vehicle_id from different possible keys
+      let vehicleId: string | undefined =
+        response.vehicle_id ||
+        response.id ||
+        response.data?.vehicle_id ||
+        response.data?.id;
+      console.log("Extracted vehicleId:", vehicleId);
+
+      if (!vehicleId) {
+        throw new Error("Vehicle ID not found in API response");
+      }
+
+      return vehicleId;
     } catch (err) {
       console.error("Failed to add vehicle:", err);
       error.value = "Fehler beim Hinzufügen des Fahrzeugs";
