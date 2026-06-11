@@ -230,8 +230,6 @@ export interface VehicleStatusResponse {
   make: string;
   model: string;
   vehicle_belongs: string;
-  b2b_id: string | null;
-  b2c_user_id: string | null;
   created_at: string;
   updated_at: string;
   orders: Array<{

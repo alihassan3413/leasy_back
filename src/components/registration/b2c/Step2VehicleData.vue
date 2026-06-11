@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { useForm } from 'vee-validate'
+import { useForm } from "vee-validate";
 
-import Button from '@/components/ui/Button.vue'
-import FormTextField from '@/components/ui/form/FormTextField.vue'
-import FormSelectField from '@/components/ui/form/B2CSelectField.vue'
-import LicensePlateField from '@/components/ui/form/LicensePlateField.vue'
-import CalendarDateField from '@/components/ui/form/CalendarDateField.vue'
+import Button from "@/components/ui/Button.vue";
+import FormTextField from "@/components/ui/form/FormTextField.vue";
+import FormSelectField from "@/components/ui/form/B2CSelectField.vue";
+import LicensePlateField from "@/components/ui/form/LicensePlateField.vue";
+import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
 
-import { vehicleDataSchema } from '@/validations/b2c/vehicleData.schema'
-import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'
-import type { VehicleData } from '@/stores/b2cRegistration.store'
-import { useVehicleStore } from '@/stores/vehicle.store'
+import { vehicleDataSchema } from "@/validations/b2c/vehicleData.schema";
+import { useB2CRegistrationStore } from "@/stores/b2cRegistration.store";
+import type { VehicleData } from "@/stores/b2cRegistration.store";
+import { useVehicleStore } from "@/stores/vehicle.store";
 
 const emit = defineEmits<{
-  next: []
-  back: []
-}>()
+  next: [];
+  back: [];
+}>();
 
 const store = useB2CRegistrationStore();
 const vehicleStore = useVehicleStore();
@@ -23,50 +23,52 @@ const vehicleStore = useVehicleStore();
 const { handleSubmit } = useForm<VehicleData>({
   validationSchema: vehicleDataSchema,
   initialValues: { ...store.vehicleData },
-})
+});
 
-const onSubmit = handleSubmit( async(values) => {
-  Object.assign(store.vehicleData, values)
+const onSubmit = handleSubmit(async (values) => {
+  console.log("=== Step2VehicleData Submit ===");
+  console.log("values:", values);
+
+  Object.assign(store.vehicleData, values);
 
   const licensePlate = [
     values.kennzeichenCity,
     values.kennzeichenLetters,
     values.kennzeichenNumbers,
   ]
-  .filter(Boolean)
-  .join(' ')
+    .filter(Boolean)
+    .join(" ");
+
+  console.log("licensePlate:", licensePlate);
 
   try {
-    await vehicleStore.addVehicle({
+    const vehicleId = await vehicleStore.addVehicle({
       license_plate: licensePlate,
       first_registration_date: values.erstzulassungsdatum,
       leasing_end_date: values.leasingende,
       vin: values.fin,
       make: values.marke,
       model: values.modell,
-    })
-     emit('next')
+    });
+    console.log("Got vehicleId from API:", vehicleId);
+    store.vehicleId = vehicleId;
+    console.log("store.vehicleId set to:", store.vehicleId);
+    emit("next");
   } catch (error) {
-    console.error('Error adding vehicle:', error)
+    console.error("Error adding vehicle:", error);
   }
- 
-})
+});
 </script>
 
 <template>
   <div
     class="w-full rounded-[10px] bg-white px-6 py-5 shadow-[0_4px_4px_rgba(0,0,0,0.25)] md:px-8 md:py-6"
   >
-    <h2 class="text-[20px] font-bold text-primary">
-      Fahrzeugdaten
-    </h2>
+    <h2 class="text-[20px] font-bold text-primary">Fahrzeugdaten</h2>
 
     <div class="mt-2 mb-3 h-px w-full bg-green-gray" />
 
-    <form
-      novalidate
-      @submit.prevent="onSubmit"
-    >
+    <form novalidate @submit.prevent="onSubmit">
       <div class="max-w-85 space-y-2">
         <LicensePlateField
           city-name="kennzeichenCity"
