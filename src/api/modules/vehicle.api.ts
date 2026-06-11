@@ -33,7 +33,10 @@ export const vehicleApi = {
     }));
   },
 
-  async uploadVehicleDocument(vehicleId: string, body: FormData): Promise<VehicleDocument> {
+  async uploadVehicleDocument(
+    vehicleId: string,
+    body: FormData,
+  ): Promise<VehicleDocument> {
     const resp = await put<any>(`/vehicle/${vehicleId}/documents`, body, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -43,7 +46,8 @@ export const vehicleApi = {
     return {
       id: resp?.document_id ?? resp?.id,
       document_type: resp?.document_type ?? resp?.documentType,
-      file_name: resp?.original_file_name ?? resp?.file_name ?? resp?.originalFileName,
+      file_name:
+        resp?.original_file_name ?? resp?.file_name ?? resp?.originalFileName,
       created_at: resp?.created_at ?? resp?.uploaded_at ?? resp?.createdAt,
       url: resp?.signed_url ?? resp?.url ?? resp?.signedUrl,
     };
@@ -61,10 +65,12 @@ export const vehicleApi = {
     provider: "tuvsud" | "dekra",
     vehicleId: string,
     payload: CreateOrderPayload,
+    userId?: string,
   ): Promise<CreateOrderResponse> {
-    return post<CreateOrderResponse, CreateOrderPayload>(
-      `/order/${provider}/create/${vehicleId}`,
-      payload,
-    );
+    let url = `/order/${provider}/create/${vehicleId}`;
+    if (userId) {
+      url += `/${userId}`;
+    }
+    return post<CreateOrderResponse, CreateOrderPayload>(url, payload);
   },
 };

@@ -93,7 +93,7 @@ export interface AdminSummaryResponse {
   pending_inspections: number;
 }
 
-export type AdminUserType = 'B2C' | 'B2B'
+export type AdminUserType = "B2C" | "B2B";
 
 export interface AdminUser {
   user_id: string;
@@ -144,7 +144,7 @@ export interface AdminVehicle {
   vin: string;
   make: string;
   model: string;
-  vehicle_belongs: 'B2B' | 'B2C';
+  vehicle_belongs: "B2B" | "B2C";
   b2b_id: string | null;
   b2c_user_id: string | null;
   assigned_profile_id: number | null;
@@ -230,6 +230,8 @@ export interface VehicleStatusResponse {
   make: string;
   model: string;
   vehicle_belongs: string;
+  b2b_id: string | null;
+  b2c_user_id: string | null;
   created_at: string;
   updated_at: string;
   orders: Array<{

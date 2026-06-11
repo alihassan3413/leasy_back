@@ -95,6 +95,8 @@ export const mapVehicleResponseToVehicle = (
     make: response.make,
     model: response.model,
     vehicle_belongs: response.vehicle_belongs,
+    b2b_id: response.b2b_id || null,
+    b2c_user_id: response.b2c_user_id || null,
     created_at: response.created_at,
     updated_at: response.updated_at,
     orders: response.orders || [],
