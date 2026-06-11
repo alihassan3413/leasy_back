@@ -474,10 +474,10 @@ watch(
         </div>
 
         <!-- Column 3: Assigned To + Vehicle Specs -->
-        <div class="flex flex-col gap-4" style="width: 325px">
+        <div class="flex flex-col 2xl:flex-row gap-4 w-[325px] 2xl:w-full">
           <!-- Assigned To Card -->
           <div
-            class="relative flex flex-col rounded-[24px] border bg-white p-8"
+            class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
             style="border-color: #ececec"
           >
             <button
@@ -639,7 +639,7 @@ watch(
 
           <!-- Vehicle Specs Card -->
           <div
-            class="relative flex flex-col overflow-hidden rounded-3xl border bg-white"
+            class="relative flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[325px]"
             style="border-color: #ececec"
           >
             <button
