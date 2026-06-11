@@ -7,7 +7,7 @@ const props = withDefaults(
     totalSteps?: number
   }>(),
   {
-    totalSteps: 4,
+    totalSteps: 3,
   },
 )
 

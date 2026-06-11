@@ -1,65 +1,57 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 
-import B2CRegistrationLayout from '@/layouts/B2CRegistrationLayout.vue'
-import Step1CustomerData from '@/components/registration/b2c/Step1CustomerData.vue'
-import Step2VehicleData from '@/components/registration/b2c/Step2VehicleData.vue'
-import Step3Appointment from '@/components/registration/b2c/Step3Appointment.vue'
-import Step4PaymentMethod from '@/components/registration/b2c/Step4PaymentMethod.vue'
-import AppModal from '@/components/ui/AppModal.vue'
+import B2CRegistrationLayout from "@/layouts/B2CRegistrationLayout.vue";
+import Step1CustomerData from "@/components/registration/b2c/Step1CustomerData.vue";
+import Step2VehicleData from "@/components/registration/b2c/Step2VehicleData.vue";
+import Step3Appointment from "@/components/registration/b2c/Step3Appointment.vue";
+import Step4PaymentMethod from "@/components/registration/b2c/Step4PaymentMethod.vue";
+import AppModal from "@/components/ui/AppModal.vue";
 
-import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'
+import { useB2CRegistrationStore } from "@/stores/b2cRegistration.store";
 
-const store = useB2CRegistrationStore()
-const router = useRouter()
+const store = useB2CRegistrationStore();
+const router = useRouter();
 
-const showSuccess = ref(false)
+const showSuccess = ref(false);
 
-const stepTitles = [
-  'Kundendaten',
-  'Fahrzeugdaten',
-  'Terminvereinbarung',
-  'Zahlungsmethode hinzufügen',
-]
+const stepTitles = ["Kundendaten", "Fahrzeugdaten", "Terminvereinbarung"];
 
-const stepTitle = computed(() => stepTitles[store.currentStep - 1] ?? '')
+const stepTitle = computed(() => stepTitles[store.currentStep - 1] ?? "");
 
 async function onStep1Next(): Promise<void> {
-  await store.submitProfile()
+  await store.submitProfile();
 }
 
 function onNext(): void {
-  store.nextStep()
+  store.nextStep();
 }
 
 function onBack(): void {
-  store.prevStep()
+  store.prevStep();
 }
 
 async function onFinalSubmit(): Promise<void> {
-  store.status = 'loading'
+  store.status = "loading";
 
-  await new Promise((resolve) => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
-  store.status = 'success'
-  showSuccess.value = true
+  store.status = "success";
+  showSuccess.value = true;
 }
 
 async function onSuccessOk(): Promise<void> {
-  showSuccess.value = false
+  showSuccess.value = false;
 
-  await router.push({ name: 'dashboard-b2c' })
+  await router.push({ name: "dashboard-b2c" });
 
-  store.reset()
+  store.reset();
 }
 </script>
 
 <template>
-  <B2CRegistrationLayout
-    :title="stepTitle"
-    :current-step="store.currentStep"
-  >
+  <B2CRegistrationLayout :title="stepTitle" :current-step="store.currentStep">
     <div
       v-if="store.error && store.status === 'error'"
       class="mb-4 rounded-[5px] border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -81,15 +73,16 @@ async function onSuccessOk(): Promise<void> {
 
     <Step3Appointment
       v-if="store.currentStep === 3"
-      @next="onNext"
+      @next="onFinalSubmit"
       @back="onBack"
     />
 
-    <Step4PaymentMethod
+    <!-- Step4PaymentMethod is hidden for now -->
+    <!-- <Step4PaymentMethod
       v-if="store.currentStep === 4"
       @submit="onFinalSubmit"
       @back="onBack"
-    />
+    /> -->
   </B2CRegistrationLayout>
 
   <AppModal
