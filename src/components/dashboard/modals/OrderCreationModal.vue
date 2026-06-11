@@ -8,8 +8,11 @@ import type { Vehicle } from "../vehicle.types";
 import AppMapPicker from "@/components/ui/AppMapPicker.vue";
 import { useForm } from "vee-validate";
 import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
+import { useAuthStore } from "@/stores/auth.store";
 
-const {values} = useForm();
+const { values } = useForm();
+
+const authStore = useAuthStore();
 
 const props = defineProps<{
   open: boolean;
@@ -18,16 +21,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "update:open": [value: boolean];
-  "success": [];
+  success: [];
 }>();
 const selectedService = ref<"tuvsud" | "dekra">("tuvsud");
 
-
-
-//  Service selection 
+//  Service selection
 // const tuvsudActive = ref(true);
 
-//  Stations 
+//  Stations
 const stations = ref<Station[]>([]);
 const stationsLoading = ref(false);
 const stationOpen = ref(false);
@@ -47,7 +48,7 @@ async function fetchStations() {
   }
 }
 
-// Map 
+// Map
 const mapLat = ref<number | null>(null);
 const mapLng = ref<number | null>(null);
 
@@ -63,9 +64,7 @@ async function geocodeStation(station: Station) {
       mapLat.value = parseFloat(data[0].lat);
       mapLng.value = parseFloat(data[0].lon);
     }
-  } catch {
-    
-  }
+  } catch {}
 }
 
 function selectStation(station: Station) {
@@ -74,13 +73,13 @@ function selectStation(station: Station) {
   geocodeStation(station);
 }
 
-// Termin 
+// Termin
 const terminDate = ref("");
 const terminTime = ref("");
 
 // Replace terminIso with:
 const terminIso = computed(() => {
-  const raw = values.terminDate as string; 
+  const raw = values.terminDate as string;
   if (!raw || !terminTime.value) return "";
   return `${raw}T${terminTime.value}:00+02:00`;
 });
@@ -88,11 +87,11 @@ const terminIso = computed(() => {
 // Remarks
 const remarks = ref("");
 
-//  Submit 
+//  Submit
 const isSubmitting = ref(false);
 
-const canSubmit = computed(() =>
-  !!selectedStation.value && !!terminIso.value && !isSubmitting.value,
+const canSubmit = computed(
+  () => !!selectedStation.value && !!terminIso.value && !isSubmitting.value,
 );
 
 async function handleSubmit() {
@@ -100,11 +99,19 @@ async function handleSubmit() {
 
   isSubmitting.value = true;
   try {
-    await vehicleApi.createOrder(selectedService.value, props.vehicle.id, {
-      remarks: remarks.value,
-      station_id: selectedStation.value!.station_id,
-      termin: terminIso.value,
-    });
+    // Get the user ID from auth store
+    const userId = authStore.user?.id;
+
+    await vehicleApi.createOrder(
+      selectedService.value,
+      props.vehicle.id || props.vehicle.vehicle_id,
+      {
+        remarks: remarks.value,
+        station_id: selectedStation.value!.station_id,
+        termin: terminIso.value,
+      },
+      userId,
+    );
     toast.success("Auftrag erfolgreich erstellt.");
     emit("success");
     close();
@@ -115,7 +122,7 @@ async function handleSubmit() {
   }
 }
 
-//  Lifecycle 
+//  Lifecycle
 watch(
   () => props.open,
   (opened) => {
@@ -167,27 +174,27 @@ function close() {
           </p>
           <div class="flex flex-col gap-2">
             <!-- TÜV SÜD -->
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  value="tuvsud"
-                  v-model="selectedService"
-                  class="accent-primary size-4"
-                  @change="fetchStations"
-                />
-                <span class="text-base text-custom-black">TÜV SÜD</span>
-              </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="tuvsud"
+                v-model="selectedService"
+                class="accent-primary size-4"
+                @change="fetchStations"
+              />
+              <span class="text-base text-custom-black">TÜV SÜD</span>
+            </label>
             <!-- DEKRA — selectable but shows empty dropdown -->
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  value="dekra"
-                  v-model="selectedService"
-                  class="accent-primary size-4"
-                  @change="fetchStations"
-                />
-                <span class="text-base text-custom-black">DEKRA</span>
-              </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="dekra"
+                v-model="selectedService"
+                class="accent-primary size-4"
+                @change="fetchStations"
+              />
+              <span class="text-base text-custom-black">DEKRA</span>
+            </label>
           </div>
         </div>
 
@@ -225,10 +232,18 @@ function close() {
             class="absolute top-full mt-1 max-h-[180px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
             style="border-color: #b7c2c2; z-index: 9999"
           >
-            <div v-if="stationsLoading" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
+            <div
+              v-if="stationsLoading"
+              class="px-3 py-2 text-[14px]"
+              style="color: #b7c2c2"
+            >
               Laden...
             </div>
-            <div v-else-if="!stations.length" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
+            <div
+              v-else-if="!stations.length"
+              class="px-3 py-2 text-[14px]"
+              style="color: #b7c2c2"
+            >
               Keine Stationen gefunden
             </div>
             <div
@@ -266,7 +281,7 @@ function close() {
             label="Datum"
             :minDaysAhead="3"
             class="flex-1"
-           /> 
+          />
           <div class="flex flex-1 flex-col gap-1">
             <label class="text-[16px] font-bold" style="color: #10393b">
               Uhrzeit

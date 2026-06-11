@@ -19,16 +19,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "update:open": [value: boolean];
-  "success": [];
+  success: [];
 }>();
 const selectedService = ref<"tuvsud" | "dekra">("tuvsud");
 
-
-
-//  Service selection 
+//  Service selection
 // const tuvsudActive = ref(true);
 
-//  Stations 
+//  Stations
 const stations = ref<Station[]>([]);
 const stationsLoading = ref(false);
 const stationOpen = ref(false);
@@ -48,7 +46,7 @@ async function fetchStations() {
   }
 }
 
-// Map 
+// Map
 const mapLat = ref<number | null>(null);
 const mapLng = ref<number | null>(null);
 
@@ -64,9 +62,7 @@ async function geocodeStation(station: Station) {
       mapLat.value = parseFloat(data[0].lat);
       mapLng.value = parseFloat(data[0].lon);
     }
-  } catch {
-
-  }
+  } catch {}
 }
 
 function selectStation(station: Station) {
@@ -75,7 +71,7 @@ function selectStation(station: Station) {
   geocodeStation(station);
 }
 
-// Termin 
+// Termin
 const terminDate = ref("");
 const terminTime = ref("");
 
@@ -89,11 +85,11 @@ const terminIso = computed(() => {
 // Remarks
 const remarks = ref("");
 
-//  Submit 
+//  Submit
 const isSubmitting = ref(false);
 
-const canSubmit = computed(() =>
-  !!selectedStation.value && !!terminIso.value && !isSubmitting.value,
+const canSubmit = computed(
+  () => !!selectedStation.value && !!terminIso.value && !isSubmitting.value,
 );
 
 async function handleSubmit() {
@@ -108,12 +104,17 @@ async function handleSubmit() {
   console.log("Creating order with:", {
     provider: selectedService.value,
     vehicleId: props.vehicle.vehicle_id,
-    payload
+    payload,
   });
 
   isSubmitting.value = true;
   try {
-    await vehicleApi.createOrder(selectedService.value, props.vehicle.vehicle_id, payload);
+    await vehicleApi.createOrder(
+      selectedService.value,
+      props.vehicle.vehicle_id,
+      payload,
+      props.vehicle.user_id,
+    );
     toast.success("Auftrag erfolgreich erstellt.");
     emit("success");
     close();
@@ -123,7 +124,7 @@ async function handleSubmit() {
         status: err.response?.status,
         data: err.response?.data,
         message: err.message,
-        config: err.config
+        config: err.config,
       });
     } else {
       console.error("Order creation error:", err);
@@ -134,7 +135,7 @@ async function handleSubmit() {
   }
 }
 
-//  Lifecycle 
+//  Lifecycle
 watch(
   () => props.open,
   (opened) => {
@@ -155,15 +156,21 @@ function close() {
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="p-0 gap-0 flex flex-col max-h-[90vh] overflow-hidden" style="
+    <DialogContent
+      class="p-0 gap-0 flex flex-col max-h-[90vh] overflow-hidden"
+      style="
         width: 680px;
         max-width: 680px;
         border-radius: 5px;
         border: 1px solid #ececec;
-      " :show-close-button="false">
+      "
+      :show-close-button="false"
+    >
       <!-- Header -->
-      <div class="flex h-[50px] items-center justify-between px-9"
-        style="background-color: #fafafa; border-bottom: 1px solid #b7c2c2">
+      <div
+        class="flex h-[50px] items-center justify-between px-9"
+        style="background-color: #fafafa; border-bottom: 1px solid #b7c2c2"
+      >
         <span class="text-[20px] font-bold" style="color: #10393b">
           Auftrag erstellen
         </span>
@@ -181,14 +188,24 @@ function close() {
           <div class="flex flex-col gap-2">
             <!-- TÜV SÜD -->
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" value="tuvsud" v-model="selectedService" class="accent-primary size-4"
-                @change="fetchStations" />
+              <input
+                type="radio"
+                value="tuvsud"
+                v-model="selectedService"
+                class="accent-primary size-4"
+                @change="fetchStations"
+              />
               <span class="text-base text-custom-black">TÜV SÜD</span>
             </label>
             <!-- DEKRA — selectable but shows empty dropdown -->
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" value="dekra" v-model="selectedService" class="accent-primary size-4"
-                @change="fetchStations" />
+              <input
+                type="radio"
+                value="dekra"
+                v-model="selectedService"
+                class="accent-primary size-4"
+                @change="fetchStations"
+              />
               <span class="text-base text-custom-black">DEKRA</span>
             </label>
           </div>
@@ -199,9 +216,15 @@ function close() {
           <label class="text-[16px] font-bold" style="color: #10393b">
             Station
           </label>
-          <div class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
-            style="border-color: #b7c2c2" @click="stationOpen = !stationOpen">
-            <span class="truncate text-[14px]" :style="selectedStation ? 'color:#000' : 'color:#B7C2C2'">
+          <div
+            class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
+            style="border-color: #b7c2c2"
+            @click="stationOpen = !stationOpen"
+          >
+            <span
+              class="truncate text-[14px]"
+              :style="selectedStation ? 'color:#000' : 'color:#B7C2C2'"
+            >
               {{
                 selectedStation
                   ? `${selectedStation.name} — ${selectedStation.ort}`
@@ -210,22 +233,38 @@ function close() {
                     : "Station wählen"
               }}
             </span>
-            <Icon icon="ic:round-arrow-drop-down"
+            <Icon
+              icon="ic:round-arrow-drop-down"
               class="text-[40px] text-primary shrink-0 transition-transform duration-200"
-              :class="stationOpen ? 'rotate-180' : 'rotate-0'" />
+              :class="stationOpen ? 'rotate-180' : 'rotate-0'"
+            />
           </div>
 
-          <div v-if="stationOpen"
+          <div
+            v-if="stationOpen"
             class="absolute top-full mt-1 max-h-[180px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
-            style="border-color: #b7c2c2; z-index: 9999">
-            <div v-if="stationsLoading" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
+            style="border-color: #b7c2c2; z-index: 9999"
+          >
+            <div
+              v-if="stationsLoading"
+              class="px-3 py-2 text-[14px]"
+              style="color: #b7c2c2"
+            >
               Laden...
             </div>
-            <div v-else-if="!stations.length" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
+            <div
+              v-else-if="!stations.length"
+              class="px-3 py-2 text-[14px]"
+              style="color: #b7c2c2"
+            >
               Keine Stationen gefunden
             </div>
-            <div v-for="station in stations" :key="station.station_id"
-              class="flex cursor-pointer flex-col px-3 py-2 hover:bg-gray-50" @click="selectStation(station)">
+            <div
+              v-for="station in stations"
+              :key="station.station_id"
+              class="flex cursor-pointer flex-col px-3 py-2 hover:bg-gray-50"
+              @click="selectStation(station)"
+            >
               <span class="text-[14px] font-medium" style="color: #000">
                 {{ station.name }}
               </span>
@@ -237,19 +276,35 @@ function close() {
         </div>
 
         <!-- Map -->
-        <div class="h-[220px] shrink-0 w-full overflow-hidden rounded-[5px] border" style="border-color: #b7c2c2">
-          <AppMapPicker :latitude="mapLat" :longitude="mapLng" :interactive="false" />
+        <div
+          class="h-[220px] shrink-0 w-full overflow-hidden rounded-[5px] border"
+          style="border-color: #b7c2c2"
+        >
+          <AppMapPicker
+            :latitude="mapLat"
+            :longitude="mapLng"
+            :interactive="false"
+          />
         </div>
 
         <!-- Termin row -->
         <div class="flex gap-4">
-          <CalendarDateField name="terminDate" label="Datum" :minDaysAhead="3" class="flex-1" />
+          <CalendarDateField
+            name="terminDate"
+            label="Datum"
+            :minDaysAhead="3"
+            class="flex-1"
+          />
           <div class="flex flex-1 flex-col gap-1">
             <label class="text-[16px] font-bold" style="color: #10393b">
               Uhrzeit
             </label>
-            <input v-model="terminTime" type="time" class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
-              style="border-color: #b7c2c2; color: #000" />
+            <input
+              v-model="terminTime"
+              type="time"
+              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
+              style="border-color: #b7c2c2; color: #000"
+            />
           </div>
         </div>
 
@@ -257,18 +312,26 @@ function close() {
         <div class="flex flex-col gap-1">
           <label class="text-[16px] font-bold" style="color: #10393b">
             Bemerkungen
-            <span class="text-[12px] font-normal ml-1" style="color: #b7c2c2">(optional)</span>
+            <span class="text-[12px] font-normal ml-1" style="color: #b7c2c2"
+              >(optional)</span
+            >
           </label>
-          <textarea v-model="remarks" rows="2"
+          <textarea
+            v-model="remarks"
+            rows="2"
             class="rounded-[5px] border px-2 py-1.5 text-[14px] outline-none resize-none"
-            style="border-color: #b7c2c2; color: #000" />
+            style="border-color: #b7c2c2; color: #000"
+          />
         </div>
 
         <!-- Submit -->
         <div class="flex justify-end">
-          <button class="h-[36px] w-[160px] rounded-[5px] text-[14px] font-bold text-white transition-opacity"
-            :style="canSubmit ? 'background:#EF8450' : 'background:#B7C2C2'" :disabled="!canSubmit"
-            @click="handleSubmit">
+          <button
+            class="h-[36px] w-[160px] rounded-[5px] text-[14px] font-bold text-white transition-opacity"
+            :style="canSubmit ? 'background:#EF8450' : 'background:#B7C2C2'"
+            :disabled="!canSubmit"
+            @click="handleSubmit"
+          >
             {{ isSubmitting ? "Lädt..." : "Bestätigen" }}
           </button>
         </div>
