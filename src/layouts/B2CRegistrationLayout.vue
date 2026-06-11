@@ -42,7 +42,7 @@ defineProps<{
         {{ title }}
       </h1>
 
-      <ProgressBar :current-step="currentStep" :total-steps="totalSteps ?? 4" class="mt-6 mb-8" />
+      <ProgressBar :current-step="currentStep" :total-steps="totalSteps ?? 3" class="mt-6 mb-8" />
 
       <slot />
     </div>
