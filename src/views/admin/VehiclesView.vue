@@ -3,6 +3,7 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { adminVehiclesApi } from '@/api'
 import { formatGermanDate } from '@/lib/formatting'
 import type { AdminVehicle } from '@/types'
+import AdminOrderCreationModal from "@/components/admin/AdminOrderCreationModal.vue"
 
 // ── List state ────────────────────────────────────────────────────
 const userType = ref<'Firmenkunde' | 'Privatkunde' | 'all'>('all')
@@ -23,6 +24,19 @@ const error = ref('')
 const expandedId = ref<string | null>(null)
 function toggleExpand(id: string) {
   expandedId.value = expandedId.value === id ? null : id
+}
+
+// ── Order creation modal ──────────────────────────────────────────
+const orderModalOpen = ref(false)
+const selectedVehicle = ref<AdminVehicle | null>(null)
+
+function openCreateOrder(vehicle: AdminVehicle) {
+  selectedVehicle.value = vehicle
+  orderModalOpen.value = true
+}
+
+function onOrderSuccess() {
+  loadVehicles()
 }
 
 // ── Status config ─────────────────────────────────────────────────
@@ -324,14 +338,24 @@ onMounted(() => void loadVehicles())
 
                 <!-- Expand toggle -->
                 <td class="px-3 py-3.5">
-                  <span class="w-8 h-8 flex items-center justify-center rounded-[9px]
-                           text-[#bcccca] group-hover:bg-[#10393b] group-hover:text-white transition-all">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                      class="transition-transform duration-200"
-                      :class="expandedId === v.vehicle_id ? 'rotate-180' : ''">
-                      <path d="M6 9l6 6 6-6" />
-                    </svg>
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <span v-if="!v.current_auftragsnummer && (!v.order_history || v.order_history.length === 0)"
+                      class="w-8 h-8 flex items-center justify-center rounded-[9px] text-[#bcccca] hover:bg-[#01B990] hover:text-white transition-all cursor-pointer"
+                      @click.stop="openCreateOrder(v)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2">
+                        <path d="M12 5v14M5 12h14" />
+                      </svg>
+                    </span>
+                    <span
+                      class="w-8 h-8 flex items-center justify-center rounded-[9px] text-[#bcccca] group-hover:bg-[#10393b] group-hover:text-white transition-all">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" class="transition-transform duration-200"
+                        :class="expandedId === v.vehicle_id ? 'rotate-180' : ''">
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </span>
+                  </div>
                 </td>
               </tr>
 
@@ -423,6 +447,8 @@ onMounted(() => void loadVehicles())
         </div>
       </div>
     </section>
+
+    <AdminOrderCreationModal v-model:open="orderModalOpen" :vehicle="selectedVehicle" @success="onOrderSuccess" />
   </div>
 </template>
 
