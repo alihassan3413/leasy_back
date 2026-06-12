@@ -17,10 +17,11 @@ export const useB2BStore = defineStore("b2b", () => {
   const error = ref("");
   const profile = ref<B2BProfile | null>(null);
   const createResult = ref<B2BCreateResponse | null>(null);
+  const auth = useAuthStore();
 
   const logoUrl = ref("");
   const logoKey = ref("");
-  let logoRefreshTimer: ReturnType<typeof setTimeout> | null = null
+  let logoRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 
   async function create(payload: B2BCreateComapnyPayload) {
     status.value = "loading";
@@ -28,6 +29,8 @@ export const useB2BStore = defineStore("b2b", () => {
     try {
       const res = await b2bApi.create(payload);
       createResult.value = res;
+      await fetchProfile();
+      auth.updateProfile({ profileCompleted: true });
       status.value = "success";
       return res;
     } catch (err) {
@@ -39,31 +42,31 @@ export const useB2BStore = defineStore("b2b", () => {
   }
 
   function scheduleLogoRefresh(expiresInSeconds = 10800) {
-  if (logoRefreshTimer) {
-    clearTimeout(logoRefreshTimer);
+    if (logoRefreshTimer) {
+      clearTimeout(logoRefreshTimer);
+    }
+
+    const refreshBeforeExpiry = Math.max((expiresInSeconds - 300) * 1000, 1000);
+
+    logoRefreshTimer = setTimeout(() => {
+      refreshLogoSignedUrl();
+    }, refreshBeforeExpiry);
   }
 
-  const refreshBeforeExpiry = Math.max((expiresInSeconds - 300) * 1000, 1000);
+  async function refreshLogoSignedUrl() {
+    if (!logoKey.value) return;
 
-  logoRefreshTimer = setTimeout(() => {
-    refreshLogoSignedUrl();
-  }, refreshBeforeExpiry);
-}
+    try {
+      const res = await b2bApi.getLogoSignedUrl(logoKey.value);
 
-async function refreshLogoSignedUrl() {
-  if (!logoKey.value) return;
+      logoUrl.value = res.signed_url;
 
-  try {
-    const res = await b2bApi.getLogoSignedUrl(logoKey.value);
-
-    logoUrl.value = res.signed_url;
-
-    scheduleLogoRefresh(res.expires_in_seconds);
-  } catch (err) {
-    const apiError = normalizeApiError(err);
-    error.value = apiError.message;
+      scheduleLogoRefresh(res.expires_in_seconds);
+    } catch (err) {
+      const apiError = normalizeApiError(err);
+      error.value = apiError.message;
+    }
   }
-}
 
   async function uploadLogo(file: File) {
     status.value = "loading";
@@ -90,16 +93,15 @@ async function refreshLogoSignedUrl() {
   }
 
   async function fetchProfile() {
-    const auth = useAuthStore();
     const userId = auth.user?.id;
     if (!userId) return;
 
     status.value = "loading";
     error.value = "";
     try {
-      const res = await b2bApi.getProfile(userId);      
+      const res = await b2bApi.getProfile(userId);
       profile.value = res;
-      if (res.logo_url){
+      if (res.logo_url) {
         logoKey.value = res.logo_url;
         await refreshLogoSignedUrl();
       }
@@ -113,11 +115,14 @@ async function refreshLogoSignedUrl() {
     }
   }
 
-  async function updateProfile(b2bId: string, payload: B2BProfileUpdatePayload) {
+  async function updateProfile(
+    b2bId: string,
+    payload: B2BProfileUpdatePayload,
+  ) {
     status.value = "loading";
     error.value = "";
     try {
-      await b2bApi.updateProfile(b2bId, payload);      
+      await b2bApi.updateProfile(b2bId, payload);
       // PATCH returns a plain string, not the updated profile — re-fetch.
       await fetchProfile();
     } catch (err) {
@@ -129,31 +134,31 @@ async function refreshLogoSignedUrl() {
   }
 
   async function deleteLogo(logoKeyToDelete?: string) {
-  const key = logoKeyToDelete || logoKey.value || profile.value?.logo_url;
+    const key = logoKeyToDelete || logoKey.value || profile.value?.logo_url;
 
-  if (!key) return;
+    if (!key) return;
 
-  status.value = "loading";
-  error.value = "";
+    status.value = "loading";
+    error.value = "";
 
-  try {
-    await b2bApi.deleteLogo(key);
+    try {
+      await b2bApi.deleteLogo(key);
 
-    logoUrl.value = "";
-    logoKey.value = "";
+      logoUrl.value = "";
+      logoKey.value = "";
 
-    if (profile.value) {
-      profile.value.logo_url = "";
+      if (profile.value) {
+        profile.value.logo_url = "";
+      }
+
+      status.value = "success";
+    } catch (err) {
+      const apiError = normalizeApiError(err);
+      error.value = apiError.message;
+      status.value = "error";
+      throw err;
     }
-
-    status.value = "success";
-  } catch (err) {
-    const apiError = normalizeApiError(err);
-    error.value = apiError.message;
-    status.value = "error";
-    throw err;
   }
-}
 
   return {
     status,
