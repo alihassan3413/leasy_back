@@ -1,35 +1,44 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { Icon } from '@iconify/vue'
-import type { Vehicle } from '../dashboard/vehicle.types'
-import B2bDdfExpanded from './b2bDdfExpanded.vue';
+import { computed, ref } from "vue";
+import { Icon } from "@iconify/vue";
+import { toast } from "vue-sonner";
+import type { Vehicle } from "../dashboard/vehicle.types";
+import B2bDdfExpanded from "./b2bDdfExpanded.vue";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import OrderCreationModal from "../dashboard/modals/OrderCreationModal.vue";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
 
 const props = defineProps<{
-   vehicle: Vehicle
-   isExpanded: boolean
-  }>()
+  vehicle: Vehicle;
+  isExpanded: boolean;
+}>();
 
 const emit = defineEmits<{
-  toggle: []
-}>()
+  toggle: [];
+}>();
 
 const b2bVehicleStore = useB2BVehicleStore();
 const authStore = useAuthStore();
 
 function handleClick() {
-  if (props.vehicle.completed) return
-  emit('toggle')
+  if (props.vehicle.completed) return;
+  emit("toggle");
 }
-
 
 const manualStatuses = ["Eingeplant", "Planung", "Erledigt"];
 
@@ -43,13 +52,13 @@ const manualStatus = computed(() => {
   return manualStatuses[index];
 });
 
-
 const iconClasses = computed(() => [
   "text-[32px] text-gray-400 transition-transform duration-200",
 ]);
 
 const activeAction = ref<string | null>(null);
 const orderModalOpen = ref(false);
+const successDialogOpen = ref(false);
 
 async function handleOrderSuccess() {
   if (authStore.user?.id) {
@@ -60,10 +69,16 @@ async function handleOrderSuccess() {
 function handleAction(action: string) {
   activeAction.value = action;
   if (action === "Start Process") {
-    orderModalOpen.value = true;
+    successDialogOpen.value = true;
   }
 }
 
+function handleConfirm() {
+  successDialogOpen.value = false;
+  toast.success(
+    "Ihre Fahrzeugbestellanfrage wurde an den Administrator gesendet.",
+  );
+}
 </script>
 
 <template>
@@ -95,8 +110,8 @@ function handleAction(action: string) {
             manualStatus === 'Eingeplant'
               ? 'background-color: #ef8450'
               : manualStatus === 'Planung'
-              ? 'background-color: #8f9ba7'
-              : 'background-color: #01B990'
+                ? 'background-color: #8f9ba7'
+                : 'background-color: #01B990'
           "
         ></span>
         <span class="text-[14px] text-gray-600">{{ manualStatus }}</span>
@@ -167,4 +182,21 @@ function handleAction(action: string) {
     :vehicle="vehicle"
     @success="handleOrderSuccess"
   />
+  <!-- Confirmation Dialog -->
+  <Dialog :open="successDialogOpen" @update:open="successDialogOpen = $event">
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Anfrage senden</DialogTitle>
+        <DialogDescription>
+          Möchten Sie die Fahrzeugbestellanfrage an den Administrator senden?
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter>
+        <Button variant="secondary" @click="successDialogOpen = false"
+          >Abbrechen</Button
+        >
+        <Button @click="handleConfirm">Bestätigen</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>
