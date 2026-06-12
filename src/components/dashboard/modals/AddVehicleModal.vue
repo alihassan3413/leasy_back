@@ -357,7 +357,7 @@ async function handleSubmit() {
                   class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
                   style="color: #1f2937"
                   placeholder="1234"
-                  maxlength="5"
+                  maxlength="3"
                 />
               </div>
             </div>
@@ -447,6 +447,7 @@ async function handleSubmit() {
               v-model="fin"
               class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
               style="border-color: #b7c2c2; color: #000"
+              maxlength="17"
             />
             <p v-if="finError" class="mt-1 text-xs text-red-500">
               {{ finError }}
