@@ -72,9 +72,6 @@ export const vehicleApi = {
     userId?: string,
   ): Promise<CreateOrderResponse> {
     let url = `/order/${provider}/create/${vehicleId}`;
-    if (userId) {
-      url += `/${userId}`;
-    }
     return post<CreateOrderResponse, CreateOrderPayload>(url, payload);
   },
 };
