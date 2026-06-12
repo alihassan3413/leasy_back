@@ -24,28 +24,22 @@ function handleToggle(vehicle: Vehicle) {
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-[5px] border border-green-gray">
+  <div class="rounded-[12px] overflow-hidden border border-gray-100 shadow-sm">
     <Table>
-      <!-- HEADER -->
       <TableHeader>
         <TableRow
-          style="background-color: #01B990; height: 40px"
-          
+          style="background-color: #01B990; height: 44px"
         >
-          <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Kennzeichen</TableHead>
-          <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Modell</TableHead>
-          <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Leasingende</TableHead>
-          <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Rückgabestart</TableHead>
-
-          <!--  NEW COLUMN -->
-          <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Status</TableHead>
-
-          <TableHead class="px-3 text-white text-[18px] leading-normal not-italic font-normal">Fahrzeugnutzer</TableHead>
-          <TableHead class="px-3 text-left text-white text-[18px] leading-normal not-italic font-normal">Optionen</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Kennzeichen</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Modell</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Leasingende</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Rückgabestart</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Status</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white">Fahrzeugnutzer</TableHead>
+          <TableHead class="px-4 text-[13px] font-medium text-white text-right">Optionen</TableHead>
         </TableRow>
       </TableHeader>
 
-      <!-- BODY -->
       <TableBody>
         <B2BVehicleRow
           v-for="vehicle in vehicles"

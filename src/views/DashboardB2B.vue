@@ -27,42 +27,65 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-5">
+  <div class="flex flex-col h-full overflow-hidden">
     <!-- Page header -->
-    <div class="flex items-center justify-between">
-      <h1
-        class="text-[22px] font-normal leading-normal not-italic text-primary"
-      >
-        My Dashboard
-      </h1>
-      <div class="flex items-center gap-4">
-        <button
-          class="rounded-[5px] px-6 py-2 text-sm font-bold text-white transition-opacity"
-          :class="selectedVehicle
-            ? 'bg-custom-orange cursor-pointer hover:opacity-90'
-            : 'bg-[#B7C2C2] cursor-not-allowed opacity-60'"
-          :disabled="!selectedVehicle"
-          @click="selectedVehicle && (orderModalOpen = true)"
-        >
-          Rückgabeprozess starten
-        </button>
-        <div @click="addVehicleOpen = true" class="flex items-center gap-2">
-          <Icon
-            icon="ic:baseline-plus"
-            class="w-8 h-8 text-custom-orange cursor-pointer"
-          />
+    <div class="flex flex-col gap-4 mb-6">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <div class="flex items-center">
+          <span class="text-[20px] font-extrabold text-[#10393b]"
+            >Leasy<span class="text-[#01B990]">Back</span></span
+          >
         </div>
+
+        <!-- Notifications and info icons -->
+        <div class="flex items-center gap-3">
+          <div
+            class="flex items-center gap-2 px-4 py-2 rounded-full"
+            style="background-color: #10393b"
+          >
+            <button class="text-white">
+              <Icon icon="mdi:bell-outline" class="w-5 h-5" />
+            </button>
+            <button class="text-white">
+              <Icon icon="mdi:information-outline" class="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <h1 class="text-[28px] font-semibold text-[#10393b]">My Dashboard</h1>
+
+        <!-- Create new entry button -->
+        <button
+          @click="addVehicleOpen = true"
+          class="flex items-center gap-2 px-5 py-2 rounded-full text-white font-medium"
+          style="background-color: #ef8450"
+        >
+          <Icon icon="ic:baseline-plus" class="w-5 h-5" />
+          <span>Create new Entry</span>
+        </button>
       </div>
     </div>
 
-    <!-- Vehicle table -->
-    <div v-if="isLoading" class="flex justify-center py-10">
-      <!-- Simple loading state -->
-      <p>Laden...</p>
+    <!-- Loading state or table -->
+    <div v-if="isLoading" class="flex-1 flex items-center justify-center">
+      <p class="text-gray-500">Laden...</p>
     </div>
-    <B2BVehicleTable v-else :vehicles="vehicles" @select="selectedVehicle = $event" />
+    <div v-else class="flex-1 overflow-auto">
+      <B2BVehicleTable
+        :vehicles="vehicles"
+        @select="selectedVehicle = $event"
+      />
+    </div>
 
+    <!-- Modals -->
     <AddVehicleModal v-model:open="addVehicleOpen" />
-    <OrderCreationModal v-model:open="orderModalOpen" :vehicle="selectedVehicle" @success="b2bVehicleStore.fetchVehicles(authStore.user!.id)" />
+    <OrderCreationModal
+      v-model:open="orderModalOpen"
+      :vehicle="selectedVehicle"
+      @success="b2bVehicleStore.fetchVehicles(authStore.user!.id)"
+    />
   </div>
 </template>
