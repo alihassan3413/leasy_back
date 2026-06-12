@@ -195,14 +195,14 @@ watch(
 
 <template>
   <TableRow class="border-0 hover:bg-transparent">
-    <TableCell colspan="8" class="max-w-0 p-0 overflow-x-auto">
+    <TableCell colspan="12" class="max-w-0 p-0 overflow-x-auto">
       <!-- Main container with 3 columns -->
       <div class="flex gap-4 bg-[#EFEFEF] p-4" style="min-width: max-content">
         <!-- Column 1: Timeline + Vehicle Docs + Return Docs -->
-        <div class="flex flex-col gap-4" style="width: 320px">
+        <div class="flex flex-col gap-4 2xl:flex-row w-[320px] 2xl:w-full"> 
           <!-- Timeline Card -->
           <div
-            class="flex flex-col overflow-hidden rounded-3xl border bg-white"
+            class="flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[280px] max-w-[280px]"
             style="border-color: #ececec"
           >
             <div class="px-6 py-5 flex items-center justify-between">
@@ -285,9 +285,9 @@ watch(
           </div>
 
           <!-- Vehicle Docs Card -->
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-4 2xl:min-w-[350px] max-w-[350px]">
             <div
-              class="relative flex flex-col rounded-[16px] border bg-white"
+              class="relative flex flex-col rounded-[16px] border bg-white 2xl:h-full"
               style="border-color: #ececec"
             >
               <button
