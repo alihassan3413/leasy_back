@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Icon } from "@iconify/vue";
-import { toast } from "vue-sonner";
 import type { Vehicle } from "../dashboard/vehicle.types";
 import B2bDdfExpanded from "./b2bDdfExpanded.vue";
 import {
@@ -10,15 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import OrderCreationModal from "../dashboard/modals/OrderCreationModal.vue";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
@@ -58,7 +48,6 @@ const iconClasses = computed(() => [
 
 const activeAction = ref<string | null>(null);
 const orderModalOpen = ref(false);
-const successDialogOpen = ref(false);
 
 async function handleOrderSuccess() {
   if (authStore.user?.id) {
@@ -69,15 +58,8 @@ async function handleOrderSuccess() {
 function handleAction(action: string) {
   activeAction.value = action;
   if (action === "Start Process") {
-    successDialogOpen.value = true;
+    orderModalOpen.value = true;
   }
-}
-
-function handleConfirm() {
-  successDialogOpen.value = false;
-  toast.success(
-    "Ihre Fahrzeugbestellanfrage wurde an den Administrator gesendet.",
-  );
 }
 </script>
 
@@ -182,21 +164,4 @@ function handleConfirm() {
     :vehicle="vehicle"
     @success="handleOrderSuccess"
   />
-  <!-- Confirmation Dialog -->
-  <Dialog :open="successDialogOpen" @update:open="successDialogOpen = $event">
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Anfrage senden</DialogTitle>
-        <DialogDescription>
-          Möchten Sie die Fahrzeugbestellanfrage an den Administrator senden?
-        </DialogDescription>
-      </DialogHeader>
-      <DialogFooter>
-        <Button variant="secondary" @click="successDialogOpen = false"
-          >Abbrechen</Button
-        >
-        <Button @click="handleConfirm">Bestätigen</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
 </template>
