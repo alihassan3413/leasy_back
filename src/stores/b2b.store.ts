@@ -92,12 +92,26 @@ async function refreshLogoSignedUrl() {
   async function fetchProfile() {
     const auth = useAuthStore();
     const userId = auth.user?.id;
-    if (!userId) return;
+    // #region agent log
+    fetch('http://127.0.0.1:7789/ingest/20fcbaf2-2fcc-4c7e-9f59-1c2f1ddbfb14',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9aab7e'},body:JSON.stringify({sessionId:'9aab7e',location:'b2b.store.ts:fetchProfile-entry',message:'fetchProfile called',data:{userId,userRole:auth.user?.role,companyId:auth.user?.companyId,hasUser:!!auth.user,fullUser:auth.user},timestamp:Date.now(),hypothesisId:'H-A,H-C'})}).catch(()=>{});
+    // #endregion
+    if (!userId) {
+      // #region agent log
+      fetch('http://127.0.0.1:7789/ingest/20fcbaf2-2fcc-4c7e-9f59-1c2f1ddbfb14',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9aab7e'},body:JSON.stringify({sessionId:'9aab7e',location:'b2b.store.ts:fetchProfile-bail',message:'fetchProfile bailed: no userId',data:{auth:auth.user},timestamp:Date.now(),hypothesisId:'H-A'})}).catch(()=>{});
+      // #endregion
+      return;
+    }
 
     status.value = "loading";
     error.value = "";
     try {
-      const res = await b2bApi.getProfile(userId);      
+      // #region agent log
+      fetch('http://127.0.0.1:7789/ingest/20fcbaf2-2fcc-4c7e-9f59-1c2f1ddbfb14',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9aab7e'},body:JSON.stringify({sessionId:'9aab7e',location:'b2b.store.ts:fetchProfile-calling-api',message:'Calling b2bApi.getProfile',data:{url:`/b2b/user_id/${userId}`,userId},timestamp:Date.now(),hypothesisId:'H-B,H-C'})}).catch(()=>{});
+      // #endregion
+      const res = await b2bApi.getProfile(userId);
+      // #region agent log
+      fetch('http://127.0.0.1:7789/ingest/20fcbaf2-2fcc-4c7e-9f59-1c2f1ddbfb14',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9aab7e'},body:JSON.stringify({sessionId:'9aab7e',location:'b2b.store.ts:fetchProfile-success',message:'getProfile succeeded',data:{b2bId:(res as any)?.b2b,company_name:(res as any)?.company_name,contact_email:(res as any)?.contact_email},timestamp:Date.now(),hypothesisId:'H-B,H-D'})}).catch(()=>{});
+      // #endregion
       profile.value = res;
       if (res.logo_url){
         logoKey.value = res.logo_url;
@@ -107,6 +121,16 @@ async function refreshLogoSignedUrl() {
       return res;
     } catch (err) {
       const apiError = normalizeApiError(err);
+      // #region agent log
+      fetch('http://127.0.0.1:7789/ingest/20fcbaf2-2fcc-4c7e-9f59-1c2f1ddbfb14',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9aab7e'},body:JSON.stringify({sessionId:'9aab7e',location:'b2b.store.ts:fetchProfile-error',message:'getProfile failed',data:{status:(apiError as any)?.status,message:apiError.message,userId,url:`/b2b/user_id/${userId}`,runId:'post-fix'},timestamp:Date.now(),hypothesisId:'H-B,H-C,H-D'})}).catch(()=>{});
+      // #endregion
+      if ((apiError as any).status === 404) {
+        // No company profile exists yet for this user — not a fatal error,
+        // just an unregistered B2B account. Show the page in empty state.
+        profile.value = null;
+        status.value = "success";
+        return null;
+      }
       error.value = apiError.message;
       status.value = "error";
       throw err;

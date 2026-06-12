@@ -6,6 +6,8 @@ import FormTextField from "@/components/ui/form/FormTextField.vue";
 import FormSelectField from "@/components/ui/form/FormSelectField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import { useB2CStore } from "@/stores/b2c.store";
+import type { B2CProfileUpdatePayload } from "@/types";
+import { b2cContactPersonSchema } from "@/validations/b2c.validation";
 
 const b2cStore = useB2CStore();
 const isEditMode = ref(false);
@@ -17,6 +19,7 @@ const anredeOptions = [
 ];
 
 const { handleSubmit, resetForm, isSubmitting } = useForm({
+  validationSchema: b2cContactPersonSchema,
   initialValues: {
     anrede: "",
     vorname: "",
@@ -38,9 +41,37 @@ const syncFromProfile = () => {
 
 watch(() => b2cStore.profile, syncFromProfile, { immediate: true });
 
-const onSubmit = handleSubmit((values) => {
-  console.log("Contact form submitted:", values);
-  isEditMode.value = false;
+const onSubmit = handleSubmit(async (values) => {
+  const profile = b2cStore.profile;
+  if (!profile) return;
+
+  const payload: B2CProfileUpdatePayload = {
+    address_id: profile.address.address_id,
+    contact_id: profile.contact.contact_id,
+    address: {
+      street: profile.address.street,
+      number: profile.address.number,
+      additional_address: profile.address.additional_address,
+      zip_code: profile.address.zip_code,
+      city: profile.address.city,
+      country: profile.address.country,
+      latitude: profile.address.latitude,
+      longitude: profile.address.longitude,
+    },
+    contact: {
+      salutation: values.anrede,
+      first_name: values.vorname,
+      last_name: values.nachname,
+    },
+    phones: profile.phones || [],
+  };
+
+  try {
+    await b2cStore.updateProfile(payload);
+    isEditMode.value = false;
+  } catch (err) {
+    console.error("Failed to update contact person:", err);
+  }
 });
 
 const cancelEdit = () => {
@@ -50,12 +81,12 @@ const cancelEdit = () => {
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-2xl border border-[#D9E2E2] bg-white">
+  <div class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm">
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-[#EDF2F2] px-8 py-5">
       <div>
-        <h2 class="text-lg font-bold text-[#10393B]">Ansprechpartner</h2>
-        <p class="mt-0.5 text-[13px] text-[#6B8587]">
+        <h2 class="text-[17px] font-bold text-[#10393B]">Ansprechpartner</h2>
+        <p class="mt-0.5 text-[13px] text-[#7A9699]">
           Für LeasyBack, z. B. Fuhrparkleitung oder Geschäftsführung
         </p>
       </div>
@@ -64,7 +95,7 @@ const cancelEdit = () => {
         v-if="!isEditMode"
         type="button"
         @click="isEditMode = true"
-        class="flex items-center gap-1.5 rounded-lg border border-[#D9E2E2] px-3.5 py-2 text-sm font-bold text-[#10393B] transition-colors hover:border-custom-green hover:text-custom-green"
+        class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3.5 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green"
       >
         <Icon icon="mdi:pencil-outline" class="size-4" />
         Bearbeiten
@@ -73,7 +104,7 @@ const cancelEdit = () => {
         v-else
         type="button"
         @click="cancelEdit"
-        class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-bold text-[#6B8587] transition-colors hover:text-[#10393B]"
+        class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]"
       >
         <Icon icon="mdi:close" class="size-4" />
         Abbrechen
@@ -84,12 +115,12 @@ const cancelEdit = () => {
     <div v-if="!isEditMode" class="px-8 py-7">
       <div class="flex items-center gap-4">
         <div
-          class="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#F0F6F5] text-custom-green"
+          class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#EDF6F4] text-custom-green shadow-sm"
         >
           <Icon icon="mdi:account-tie-outline" class="size-5" />
         </div>
         <div>
-          <p class="text-[15px] font-medium text-[#10393B]">
+          <p class="text-[15px] font-semibold text-[#10393B]">
             {{
               [
                 b2cStore.profile?.contact?.salutation,
@@ -100,14 +131,16 @@ const cancelEdit = () => {
                 .join(" ") || "Noch kein Ansprechpartner hinterlegt"
             }}
           </p>
-          <p class="text-[13px] text-[#6B8587]">Ansprechpartner</p>
+          <p class="mt-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#9CB3B4]">
+            Ansprechpartner
+          </p>
         </div>
       </div>
     </div>
 
     <!-- EDIT MODE -->
     <form v-else @submit.prevent="onSubmit">
-      <div class="flex flex-wrap gap-x-[30px] gap-y-4 px-8 py-7">
+      <div class="flex flex-wrap gap-x-[30px] gap-y-5 px-8 py-7">
         <FormSelectField
           name="anrede"
           label="Anrede"
@@ -131,18 +164,18 @@ const cancelEdit = () => {
       </div>
 
       <div
-        class="flex items-center justify-end gap-3 border-t border-[#EDF2F2] bg-[#FAFAFA] px-8 py-4"
+        class="flex items-center justify-end gap-3 border-t border-[#EDF2F2] bg-[#F8FAFB] px-8 py-4"
       >
         <button
           type="button"
           @click="cancelEdit"
-          class="rounded-lg px-4 py-2 text-sm font-bold text-[#6B8587] transition-colors hover:text-[#10393B]"
+          class="rounded-lg px-4 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]"
         >
           Abbrechen
         </button>
         <Button
           type="submit"
-          class="h-[38px] rounded-lg bg-custom-green px-6 text-sm font-bold text-white transition-all hover:bg-[#019d7a]"
+          class="h-[38px] rounded-lg bg-custom-green px-6 text-sm font-semibold text-white transition-all hover:bg-[#019d7a]"
           :disabled="isSubmitting"
         >
           {{ isSubmitting ? "Wird gespeichert…" : "Speichern" }}

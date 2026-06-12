@@ -5,6 +5,7 @@ import { Icon } from "@iconify/vue";
 import { useB2BStore } from "@/stores/b2b.store";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import Button from "@/components/ui/button/Button.vue";
+import { companySchema } from "@/validations/b2b.validation";
 import type { B2BProfileUpdatePayload } from "@/types";
 
 const b2bStore = useB2BStore();
@@ -13,8 +14,8 @@ const isEditMode = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 const logoUrl = ref<string | null>(null);
 const logoFile = ref<File | null>(null);
-
 const logoDeleted = ref(false);
+
 onMounted(async () => {
   await b2bStore.fetchProfile();
 });
@@ -45,6 +46,7 @@ const deleteLogo = async () => {
 };
 
 const { handleSubmit, resetForm, setFieldValue, isSubmitting } = useForm({
+  validationSchema: companySchema,
   initialValues: {
     firmenname: "",
     ustIdNr: "",
@@ -58,6 +60,37 @@ const { handleSubmit, resetForm, setFieldValue, isSubmitting } = useForm({
   },
 });
 
+const syncFromProfile = () => {
+  const profile = b2bStore.profile;
+  if (!profile) return;
+  resetForm({
+    values: {
+      firmenname: profile.company_name,
+      ustIdNr: profile.vat_id ?? "",
+      address: {
+        strasse: profile.address.street,
+        nr: profile.address.number,
+        zusaetzlicheAnschrift: profile.address.additional_address ?? "",
+        plz: profile.address.zip_code,
+        ort: profile.address.city,
+      },
+    },
+  });
+  logoUrl.value = b2bStore.logoUrl || null;
+};
+
+watch(() => b2bStore.profile, syncFromProfile, { immediate: true });
+
+watch(
+  () => b2bStore.logoUrl,
+  (newLogoUrl) => {
+    if (!logoFile.value && !logoDeleted.value) {
+      logoUrl.value = newLogoUrl || null;
+    }
+  },
+  { immediate: true },
+);
+
 const triggerLogoUpload = () => {
   if (!isEditMode.value) return;
   fileInput.value?.click();
@@ -68,17 +101,14 @@ const MAX_FILE_SIZE = 8 * 1024 * 1024;
 const onFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
-
   if (!file) return;
 
   const allowedTypes = ["image/jpeg", "image/png"];
-
   if (!allowedTypes.includes(file.type)) {
     alert("Bitte laden Sie nur JPG oder PNG Dateien hoch.");
     target.value = "";
     return;
   }
-
   if (file.size > MAX_FILE_SIZE) {
     alert("Die Datei darf maximal 8MB groß sein.");
     target.value = "";
@@ -155,235 +185,246 @@ const onSubmit = handleSubmit(async (formValues) => {
   }
 });
 
-const toggleEditMode = () => {
-  if (isEditMode.value && b2bStore.profile) {
-    const profile = b2bStore.profile;
-    resetForm({
-      values: {
-        firmenname: profile.company_name,
-        ustIdNr: profile.vat_id ?? "",
-        address: {
-          strasse: profile.address.street,
-          nr: profile.address.number,
-          zusaetzlicheAnschrift: profile.address.additional_address ?? "",
-          plz: profile.address.zip_code,
-          ort: profile.address.city,
-        },
-      },
-    });
-    logoUrl.value = b2bStore.logoUrl || null;
-    logoFile.value = null;
-    logoDeleted.value = false;
-
-    if (fileInput.value) {
-      fileInput.value.value = "";
-    }
-  }
-  isEditMode.value = !isEditMode.value;
+const cancelEdit = () => {
+  syncFromProfile();
+  logoFile.value = null;
+  logoDeleted.value = false;
+  if (fileInput.value) fileInput.value.value = "";
+  isEditMode.value = false;
 };
 
-watch(
-  () => b2bStore.profile,
-  (profile) => {
-    if (!profile) return;
-    resetForm({
-      values: {
-        firmenname: profile.company_name,
-        ustIdNr: profile.vat_id ?? "",
-        address: {
-          strasse: profile.address.street,
-          nr: profile.address.number,
-          zusaetzlicheAnschrift: profile.address.additional_address ?? "",
-          plz: profile.address.zip_code,
-          ort: profile.address.city,
-        },
-      },
-    });
-    logoUrl.value = b2bStore.logoUrl || null;
-  },
-  { immediate: true },
-);
+const formatAddressLine1 = () => {
+  const a = b2bStore.profile?.address;
+  if (!a) return "—";
+  return [a.street, a.number].filter(Boolean).join(" ") || "—";
+};
 
-watch(
-  () => b2bStore.logoUrl,
-  (newLogoUrl) => {
-    if (!logoFile.value && !logoDeleted.value) {
-      logoUrl.value = newLogoUrl || null;
-    }
-  },
-  { immediate: true },
-);
+const formatAddressLine2 = () => {
+  const a = b2bStore.profile?.address;
+  if (!a) return "—";
+  return [a.zip_code, a.city].filter(Boolean).join(" ") || "—";
+};
 </script>
 
 <template>
-  <div
-    class="w-full rounded-[10px] border border-[#D9E2E2] bg-white px-10 py-6"
-  >
-    <!-- Header -->
-    <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-xl font-bold text-color-primary">Kontodaten</h2>
+  <div class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm">
+    <!-- Card header -->
+    <div class="flex items-center justify-between border-b border-[#EDF2F2] px-8 py-5">
+      <div>
+        <h2 class="text-[17px] font-bold text-[#10393B]">Kontodaten</h2>
+        <p class="mt-0.5 text-[13px] text-[#7A9699]">
+          Unternehmensdaten und Anschrift
+        </p>
+      </div>
+
       <button
+        v-if="!isEditMode"
         type="button"
-        @click="toggleEditMode"
-        class="text-custom-green transition-opacity hover:opacity-70"
+        @click="isEditMode = true"
+        class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3.5 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green"
       >
-        <Icon
-          :icon="isEditMode ? 'mdi:close' : 'mdi:pencil-outline'"
-          class="size-6"
-        />
+        <Icon icon="mdi:pencil-outline" class="size-4" />
+        Bearbeiten
+      </button>
+      <button
+        v-else
+        type="button"
+        @click="cancelEdit"
+        class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]"
+      >
+        <Icon icon="mdi:close" class="size-4" />
+        Abbrechen
       </button>
     </div>
 
-    <form @submit.prevent="onSubmit" class="space-y-8">
-      <!-- Logo + Company Info -->
-      <div class="flex items-end gap-8">
-        <!-- Logo box: explicit pixel size, won't collapse -->
-        <div class="flex shrink-0 flex-col items-start gap-3">
-          <div class="relative">
-            <div
-              class="flex h-[88px] w-[97px] items-center justify-center overflow-hidden rounded-lg border border-[#D9E2E2] bg-custom-gray transition-colors"
-              :class="
-                isEditMode
-                  ? 'cursor-pointer hover:bg-[#F0F2F2]'
-                  : 'cursor-default'
-              "
-              @click="triggerLogoUpload"
-            >
-              <img
-                v-if="logoUrl && !logoDeleted"
-                :key="logoUrl"
-                :src="logoUrl"
-                alt="Firmenlogo"
-                class="size-full object-cover"
-                @error="logoUrl = null"
-              />
+    <!-- ════════════════ READ MODE ════════════════ -->
+    <div v-if="!isEditMode" class="px-8 py-8">
+      <div class="flex flex-col gap-7 lg:flex-row lg:items-start">
+        <!-- Logo preview -->
+        <div class="shrink-0">
+          <div
+            class="flex h-[88px] w-[97px] items-center justify-center overflow-hidden rounded-xl border border-[#D1DCDC] bg-[#F8FAFB]"
+          >
+            <img
+              v-if="logoUrl && !logoDeleted"
+              :src="logoUrl"
+              alt="Firmenlogo"
+              class="size-full object-cover"
+            />
+            <Icon
+              v-else
+              icon="mdi:image-outline"
+              class="size-10 text-[#9CB3B4]"
+            />
+          </div>
+        </div>
 
-              <Icon
-                v-else
-                icon="mdi:image-outline"
-                class="size-16 text-green-gray"
-              />
-            </div>
-
-            <button
-              v-if="isEditMode && logoUrl"
-              type="button"
-              class="absolute -right-2 -top-2 flex size-7 items-center justify-center rounded-full bg-white text-red-500 shadow hover:bg-red-50"
-              @click.stop="deleteLogo"
-            >
-              <Icon icon="mdi:trash-can-outline" class="size-5" />
-            </button>
+        <!-- Data list -->
+        <dl class="grid min-w-0 flex-1 grid-cols-1 gap-x-10 gap-y-7 sm:grid-cols-2">
+          <div class="min-w-0">
+            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+              Firmenname
+            </dt>
+            <dd class="mt-1.5 text-[15px] font-semibold text-[#10393B]">
+              {{ b2bStore.profile?.company_name || "—" }}
+            </dd>
           </div>
 
-          <span
-            v-if="isEditMode"
-            class="whitespace-nowrap text-base font-normal text-custom-black"
-          >
-            Laden Sie ihr Logo auf
-          </span>
+          <div class="min-w-0">
+            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+              USt-IdNr.
+            </dt>
+            <dd class="mt-1.5 text-[15px] font-semibold text-[#10393B]">
+              {{ b2bStore.profile?.vat_id || "—" }}
+            </dd>
+          </div>
 
-          <input
-            ref="fileInput"
-            type="file"
-            accept="image/jpeg,image/png"
-            class="hidden"
-            @change="onFileChange"
-          />
-        </div>
+          <div class="min-w-0">
+            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+              Anschrift
+            </dt>
+            <dd class="mt-1.5 text-[15px] font-semibold leading-relaxed text-[#10393B]">
+              {{ formatAddressLine1() }}<br />
+              <template v-if="b2bStore.profile?.address?.additional_address">
+                {{ b2bStore.profile.address.additional_address }}<br />
+              </template>
+              {{ formatAddressLine2() }}
+            </dd>
+          </div>
 
-        <!-- Two text fields share the rest of the row -->
-        <div class="flex min-w-0 flex-1 gap-[30px]">
-          <FormTextField
-            name="firmenname"
-            label="Firmenname (lt. HGB/Gewerbeeintrag)*"
-            placeholder="Firmenname"
-            class="min-w-0 flex-1"
-            :disabled="!isEditMode"
-          />
-          <FormTextField
-            name="ustIdNr"
-            label="USt-IdNr."
-            placeholder="USt-IdNr."
-            class="min-w-0 flex-1"
-            :disabled="!isEditMode"
-          />
-        </div>
+          <div class="min-w-0">
+            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+              Land
+            </dt>
+            <dd class="mt-1.5 text-[15px] font-semibold text-[#10393B]">
+              {{ b2bStore.profile?.address?.country || "Deutschland" }}
+            </dd>
+          </div>
+        </dl>
       </div>
+    </div>
 
-      <!-- Address Section -->
-      <div class="space-y-4 pt-4">
-        <p class="text-xl font-bold text-custom-black">
-          Bitte geben Sie die Adresse ein oder wählen Sie diese direkt in der
-          Karte aus.
+    <!-- ════════════════ EDIT MODE ════════════════ -->
+    <form v-else @submit.prevent="onSubmit">
+      <div class="space-y-7 px-8 py-7">
+        <!-- Logo + company fields -->
+        <div class="flex items-end gap-8">
+          <div class="flex shrink-0 flex-col items-start gap-3">
+            <div class="relative">
+              <div
+                class="flex h-[88px] w-[97px] cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-[#D1DCDC] bg-[#F8FAFB] transition-colors hover:bg-[#EDF2F2]"
+                @click="triggerLogoUpload"
+              >
+                <img
+                  v-if="logoUrl && !logoDeleted"
+                  :key="logoUrl"
+                  :src="logoUrl"
+                  alt="Firmenlogo"
+                  class="size-full object-cover"
+                  @error="logoUrl = null"
+                />
+                <Icon
+                  v-else
+                  icon="mdi:image-outline"
+                  class="size-10 text-[#9CB3B4]"
+                />
+              </div>
+
+              <button
+                v-if="logoUrl && !logoDeleted"
+                type="button"
+                class="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-white text-red-500 shadow hover:bg-red-50"
+                @click.stop="deleteLogo"
+              >
+                <Icon icon="mdi:close" class="size-3.5" />
+              </button>
+            </div>
+            <span class="text-[13px] text-[#7A9699]">Logo hochladen</span>
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/jpeg,image/png"
+              class="hidden"
+              @change="onFileChange"
+            />
+          </div>
+
+          <div class="flex min-w-0 flex-1 gap-[30px]">
+            <FormTextField
+              name="firmenname"
+              label="Firmenname (lt. HGB/Gewerbeeintrag)*"
+              placeholder="Firmenname"
+              class="min-w-0 flex-1"
+            />
+            <FormTextField
+              name="ustIdNr"
+              label="USt-IdNr."
+              placeholder="USt-IdNr."
+              class="min-w-0 flex-1"
+            />
+          </div>
+        </div>
+
+        <!-- Address divider -->
+        <div class="flex items-center gap-3">
+          <span class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+            Anschrift
+          </span>
+          <span class="h-px flex-1 bg-[#EDF2F2]" />
+        </div>
+        <p class="mt-1.5! text-[13px] text-[#7A9699]">
+          Adresse eingeben oder direkt auf der Karte auswählen.
         </p>
 
-        <div class="flex gap-6">
-          <!-- Address grid: takes whatever space the map leaves -->
-          <div
-            class="grid min-w-0 flex-1 grid-cols-[2fr_1fr] gap-x-[30px] gap-y-3"
-          >
-            <FormTextField
-              name="address.strasse"
-              label="Straße"
-              placeholder="Straße"
-              :disabled="!isEditMode"
-            />
-            <FormTextField
-              name="address.nr"
-              label="Nr."
-              placeholder="Nr."
-              :disabled="!isEditMode"
-            />
-
+        <div class="flex flex-col gap-6 xl:flex-row">
+          <div class="grid min-w-0 flex-1 grid-cols-[2fr_1fr] gap-x-[30px] gap-y-5">
+            <FormTextField name="address.strasse" label="Straße" placeholder="Straße" />
+            <FormTextField name="address.nr" label="Nr." placeholder="Nr." />
             <FormTextField
               name="address.zusaetzlicheAnschrift"
               label="Zusätzliche Anschrift"
               placeholder="Adresszusatz"
-              :disabled="!isEditMode"
             />
-            <FormTextField
-              name="address.plz"
-              label="PLZ"
-              placeholder="PLZ"
-              :disabled="!isEditMode"
-            />
-
-            <FormTextField
-              name="address.ort"
-              label="Ort"
-              placeholder="Ort"
-              :disabled="!isEditMode"
-            />
+            <FormTextField name="address.plz" label="PLZ" placeholder="PLZ" />
+            <FormTextField name="address.ort" label="Ort" placeholder="Ort" />
             <div class="flex flex-col">
-              <span class="mb-1.5 text-sm font-bold text-black">Land</span>
-              <span class="py-2 text-[15px] font-medium text-[#10393B]">
+              <span class="mb-1.5 text-sm font-semibold text-[#10393B]">Land</span>
+              <span class="py-2 text-[15px] font-semibold text-[#10393B]">
                 {{ b2bStore.profile?.address.country ?? "Deutschland" }}
               </span>
             </div>
           </div>
 
-          <!-- Map: fixed pixel box so Leaflet has something to measure -->
           <div
-            class="h-[260px] w-[400px] shrink-0 overflow-hidden rounded-lg border border-[#D9E2E2]"
+            class="h-[260px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] xl:w-[380px]"
           >
             <AppMapPicker
               :latitude="null"
               :longitude="null"
-              :interactive="isEditMode"
+              :interactive="true"
               @resolved="onAddressFromMap"
             />
           </div>
         </div>
       </div>
 
-      <!-- Save Button -->
-      <div v-if="isEditMode" class="mb-[30px] flex justify-end">
+      <!-- Action footer -->
+      <div
+        class="flex items-center justify-end gap-3 border-t border-[#EDF2F2] bg-[#F8FAFB] px-8 py-4"
+      >
+        <button
+          type="button"
+          @click="cancelEdit"
+          class="rounded-lg px-4 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]"
+        >
+          Abbrechen
+        </button>
         <Button
           type="submit"
-          class="h-[34px] w-[150px] rounded-[5px] bg-custom-green text-sm font-bold text-white transition-all hover:bg-[#019d7a]"
+          class="h-[38px] rounded-lg bg-custom-green px-6 text-sm font-semibold text-white transition-all hover:bg-[#019d7a]"
           :disabled="isSubmitting"
         >
-          {{ isSubmitting ? "Wird gespeichert..." : "Speichern" }}
+          {{ isSubmitting ? "Wird gespeichert…" : "Änderungen speichern" }}
         </Button>
       </div>
     </form>
