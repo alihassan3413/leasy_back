@@ -1,61 +1,169 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
-import { useField, useForm } from 'vee-validate'
+import { ref, watch, computed } from "vue";
+import { Icon } from "@iconify/vue";
+import { useField, useForm } from "vee-validate";
+import { toast } from "vue-sonner";
 
-import Button from '@/components/ui/Button.vue'
-import AppModal from '@/components/ui/AppModal.vue'
-import CalendarDateField from '@/components/ui/form/CalendarDateField.vue'
-import FormSelectField from '@/components/ui/form/B2CSelectField.vue'
+import Button from "@/components/ui/Button.vue";
+import AppModal from "@/components/ui/AppModal.vue";
+import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
+import AppMapPicker from "@/components/ui/AppMapPicker.vue";
+import FormSelectField from "@/components/ui/form/B2CSelectField.vue";
 
-import { appointmentSchema } from '@/validations/b2c/appointment.schema'
-import { useB2CRegistrationStore } from '@/stores/b2cRegistration.store'
-import { useBranches } from '@/composables/useBranches'
-import type { AppointmentData } from '@/stores/b2cRegistration.store'
+import { appointmentSchema } from "@/validations/b2c/appointment.schema";
+import { useB2CRegistrationStore } from "@/stores/b2cRegistration.store";
+import { useAuthStore } from "@/stores/auth.store";
+import { vehicleApi } from "@/api";
+import type { AppointmentData } from "@/stores/b2cRegistration.store";
+import type { Station } from "@/types";
 
 const emit = defineEmits<{
-  next: []
-  back: []
-}>()
+  next: [];
+  back: [];
+}>();
 
-const store = useB2CRegistrationStore()
-const showConflictDialog = ref(false)
+const store = useB2CRegistrationStore();
+const authStore = useAuthStore();
+const showConflictDialog = ref(false);
+const isSubmitting = ref(false);
 
 const uhrzeitOptions = [
-  { value: '10:30', label: '10:30 Uhr' },
-  { value: '11:00', label: '11:00 Uhr' },
-  { value: '13:30', label: '13:30 Uhr' },
-  { value: '15:00', label: '15:00 Uhr' },
-]
+  { value: "10:30", label: "10:30 Uhr" },
+  { value: "11:00", label: "11:00 Uhr" },
+  { value: "13:30", label: "13:30 Uhr" },
+  { value: "15:00", label: "15:00 Uhr" },
+];
 
-const { handleSubmit } = useForm<AppointmentData>({
+const { handleSubmit, values, errors } = useForm<AppointmentData>({
   validationSchema: appointmentSchema,
-  initialValues: store.appointmentData,
-})
+  initialValues: { ...store.appointmentData, service: "tuvsud" },
+});
 
-const { value: stadt } = useField<string>('stadt')
+const { value: uhrzeit } = useField<string>("uhrzeit");
+const { value: service } = useField<"tuvsud" | "dekra">("service");
 
-const {
-  stadtOptions,
-  selectedBranch,
-} = useBranches(stadt)
+// Stations
+const stations = ref<Station[]>([]);
+const stationsLoading = ref(false);
+const stationOpen = ref(false);
+const selectedStation = ref<Station | null>(null);
 
-function closeConflictDialog(): void {
-  showConflictDialog.value = false
+// Map
+const mapLat = ref<number | null>(null);
+const mapLng = ref<number | null>(null);
+
+async function fetchStations() {
+  stationsLoading.value = true;
+  selectedStation.value = null;
+  mapLat.value = null;
+  mapLng.value = null;
+  try {
+    stations.value = await vehicleApi.getStations(service.value || "tuvsud");
+  } catch {
+    toast.error("Stationen konnten nicht geladen werden.");
+  } finally {
+    stationsLoading.value = false;
+  }
 }
 
-const onSubmit = handleSubmit((values) => {
-  Object.assign(store.appointmentData, values)
+async function geocodeStation(station: Station) {
+  const q = `${station.strasse}, ${station.plz} ${station.ort}, Germany`;
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+      { headers: { Accept: "application/json" } },
+    );
+    const data = await res.json();
+    if (data[0]) {
+      mapLat.value = parseFloat(data[0].lat);
+      mapLng.value = parseFloat(data[0].lon);
+    }
+  } catch {}
+}
 
-  const hasConflict = false
+function selectStation(station: Station) {
+  selectedStation.value = station;
+  stationOpen.value = false;
+  geocodeStation(station);
+}
 
-  if (hasConflict) {
-    showConflictDialog.value = true
-    return
+// Watch service change to fetch stations
+watch(
+  () => service.value,
+  () => {
+    fetchStations();
+  },
+  { immediate: true },
+);
+
+function closeConflictDialog(): void {
+  showConflictDialog.value = false;
+}
+
+// Termin ISO
+const terminIso = computed(() => {
+  const raw = values.datum as string;
+  if (!raw || !uhrzeit.value) return "";
+  return `${raw}T${uhrzeit.value}:00+02:00`;
+});
+
+const onSubmit = handleSubmit(async (values) => {
+  console.log("=== Step3Appointment Submit ===");
+  console.log("values:", values);
+  console.log("form errors:", errors.value);
+  console.log("selectedStation.value:", selectedStation.value);
+  console.log("terminIso.value:", terminIso.value);
+  console.log("store.vehicleId:", store.vehicleId);
+  console.log("authStore.user?.id:", authStore.user?.id);
+
+  if (!selectedStation.value) {
+    toast.error("Bitte wählen Sie eine Station aus.");
+    return;
+  }
+  if (!terminIso.value) {
+    toast.error("Bitte wählen Sie Datum und Uhrzeit aus.");
+    return;
+  }
+  if (!store.vehicleId) {
+    toast.error(
+      "Fahrzeug-ID fehlt. Bitte gehen Sie zurück und erstellen Sie das Fahrzeug erneut.",
+    );
+    return;
+  }
+  if (!authStore.user?.id) {
+    toast.error("Benutzer nicht angemeldet.");
+    return;
   }
 
-  emit('next')
-})
+  Object.assign(store.appointmentData, values);
+
+  const hasConflict = false;
+
+  if (hasConflict) {
+    showConflictDialog.value = true;
+    return;
+  }
+
+  isSubmitting.value = true;
+  try {
+    await vehicleApi.createOrder(
+      service.value || "tuvsud",
+      store.vehicleId,
+      {
+        remarks: "",
+        station_id: selectedStation.value.station_id,
+        termin: terminIso.value,
+      },
+      authStore.user.id,
+    );
+    toast.success("Auftrag erfolgreich erstellt.");
+    emit("next");
+  } catch {
+    toast.error("Auftrag konnte nicht erstellt werden.");
+  } finally {
+    isSubmitting.value = false;
+  }
+});
 </script>
 
 <template>
@@ -70,48 +178,109 @@ const onSubmit = handleSubmit((values) => {
       <div class="mt-2 mb-4 h-px w-full bg-green-gray" />
 
       <div class="space-y-4">
-        <FormSelectField
-          name="stadt"
-          label="Stadt"
-          :options="stadtOptions"
-        />
+        <!-- Service selection -->
+        <div class="flex flex-col gap-3">
+          <p class="text-[16px] font-bold" style="color: #10393b">
+            Service wählen
+          </p>
+          <div class="flex flex-col gap-2">
+            <!-- TÜV SÜD -->
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="tuvsud"
+                v-model="service"
+                class="accent-primary size-4"
+              />
+              <span class="text-base text-custom-black">TÜV SÜD</span>
+            </label>
+            <!-- DEKRA -->
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="dekra"
+                v-model="service"
+                class="accent-primary size-4"
+              />
+              <span class="text-base text-custom-black">DEKRA</span>
+            </label>
+          </div>
+        </div>
 
-        <div
-          v-if="selectedBranch"
-          class="grid grid-cols-1 gap-4 md:grid-cols-2"
-        >
+        <!-- Station dropdown -->
+        <div class="relative flex flex-col gap-1">
+          <label class="text-[16px] font-bold" style="color: #10393b">
+            Station
+          </label>
           <div
-            class="flex h-35 items-center justify-center rounded-[5px] bg-[#b7c2c2]/30"
+            class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
+            style="border-color: #b7c2c2"
+            @click="stationOpen = !stationOpen"
           >
+            <span
+              class="truncate text-[14px]"
+              :style="selectedStation ? 'color:#000' : 'color:#B7C2C2'"
+            >
+              {{
+                selectedStation
+                  ? `${selectedStation.name} — ${selectedStation.ort}`
+                  : stationsLoading
+                    ? "Laden..."
+                    : "Station wählen"
+              }}
+            </span>
             <Icon
-              icon="material-symbols-light:location-on"
-              class="text-5xl text-custom-green"
+              icon="ic:round-arrow-drop-down"
+              class="text-[40px] text-primary shrink-0 transition-transform duration-200"
+              :class="stationOpen ? 'rotate-180' : 'rotate-0'"
             />
           </div>
 
           <div
-            class="flex flex-col justify-center rounded-[5px] border border-custom-green bg-white p-3 text-xs"
+            v-if="stationOpen"
+            class="absolute top-full mt-1 max-h-[180px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
+            style="border-color: #b7c2c2; z-index: 9999"
           >
-            <p class="font-bold text-primary">
-              {{ selectedBranch.name }}
-            </p>
-
-            <p class="mt-2 text-custom-black">
-              {{ selectedBranch.address }}
-            </p>
-
-            <p class="text-custom-black">
-              {{ selectedBranch.phone }}
-            </p>
-
-            <p class="text-custom-black">
-              {{ selectedBranch.email }}
-            </p>
-
-            <p class="mt-2 text-custom-black">
-              {{ selectedBranch.distance }}
-            </p>
+            <div
+              v-if="stationsLoading"
+              class="px-3 py-2 text-[14px]"
+              style="color: #b7c2c2"
+            >
+              Laden...
+            </div>
+            <div
+              v-else-if="!stations.length"
+              class="px-3 py-2 text-[14px]"
+              style="color: #b7c2c2"
+            >
+              Keine Stationen gefunden
+            </div>
+            <div
+              v-for="station in stations"
+              :key="station.station_id"
+              class="flex cursor-pointer flex-col px-3 py-2 hover:bg-gray-50"
+              @click="selectStation(station)"
+            >
+              <span class="text-[14px] font-medium" style="color: #000">
+                {{ station.name }}
+              </span>
+              <span class="text-[12px]" style="color: #b7c2c2">
+                {{ station.strasse }}, {{ station.plz }} {{ station.ort }}
+              </span>
+            </div>
           </div>
+        </div>
+
+        <!-- Map -->
+        <div
+          class="h-[220px] shrink-0 w-full overflow-hidden rounded-[5px] border"
+          style="border-color: #b7c2c2"
+        >
+          <AppMapPicker
+            :latitude="mapLat"
+            :longitude="mapLng"
+            :interactive="false"
+          />
         </div>
       </div>
     </div>
@@ -125,17 +294,9 @@ const onSubmit = handleSubmit((values) => {
 
       <div class="mt-2 mb-4 h-px w-full bg-green-gray" />
 
-      <form
-        novalidate
-        class="space-y-3"
-        @submit.prevent="onSubmit"
-      >
+      <form novalidate class="space-y-3" @submit.prevent="onSubmit">
         <div class="max-w-85 space-y-3">
-          <CalendarDateField
-            name="datum"
-            label="Datum"
-            :minDaysAhead="3"
-          />
+          <CalendarDateField name="datum" label="Datum" :minDaysAhead="3" />
 
           <FormSelectField
             name="uhrzeit"
@@ -160,8 +321,9 @@ const onSubmit = handleSubmit((values) => {
           <Button
             type="submit"
             button-classes="rounded-[5px] py-2 px-10 text-sm font-bold !bg-custom-green text-white hover:opacity-90"
+            :disabled="isSubmitting"
           >
-            Weiter
+            {{ isSubmitting ? "Lädt..." : "Weiter" }}
           </Button>
         </div>
       </form>

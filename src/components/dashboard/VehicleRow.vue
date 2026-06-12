@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { Icon } from "@iconify/vue";
 import DdfExpanded from "./DdfExpanded.vue";
+import OrderCreationModal from "./modals/OrderCreationModal.vue";
 import type { Vehicle } from "./vehicle.types";
 import {
   DropdownMenu,
@@ -9,6 +10,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useVehicleStore } from "@/stores/vehicle.store";
+import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
+import { useAuthStore } from "@/stores/auth.store";
 
 const props = defineProps<{
   vehicle: Vehicle;
@@ -18,6 +22,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   toggle: [];
 }>();
+
+const vehicleStore = useVehicleStore();
+const b2bVehicleStore = useB2BVehicleStore();
+const authStore = useAuthStore();
+
 function handleClick() {
   if (props.vehicle.completed) return;
   emit("toggle");
@@ -28,11 +37,23 @@ const iconClasses = computed(() => [
 ]);
 
 const activeAction = ref<string | null>(null);
+const orderModalOpen = ref(false);
+
+async function handleOrderSuccess() {
+  if (authStore.user?.id) {
+    if (authStore.user.role === "B2B") {
+      await b2bVehicleStore.fetchVehicles(authStore.user.id);
+    } else {
+      await vehicleStore.fetchVehicles(authStore.user.id);
+    }
+  }
+}
 
 function handleAction(action: string) {
   activeAction.value = action;
-  // Add your action logic here
-  console.log(`${action} clicked for vehicle:`, vehicle.licensePlate);
+  if (action === "Start Process") {
+    orderModalOpen.value = true;
+  }
 }
 </script>
 
@@ -126,4 +147,9 @@ function handleAction(action: string) {
     </TableCell>
   </TableRow>
   <DdfExpanded v-if="isExpanded && !vehicle.completed" :vehicle="vehicle" />
+  <OrderCreationModal
+    v-model:open="orderModalOpen"
+    :vehicle="vehicle"
+    @success="handleOrderSuccess"
+  />
 </template>

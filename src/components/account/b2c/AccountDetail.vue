@@ -5,13 +5,16 @@ import { Icon } from "@iconify/vue";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import FormSelectField from "@/components/ui/form/FormSelectField.vue";
 import Button from "@/components/ui/button/Button.vue";
+import AppMapPicker from "@/components/ui/AppMapPicker.vue";
 import profileImage from "@/assets/logo/B2bProfile-img.svg";
 import { useB2CStore } from "@/stores/b2c.store";
-import type { B2CProfileUpdatePayload } from "@/types";
+import { b2cApi } from "@/api";
+import type { B2CProfileUpdatePayload, B2CProfileCreatePayload } from "@/types";
 import { b2cAccountDetailSchema } from "@/validations/b2c.validation";
 
 const b2cStore = useB2CStore();
 const isEditMode = ref(false);
+const isCreateMode = ref(false);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const avatarUrl = ref<string | null>(null);
@@ -44,7 +47,13 @@ const { handleSubmit, resetForm, setFieldValue, values, isSubmitting } =
 
 const syncFromProfile = () => {
   const profile = b2cStore.profile;
-  if (!profile) return;
+  if (!profile) {
+    isCreateMode.value = true;
+    isEditMode.value = false;
+    return;
+  }
+  isCreateMode.value = false;
+  isEditMode.value = false;
   resetForm({
     values: {
       anrede: profile.contact.salutation ?? "",
@@ -101,40 +110,61 @@ const onAddressFromMap = (resolved: ResolvedAddress) => {
 const saveError = ref<string | null>(null);
 
 const onSubmit = handleSubmit(async (formValues) => {
-  if (!b2cStore.profile) return;
   saveError.value = null;
 
-  const existing = b2cStore.profile.address;
-  const lat = formValues.address.latitude;
-  const lng = formValues.address.longitude;
-
-  const payload: B2CProfileUpdatePayload = {
-    address_id: existing.address_id,
-    contact_id: b2cStore.profile.contact.contact_id,
-    address: {
-      street: formValues.address.strasse || existing.street || "",
-      number: formValues.address.nr || existing.number || "",
-      additional_address: formValues.address.zusaetzlicheAnschrift || existing.additional_address || "",
-      zip_code: formValues.address.plz || existing.zip_code || "",
-      city: formValues.address.ort || existing.city || "",
-      country: existing.country || "Deutschland",
-      // only send coordinates when they're meaningful (non-zero)
-      ...(lat && lng ? { latitude: lat, longitude: lng } : {}),
-    },
-    contact: {
-      salutation: formValues.anrede || b2cStore.profile.contact.salutation || "",
-      first_name: formValues.vorname,
-      last_name: formValues.nachname,
-    },
-    phones: b2cStore.profile.phones || [],
-  };
-
   try {
-    await b2cStore.updateProfile(payload);
+    if (isCreateMode.value) {
+      const createPayload: B2CProfileCreatePayload = {
+        address: {
+          street: formValues.address.strasse,
+          number: formValues.address.nr,
+          additional_address: formValues.address.zusaetzlicheAnschrift,
+          zip_code: formValues.address.plz,
+          city: formValues.address.ort,
+          country: "Deutschland",
+          latitude: formValues.address.latitude,
+          longitude: formValues.address.longitude,
+        },
+        contact: {
+          salutation: formValues.anrede,
+          first_name: formValues.vorname,
+          last_name: formValues.nachname,
+        },
+        phones: [],
+      };
+      await b2cApi.createProfile(createPayload);
+    } else if (b2cStore.profile) {
+      const existing = b2cStore.profile.address;
+      const lat = formValues.address.latitude;
+      const lng = formValues.address.longitude;
+
+      const updatePayload: B2CProfileUpdatePayload = {
+        address_id: existing.address_id,
+        contact_id: b2cStore.profile.contact.contact_id,
+        address: {
+          street: formValues.address.strasse || existing.street || "",
+          number: formValues.address.nr || existing.number || "",
+          additional_address: formValues.address.zusaetzlicheAnschrift || existing.additional_address || "",
+          zip_code: formValues.address.plz || existing.zip_code || "",
+          city: formValues.address.ort || existing.city || "",
+          country: existing.country || "Deutschland",
+          ...(lat && lng ? { latitude: lat, longitude: lng } : {}),
+        },
+        contact: {
+          salutation: formValues.anrede || b2cStore.profile.contact.salutation || "",
+          first_name: formValues.vorname,
+          last_name: formValues.nachname,
+        },
+        phones: b2cStore.profile.phones || [],
+      };
+      await b2cStore.updateProfile(updatePayload);
+    }
+
+    await b2cStore.fetchProfile();
     avatarFile.value = null;
     isEditMode.value = false;
   } catch (err) {
-    console.error("Failed to update profile:", err);
+    console.error("Failed to save profile:", err);
     saveError.value = "Speichern fehlgeschlagen. Bitte versuchen Sie es erneut.";
   }
 });
@@ -176,7 +206,7 @@ const formatAddressLine2 = () => {
         class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3.5 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green"
       >
         <Icon icon="mdi:pencil-outline" class="size-4" />
-        Bearbeiten
+        {{ isCreateMode ? "Profil erstellen" : "Bearbeiten" }}
       </button>
       <button
         v-else
@@ -189,8 +219,17 @@ const formatAddressLine2 = () => {
       </button>
     </div>
 
+    <!-- ════════════ NO PROFILE EMPTY STATE ════════════ -->
+    <div v-if="isCreateMode && !isEditMode" class="px-8 py-12 text-center">
+      <Icon icon="mdi:account-circle-outline" class="mx-auto mb-3 size-12 text-[#9CB3B4]" />
+      <p class="text-[15px] font-semibold text-[#10393B]">Noch kein Profil hinterlegt</p>
+      <p class="mt-1 text-[13px] text-[#7A9699]">
+        Klicken Sie auf „Profil erstellen", um Ihre Daten zu hinterlegen.
+      </p>
+    </div>
+
     <!-- ════════════════ READ MODE ════════════════ -->
-    <div v-if="!isEditMode" class="px-5 py-8 sm:px-8">
+    <div v-else-if="!isEditMode" class="px-5 py-8 sm:px-8">
       <div class="flex flex-col gap-7 lg:flex-row lg:items-start">
         <!-- Data list -->
         <dl class="grid min-w-0 flex-1 grid-cols-1 gap-x-10 gap-y-7 sm:grid-cols-2">
@@ -319,7 +358,7 @@ const formatAddressLine2 = () => {
           <span class="h-px flex-1 bg-[#EDF2F2]" />
         </div>
         <p class="mt-1.5! text-[13px] text-[#7A9699]">
-          Adresse eingeben oder direkt auf der Karte auswählen.
+          {{ isCreateMode ? "Bitte geben Sie Ihre Daten ein, um Ihr Profil zu erstellen." : "Adresse eingeben oder direkt auf der Karte auswählen." }}
         </p>
 
         <div class="flex flex-col gap-6 lg:flex-row">
@@ -336,7 +375,7 @@ const formatAddressLine2 = () => {
             <div class="flex flex-col">
               <span class="mb-1.5 text-sm font-semibold text-[#10393B]">Land</span>
               <span class="py-2 text-[15px] font-semibold text-[#10393B]">
-                {{ b2cStore.profile?.address.country || "Deutschland" }}
+                {{ b2cStore.profile?.address?.country || "Deutschland" }}
               </span>
             </div>
           </div>
@@ -371,7 +410,13 @@ const formatAddressLine2 = () => {
           class="h-[38px] rounded-lg bg-custom-green px-6 text-sm font-semibold text-white transition-all hover:bg-[#019d7a]"
           :disabled="isSubmitting"
         >
-          {{ isSubmitting ? "Wird gespeichert…" : "Änderungen speichern" }}
+          {{
+            isSubmitting
+              ? "Wird gespeichert…"
+              : isCreateMode
+                ? "Profil erstellen"
+                : "Änderungen speichern"
+          }}
         </Button>
       </div>
     </form>

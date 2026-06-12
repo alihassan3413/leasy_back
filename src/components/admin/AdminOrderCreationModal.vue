@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
+import axios from "axios";
 import { Icon } from "@iconify/vue";
 import { toast } from "vue-sonner";
 import { vehicleApi } from "@/api";
 import type { Station } from "@/types";
-import type { Vehicle } from "../vehicle.types";
+import type { AdminVehicle } from "@/types";
 import AppMapPicker from "@/components/ui/AppMapPicker.vue";
 import { useForm } from "vee-validate";
 import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
-import { useAuthStore } from "@/stores/auth.store";
 
 const { values } = useForm();
 
-const authStore = useAuthStore();
-
 const props = defineProps<{
   open: boolean;
-  vehicle: Vehicle | null;
+  vehicle: AdminVehicle | null;
 }>();
 
 const emit = defineEmits<{
@@ -97,25 +95,40 @@ const canSubmit = computed(
 async function handleSubmit() {
   if (!canSubmit.value || !props.vehicle) return;
 
+  const payload = {
+    remarks: remarks.value,
+    station_id: selectedStation.value!.station_id,
+    termin: terminIso.value,
+  };
+
+  console.log("Creating order with:", {
+    provider: selectedService.value,
+    vehicleId: props.vehicle.vehicle_id,
+    payload,
+  });
+
   isSubmitting.value = true;
   try {
-    // Get the user ID from auth store
-    const userId = authStore.user?.id;
-
     await vehicleApi.createOrder(
       selectedService.value,
-      props.vehicle.id || props.vehicle.vehicle_id,
-      {
-        remarks: remarks.value,
-        station_id: selectedStation.value!.station_id,
-        termin: terminIso.value,
-      },
-      userId,
+      props.vehicle.vehicle_id,
+      payload,
+      props.vehicle.user_id,
     );
     toast.success("Auftrag erfolgreich erstellt.");
     emit("success");
     close();
-  } catch {
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      console.error("Order creation error:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message,
+        config: err.config,
+      });
+    } else {
+      console.error("Order creation error:", err);
+    }
     toast.error("Auftrag konnte nicht erstellt werden.");
   } finally {
     isSubmitting.value = false;

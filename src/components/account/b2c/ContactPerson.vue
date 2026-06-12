@@ -42,32 +42,23 @@ const syncFromProfile = () => {
 watch(() => b2cStore.profile, syncFromProfile, { immediate: true });
 
 const onSubmit = handleSubmit(async (values) => {
-  const profile = b2cStore.profile;
-  if (!profile) return;
+  if (!b2cStore.profile) return;
 
   const payload: B2CProfileUpdatePayload = {
-    address_id: profile.address.address_id,
-    contact_id: profile.contact.contact_id,
-    address: {
-      street: profile.address.street,
-      number: profile.address.number,
-      additional_address: profile.address.additional_address,
-      zip_code: profile.address.zip_code,
-      city: profile.address.city,
-      country: profile.address.country,
-      latitude: profile.address.latitude,
-      longitude: profile.address.longitude,
-    },
+    address_id: b2cStore.profile.address.address_id,
+    contact_id: b2cStore.profile.contact.contact_id,
+    address: b2cStore.profile.address,
     contact: {
       salutation: values.anrede,
       first_name: values.vorname,
       last_name: values.nachname,
     },
-    phones: profile.phones || [],
+    phones: b2cStore.profile.phones || [],
   };
 
   try {
     await b2cStore.updateProfile(payload);
+    await b2cStore.fetchProfile();
     isEditMode.value = false;
   } catch (err) {
     console.error("Failed to update contact person:", err);

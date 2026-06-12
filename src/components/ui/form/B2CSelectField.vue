@@ -52,9 +52,9 @@ const props = withDefaults(
           </SelectContent>
         </Select>
       </FormControl>
-      <div class="min-h-[14px] leading-[14px]">
+      <!-- <div class="min-h-[14px] leading-[14px]"> -->
         <FormMessage class="text-[11px] text-red-500" />
-      </div>
+      <!-- </div> -->
     </FormItem>
   </FormField>
 </template>
