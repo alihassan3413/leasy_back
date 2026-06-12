@@ -3,11 +3,13 @@ import { ref, onMounted, watch } from "vue";
 import { useForm } from "vee-validate";
 import { Icon } from "@iconify/vue";
 import { useB2BStore } from "@/stores/b2b.store";
+import { useAuthStore } from "@/stores/auth.store";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import type { B2BProfileUpdatePayload } from "@/types";
 
 const b2bStore = useB2BStore();
+const authStore = useAuthStore();
 const isEditMode = ref(false);
 
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -106,45 +108,52 @@ const onAddressFromMap = (resolved: ResolvedAddress) => {
 };
 
 const onSubmit = handleSubmit(async (formValues) => {
-  const profile = b2bStore.profile;
-  if (!profile) return;
-
   try {
-    let updatedLogoKey = profile.logo_url ?? "";
+    let updatedLogoKey = "";
 
     if (logoDeleted.value) {
       updatedLogoKey = "";
     } else if (logoFile.value) {
       updatedLogoKey = await b2bStore.uploadLogo(logoFile.value);
+    } else if (b2bStore.profile?.logo_url) {
+      updatedLogoKey = b2bStore.profile.logo_url;
     }
 
-    const primaryPhone = profile.contact.phone_numbers.find(
-      (p) => p.is_primary_contact,
-    );
+    // Determine if we need to create or update
+    const profile = b2bStore.profile;
 
-    const payload: B2BProfileUpdatePayload = {
+    const payload = {
       company_name: formValues.firmenname,
       vat_id: formValues.ustIdNr,
       logo_url: updatedLogoKey,
-      contact_email: profile.contact_email,
+      contact_email: profile?.contact_email ?? authStore.user?.email ?? "",
       address: {
         street: formValues.address.strasse,
         number: formValues.address.nr,
         zip_code: formValues.address.plz,
         city: formValues.address.ort,
-        country: profile.address.country,
+        country: profile?.address.country ?? "Germany",
       },
       contact: {
-        salutation: profile.contact.salutation,
-        first_name: profile.contact.first_name,
-        last_name: profile.contact.last_name,
-        international_prefix: primaryPhone?.international_prefix ?? "+49",
-        primary_phone_number: primaryPhone?.phone_number ?? "",
-        phone_numbers: profile.contact.phone_numbers,
+        salutation: profile?.contact.salutation ?? "herr",
+        first_name: profile?.contact.first_name ?? "",
+        last_name: profile?.contact.last_name ?? "",
+        international_prefix:
+          profile?.contact.phone_numbers.find((p) => p.is_primary_contact)
+            ?.international_prefix ?? "+49",
+        primary_phone_number:
+          profile?.contact.phone_numbers.find((p) => p.is_primary_contact)
+            ?.phone_number ?? "",
       },
     };
 
-    await b2bStore.updateProfile(profile.b2b, payload);
+    if (profile) {
+      // Update existing profile
+      await b2bStore.updateProfile(profile.b2b, payload);
+    } else {
+      // Create new profile
+      await b2bStore.create(payload);
+    }
 
     logoUrl.value = b2bStore.logoUrl || null;
     logoFile.value = null;
@@ -156,22 +165,27 @@ const onSubmit = handleSubmit(async (formValues) => {
 });
 
 const toggleEditMode = () => {
-  if (isEditMode.value && b2bStore.profile) {
-    const profile = b2bStore.profile;
-    resetForm({
-      values: {
-        firmenname: profile.company_name,
-        ustIdNr: profile.vat_id ?? "",
-        address: {
-          strasse: profile.address.street,
-          nr: profile.address.number,
-          zusaetzlicheAnschrift: profile.address.additional_address ?? "",
-          plz: profile.address.zip_code,
-          ort: profile.address.city,
+  if (isEditMode.value) {
+    if (b2bStore.profile) {
+      const profile = b2bStore.profile;
+      resetForm({
+        values: {
+          firmenname: profile.company_name,
+          ustIdNr: profile.vat_id ?? "",
+          address: {
+            strasse: profile.address.street,
+            nr: profile.address.number,
+            zusaetzlicheAnschrift: profile.address.additional_address ?? "",
+            plz: profile.address.zip_code,
+            ort: profile.address.city,
+          },
         },
-      },
-    });
-    logoUrl.value = b2bStore.logoUrl || null;
+      });
+      logoUrl.value = b2bStore.logoUrl || null;
+    } else {
+      resetForm();
+      logoUrl.value = null;
+    }
     logoFile.value = null;
     logoDeleted.value = false;
 
