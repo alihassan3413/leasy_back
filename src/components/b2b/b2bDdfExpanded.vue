@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
-import { Icon } from '@iconify/vue'
-import type { Vehicle } from '../dashboard/vehicle.types';
-import AddVehicleModal from '../dashboard/modals/AddVehicleModal.vue';
-import UploadDocumentModal from '../dashboard/modals/UploadDocumentModal.vue';
-import { vehicleApi } from '@/api'
+import { ref, watch, onMounted, computed } from "vue";
+import { Icon } from "@iconify/vue";
+import type { Vehicle } from "../dashboard/vehicle.types";
+import AddVehicleModal from "../dashboard/modals/AddVehicleModal.vue";
+import UploadDocumentModal from "../dashboard/modals/UploadDocumentModal.vue";
+import { vehicleApi } from "@/api";
 
+const props = defineProps<{ vehicle: Vehicle }>();
 
-const props = defineProps<{ vehicle: Vehicle }>()
-
-const editVehicleOpen = ref(false)
-const uploadDocsOpen = ref(false)
-const documents = ref<any[]>([])
+const editVehicleOpen = ref(false);
+const uploadDocsOpen = ref(false);
+const documents = ref<any[]>([]);
 
 // Mock offers for B2B in case vehicle.offers is empty
 const mockOffers = [
@@ -58,13 +57,18 @@ const acceptedOffer = computed(() => {
   return offersData.value.find((o) => o.accepted);
 });
 
+const latestOrder = computed(() => {
+  if (!props.vehicle.orders || props.vehicle.orders.length === 0) return null;
+  return props.vehicle.orders[props.vehicle.orders.length - 1];
+});
+
 async function loadDocuments() {
   try {
-    if (!props.vehicle?.id) return
-    documents.value = await vehicleApi.getVehicleDocuments(props.vehicle.id)
+    if (!props.vehicle?.id) return;
+    documents.value = await vehicleApi.getVehicleDocuments(props.vehicle.id);
   } catch (err) {
-    console.error('Failed to load vehicle documents:', err)
-    documents.value = []
+    console.error("Failed to load vehicle documents:", err);
+    documents.value = [];
   }
 }
 
@@ -79,13 +83,15 @@ async function deleteDocument(documentId: string) {
 }
 
 onMounted(() => {
-  void loadDocuments()
-})
+  void loadDocuments();
+});
 
-watch(() => props.vehicle?.id, () => {
-  void loadDocuments()
-})
-
+watch(
+  () => props.vehicle?.id,
+  () => {
+    void loadDocuments();
+  },
+);
 </script>
 
 <template>
@@ -94,7 +100,7 @@ watch(() => props.vehicle?.id, () => {
       <!-- Main container with 3 columns -->
       <div class="flex gap-4 bg-[#EFEFEF] p-4" style="min-width: max-content">
         <!-- Column 1: Timeline + Vehicle Docs + Return Docs -->
-        <div class="flex flex-col gap-4 2xl:flex-row w-[320px] 2xl:w-full"> 
+        <div class="flex flex-col gap-4 2xl:flex-row w-[320px] 2xl:w-full">
           <!-- Timeline Card -->
           <div
             class="flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[280px] max-w-[280px]"
@@ -104,7 +110,8 @@ watch(() => props.vehicle?.id, () => {
               <p
                 class="text-[16px] font-bold text-[#000000] leading-tight uppercase"
               >
-                Status bei: {{ vehicle.workshopName || "Werkstatt" }}
+                Status:
+                {{ latestOrder ? latestOrder.order_status : "Kein Auftrag" }}
               </p>
               <button class="text-[#01b990] hover:opacity-70">
                 <Icon icon="mdi:dots-vertical" class="size-4.5" />
@@ -114,7 +121,7 @@ watch(() => props.vehicle?.id, () => {
             <!-- Timeline rows -->
             <div class="flex-1 px-6 pb-5">
               <div
-                v-for="(entry, i) in (vehicle.timeline || [])"
+                v-for="(entry, i) in vehicle.timeline || []"
                 :key="i"
                 class="relative flex items-start pb-6"
               >
@@ -178,7 +185,7 @@ watch(() => props.vehicle?.id, () => {
           </div>
 
           <!-- Vehicle Docs Card -->
-          <div class="flex flex-col gap-4 2xl:min-w-[350px] max-w-[350px] ">
+          <div class="flex flex-col gap-4 2xl:min-w-[350px] max-w-[350px]">
             <div
               class="relative flex flex-col rounded-[16px] border bg-white 2xl:h-full"
               style="border-color: #ececec"
@@ -245,7 +252,7 @@ watch(() => props.vehicle?.id, () => {
             </div>
           </div>
         </div>
-        
+
         <!-- Column 2: Angebote (Offers) -->
         <div class="flex flex-col gap-4" style="width: 400px">
           <div class="relative">
@@ -314,7 +321,9 @@ watch(() => props.vehicle?.id, () => {
                         class="text-[12px] flex-1 truncate"
                         style="color: #b7c2c2"
                       >
-                        {{ offer.address || offer.distance || "227km distance" }}
+                        {{
+                          offer.address || offer.distance || "227km distance"
+                        }}
                       </p>
                       <p
                         v-if="offer.saving > 0"
@@ -394,24 +403,21 @@ watch(() => props.vehicle?.id, () => {
             </div>
 
             <!-- Avatar + Name row -->
-            <div
-              class="flex items-start gap-6 pb-6"
-            >
+            <div class="flex items-start gap-6 pb-6">
               <Avatar class="size-[64px] shrink-0">
                 <AvatarFallback
                   class="text-xl font-bold"
                   style="background-color: #d9d9d9; color: #2e3e3f"
                 >
                   {{
-                    vehicle.driverFirstName
-                      ? vehicle.driverFirstName[0]
-                      : "M"
+                    vehicle.driverFirstName ? vehicle.driverFirstName[0] : "M"
                   }}
                 </AvatarFallback>
               </Avatar>
               <div class="flex flex-col gap-2 pt-2">
                 <p class="text-[16px] font-bold" style="color: #2e3e3f">
-                  {{ vehicle.driverFirstName || "Marcus" }} {{ vehicle.driverLastName || "Dietrich" }}
+                  {{ vehicle.driverFirstName || "Marcus" }}
+                  {{ vehicle.driverLastName || "Dietrich" }}
                 </p>
                 <p class="text-[12px] font-semibold" style="color: #01b990">
                   Primärer Fahrer
