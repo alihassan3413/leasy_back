@@ -17,6 +17,10 @@ export const vehicleApi = {
     return get<VehicleStatusResponse[]>(`/vehicle/list/status/${ownerId}`);
   },
 
+  getVehicle(vehicleId: string): Promise<VehicleStatusResponse> {
+    return get<VehicleStatusResponse>(`/vehicle/${vehicleId}`);
+  },
+
   createVehicle(payload: CreateVehiclePayload): Promise<any> {
     return post<any, CreateVehiclePayload>("/vehicle/create", payload);
   },

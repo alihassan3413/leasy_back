@@ -158,8 +158,86 @@ export interface AdminVehicle {
   current_auftragsnummer: string | null;
   current_order_status: string | null;
   current_order_created_at: string | null;
+  current_request_payload?: {
+    auftrag?: {
+      auftragsnummer: string;
+      bemerkung: string;
+      fin: string;
+      hersteller: string;
+      kennzeichen: string;
+      modell: string;
+      produktkey: string;
+      vertragsnummer: string;
+    };
+    besichtigungsort?: {
+      name: string;
+      strasse: string;
+      plz: string;
+      ort: string;
+      termin: string;
+      land: string;
+    };
+    ansprechpartner?: {
+      name: string;
+      email: string;
+      telefon: string;
+    };
+    benachrichtigung?: {
+      gutachten?: unknown[];
+      terminbestätigung?: unknown[];
+    };
+  };
+  orders?: Array<{
+    id: string;
+    auftragsnummer: string;
+    created_at: string;
+    created_by_user_id: string;
+    leasyback_partner: string;
+    order_confirmations: unknown[];
+    order_status: string;
+    request_payload: {
+      auftrag?: {
+        auftragsnummer: string;
+        bemerkung: string;
+        fin: string;
+        hersteller: string;
+        kennzeichen: string;
+        modell: string;
+        produktkey: string;
+        vertragsnummer: string;
+      };
+      besichtigungsort?: {
+        name: string;
+        strasse: string;
+        plz: string;
+        ort: string;
+        termin: string;
+        land: string;
+      };
+      ansprechpartner?: {
+        name: string;
+        email: string;
+        telefon: string;
+      };
+      benachrichtigung?: {
+        gutachten?: unknown[];
+        terminbestätigung?: unknown[];
+      };
+    };
+    response_body?: number;
+    response_status?: number;
+    sent_at?: string;
+    status_updates: Array<{
+      id: string;
+      created_at: string;
+      bewertung_id?: string;
+    }>;
+  }>;
   order_history: AdminVehicleHistoryItem[];
   documents: unknown[];
+  kilometerstand?: string;
+  leasinggeber?: string;
+  user_name?: string;
 }
 
 export interface AdminVehicleListResponse {
