@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from "vue";
-import { adminOrdersApi } from "@/api";
+import { adminOrdersApi, vehicleApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
 import type { AdminOrder } from "@/types";
+import { toast } from "vue-sonner";
 
 // ── List state ────────────────────────────────────────────────────
 const userType = ref<"Firmenkunde" | "Privatkunde" | "all">("all");
@@ -18,6 +19,9 @@ const totalDelivered = ref(0);
 const orders = ref<AdminOrder[]>([]);
 const loading = ref(false);
 const error = ref("");
+const dialogOpen = ref(false);
+const approvingOrder = ref<AdminOrder | null>(null);
+const approving = ref(false);
 
 // ── Status config ─────────────────────────────────────────────────
 const statusOptions = [
@@ -125,6 +129,30 @@ watch(statusFilter, () => {
 });
 watch([userType, statusFilter, page], () => void loadOrders());
 onMounted(() => void loadOrders());
+
+async function handleApproveOrder(order: AdminOrder) {
+  approvingOrder.value = order;
+  dialogOpen.value = true;
+}
+
+async function confirmApproveOrder() {
+  if (!approvingOrder.value) return;
+  approving.value = true;
+  try {
+    await adminOrdersApi.approveOrder(
+      approvingOrder.value.leasyback_partner.toLowerCase() as "tuvsud" | "dekra",
+      approvingOrder.value.id,
+    );
+    toast.success("Auftrag erfolgreich genehmigt!");
+    dialogOpen.value = false;
+    await loadOrders();
+  } catch (err) {
+    console.error("Error approving order:", err);
+    toast.error("Auftrag konnte nicht genehmigt werden!");
+  } finally {
+    approving.value = false;
+  }
+}
 </script>
 
 <template>
@@ -315,11 +343,21 @@ onMounted(() => void loadOrders());
 
               <!-- Order status -->
               <td class="px-5 py-3.5">
-                <span class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full"
-                  :style="`background:${getStatus(o.order_status).bg}; color:${getStatus(o.order_status).fg}`">
-                  <span class="w-[5px] h-[5px] rounded-full bg-current"></span>
-                  {{ getStatus(o.order_status).label }}
-                </span>
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full"
+                    :style="`background:${getStatus(o.order_status).bg}; color:${getStatus(o.order_status).fg}`">
+                    <span class="w-[5px] h-[5px] rounded-full bg-current"></span>
+                    {{ getStatus(o.order_status).label }}
+                  </span>
+                  <button v-if="o.order_status === 'order_requested'" @click="handleApproveOrder(o)"
+                    class="p-1 hover:bg-green-100 rounded-full transition-colors" title="Auftrag genehmigen">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#01B990" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22,4 12,14.01 9,11.01" />
+                    </svg>
+                  </button>
+                </div>
               </td>
 
               <!-- Response status (HTTP code from leasyback partner) -->
@@ -365,5 +403,22 @@ onMounted(() => void loadOrders());
         </div>
       </div>
     </section>
+
+    <AlertDialog :open="dialogOpen" @update:open="dialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Auftrag genehmigen?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Möchten Sie den Auftrag {{ approvingOrder?.auftragsnummer }} wirklich genehmigen?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+          <AlertDialogAction :disabled="approving" @click="confirmApproveOrder">
+            {{ approving ? 'Lädt...' : 'Genehmigen' }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>

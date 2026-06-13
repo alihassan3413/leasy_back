@@ -1,4 +1,4 @@
-import { get } from '../client/request'
+import { get, post } from '../client/request'
 import type { AdminOrderListResponse } from '@/types'
 
 export const adminOrdersApi = {
@@ -23,5 +23,12 @@ export const adminOrdersApi = {
     return get<AdminOrderListResponse>(
       `/admin/list/orders/user/${encodeURIComponent(userId)}?page=${page}&limit=${limit}`,
     )
+  },
+
+  approveOrder(
+    provider: "tuvsud" | "dekra",
+    orderId: string,
+  ): Promise<unknown> {
+    return post(`/order/${provider}/order/approve/${orderId}`);
   },
 }
