@@ -25,6 +25,7 @@ declare module 'vue' {
     AccountWorkshopContract: typeof import('./../components/account/workshop/contract.vue')['default']
     AccountWorkshopDeleteAccount: typeof import('./../components/account/workshop/DeleteAccount.vue')['default']
     AccountWorkshopManagePassword: typeof import('./../components/account/workshop/ManagePassword.vue')['default']
+    AdminAddVehicleModal: typeof import('./../components/admin/AdminAddVehicleModal.vue')['default']
     AdminHeader: typeof import('./../components/admin/Header.vue')['default']
     AdminOrderCreationModal: typeof import('./../components/admin/AdminOrderCreationModal.vue')['default']
     AdminSidebar: typeof import('./../components/admin/AdminSidebar.vue')['default']

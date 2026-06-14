@@ -114,6 +114,7 @@ export interface AdminUser {
   city: string;
   country: string;
   created_at: string;
+  b2b_id?: string;
 }
 
 export interface AdminUserListResponse {
@@ -365,6 +366,9 @@ export interface CreateVehiclePayload {
   vin: string;
   make: string;
   model: string;
+  vehicle_belongs?: "B2B" | "B2C";
+  b2b_id?: string;
+  b2c_user_id?: string;
 }
 
 export interface VehicleDocument {
