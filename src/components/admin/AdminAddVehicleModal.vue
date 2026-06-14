@@ -1,0 +1,430 @@
+<script setup lang="ts">
+import { ref, watch, computed } from "vue";
+import { Icon } from "@iconify/vue";
+import type { AdminUser } from "@/types";
+import { vehicleApi } from "@/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+const props = defineProps<{
+  open: boolean;
+  targetUser?: AdminUser;
+}>();
+
+const emit = defineEmits<{
+  "update:open": [value: boolean];
+  vehicleCreated: [];
+}>();
+
+const isLoading = ref(false);
+
+const city = ref("");
+const district = ref("");
+const number = ref("");
+const marke = ref("");
+const modell = ref("");
+const leasingende = ref("");
+const fin = ref("");
+const rueckgabestart = ref("");
+const status = ref("");
+const fahrzeugnutzer = ref("");
+
+const markeOpen = ref(false);
+const nutzerOpen = ref(false);
+
+const markeOptions = [
+  "VW",
+  "BMW",
+  "Mercedes",
+  "Audi",
+  "Renault",
+  "Toyota",
+  "Peugeot",
+  "Skoda",
+  "Ford",
+  "Opel",
+  "Sonstige",
+];
+const nutzerOptions = ["Christin Mechtild", "Thorsten Jung", "Marcus Dietrich"];
+
+const markeIconClasses = computed(() => [
+  "text-[40px] text-primary transition-transform duration-200",
+  markeOpen.value ? "rotate-180" : "rotate-0",
+]);
+const nutzerIconClasses = computed(() => [
+  "text-[40px] text-primary transition-transform duration-200",
+  nutzerOpen.value ? "rotate-180" : "rotate-0",
+]);
+
+watch(
+  () => props.open,
+  (opened) => {
+    if (!opened) {
+      // Reset form when modal closes
+      city.value = district.value = number.value = "";
+      marke.value = modell.value = leasingende.value = "";
+      fin.value = rueckgabestart.value = status.value = fahrzeugnutzer.value = "";
+    }
+  }
+);
+
+const plateText = computed(() =>
+  `${city.value}${district.value}${number.value}`.replace(/\s+/g, "")
+);
+
+const plateError = computed(() => {
+  if (!city.value && !district.value && !number.value) return "";
+  if (plateText.value.length > 8) {
+    return "Kennzeichen darf höchstens 8 Zeichen lang sein";
+  }
+  return "";
+});
+
+const finError = computed(() => {
+  if (!fin.value.trim()) return "";
+  if (fin.value.trim().length !== 17) {
+    return "FIN muss genau 17 Zeichen lang sein";
+  }
+  return "";
+});
+
+const isFormValid = computed(() => {
+  return (
+    city.value.trim() !== "" &&
+    number.value.trim() !== "" &&
+    marke.value.trim() !== "" &&
+    modell.value.trim() !== "" &&
+    leasingende.value !== "" &&
+    rueckgabestart.value !== "" &&
+    fin.value.trim() !== "" &&
+    plateError.value === "" &&
+    finError.value === ""
+  );
+});
+
+const buttonActive = computed(() => {
+  return isFormValid.value;
+});
+
+function close() {
+  emit("update:open", false);
+}
+
+async function handleSubmit() {
+  const payload: any = {
+    license_plate: `${city.value} ${district.value} ${number.value}`
+      .trim()
+      .toUpperCase(),
+    make: marke.value,
+    model: modell.value,
+    leasing_end_date: leasingende.value,
+    vin: fin.value.trim().toUpperCase(),
+    first_registration_date: rueckgabestart.value,
+  };
+
+  // Handle admin mode - add vehicle_belongs and appropriate ID
+  if (props.targetUser) {
+    payload.vehicle_belongs = props.targetUser.user_type === "Firmenkunde" ? "B2B" : "B2C";
+    if (payload.vehicle_belongs === "B2B") {
+      payload.b2b_id = props.targetUser.b2b_id;
+    } else {
+      payload.b2c_user_id = props.targetUser.user_id;
+    }
+  }
+
+  console.log("Submitting Vehicle Payload:", payload);
+
+  try {
+    isLoading.value = true;
+    await vehicleApi.createVehicle(payload);
+    emit("vehicleCreated");
+    close();
+  } catch (error) {
+    console.error("Error submitting vehicle:", error);
+  } finally {
+    isLoading.value = false;
+  }
+}
+</script>
+
+<template>
+  <Dialog :open="open" @update:open="emit('update:open', $event)">
+    <DialogContent
+      class="p-0 gap-0 overflow-visible"
+      style="
+        width: 700px;
+        max-width: 700px;
+        border-radius: 5px;
+        border: 1px solid #ececec;
+      "
+      :show-close-button="false"
+    >
+      <div
+        class="flex h-12.5 items-center justify-between px-9 max-w-175"
+        style="background-color: #fafafa; border-bottom: 1px solid #b7c2c2"
+      >
+        <span class="text-[20px] font-bold" style="color: #10393b">Neues Fahrzeug</span>
+        <button @click="close" class="transition-opacity hover:opacity-60">
+          <Icon icon="mdi:close" class="size-5" style="color: #b7c2c2" />
+        </button>
+      </div>
+
+      <p class="px-9 pt-5 text-[16px]" style="color: #000">
+        Legen Sie ganz einfach ein neues Fahrzeug an – bitte füllen Sie dafür alle Angaben im Formular unten aus
+      </p>
+
+      <div class="flex gap-8 px-8 pb-6 pt-4">
+        <div class="flex w-77 flex-col gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[16px] font-bold text-black">
+              Kennzeichen
+              <span class="text-[10px] font-bold ml-3 text-custom-black">
+                *(Format: ABC DE 1234)
+              </span>
+            </label>
+            <div
+              class="flex h-9 items-center rounded-[5px] border"
+              style="background: #ececec; border-color: #b7c2c2"
+            >
+              <div
+                class="flex h-full w-5.5 shrink-0 flex-col items-center justify-center rounded-l-[4px]"
+                style="background: #00339b"
+              >
+                <Icon
+                  icon="tabler:circle-dotted"
+                  class="size-6 text-[#FECD00]"
+                />
+                <span class="text-[14px] font-bold text-white leading-none"
+                  >D</span
+                >
+              </div>
+              <div
+                class="flex flex-1 h-full items-center border-x"
+                style="border-color: #b7c2c2; background: #fafafa"
+              >
+                <input
+                  v-model="city"
+                  class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
+                  style="color: #1f2937"
+                  placeholder="ABC"
+                  maxlength="3"
+                />
+              </div>
+              <div class="p-1 flex flex-col gap-1">
+                <Icon icon="cib:circle" class="w-3 h-3 text-custom-black" />
+                <Icon
+                  icon="mdi:badge-outline"
+                  class="w-3.5 h-3.5 text-custom-black"
+                />
+              </div>
+              <div
+                class="flex flex-1 h-full items-center border-r"
+                style="border-color: #b7c2c2; background: #fafafa"
+              >
+                <input
+                  v-model="district"
+                  class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
+                  style="color: #1f2937"
+                  placeholder="DE"
+                  maxlength="2"
+                />
+              </div>
+              <div
+                class="flex h-full flex-1 items-center"
+                style="background: #fafafa"
+              >
+                <input
+                  v-model="number"
+                  class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
+                  style="color: #1f2937"
+                  placeholder="1234"
+                  maxlength="3"
+                />
+              </div>
+            </div>
+
+            <p v-if="plateError" class="mt-1 text-xs text-red-500">
+              {{ plateError }}
+            </p>
+          </div>
+
+          <div class="relative flex flex-col gap-1">
+            <label class="text-[16px] font-bold" style="color: #000">
+              Marke
+            </label>
+            <div
+              class="flex h-9.25 cursor-pointer items-center justify-between rounded-[5px] border px-2"
+              style="border-color: #b7c2c2"
+              @click="
+                markeOpen = !markeOpen;
+                nutzerOpen = false;
+              "
+            >
+              <span
+                class="text-[14px]"
+                :style="marke ? 'color:#000' : 'color:#B7C2C2'"
+                >{{ marke || "Marke wählen" }}</span
+              >
+              <Icon icon="ic:round-arrow-drop-down" :class="markeIconClasses" />
+            </div>
+            <div
+              v-if="markeOpen"
+              class="absolute top-full z-50 mt-1 max-h-37.5 w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
+              style="border-color: #b7c2c2"
+            >
+              <div
+                v-for="opt in markeOptions"
+                :key="opt"
+                class="flex h-7.5 cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
+                style="color: #000"
+                @click="
+                  marke = opt;
+                  markeOpen = false;
+                "
+              >
+                {{ opt }}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[16px] font-bold" style="color: #000">
+              Modell
+            </label>
+            <input
+              v-model="modell"
+              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
+              style="border-color: #b7c2c2; color: #000"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[16px] font-bold" style="color: #000">
+              Leasingende
+            </label>
+            <div
+              class="relative flex h-9.25 items-center rounded-[5px] border"
+              style="border-color: #b7c2c2"
+            >
+              <input
+                v-model="leasingende"
+                type="date"
+                class="h-full w-full rounded-[5px] bg-transparent px-2 text-[14px] outline-none"
+                style="color: #000"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex w-77 flex-col gap-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[16px] font-bold text-black">
+              FIN
+              <span class="text-[10px] font-bold ml-3 text-custom-black">
+                *(seh. Fahrzeugschein Mitte oben)
+              </span>
+            </label>
+            <input
+              v-model="fin"
+              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
+              style="border-color: #b7c2c2; color: #000"
+              maxlength="17"
+            />
+            <p v-if="finError" class="mt-1 text-xs text-red-500">
+              {{ finError }}
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[16px] font-bold" style="color: #000">
+              Rückgabestart
+            </label>
+            <input
+              v-model="rueckgabestart"
+              type="date"
+              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
+              style="border-color: #b7c2c2; color: #000"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[16px] font-bold" style="color: #000">
+              Status
+            </label>
+            <input
+              v-model="status"
+              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
+              style="border-color: #b7c2c2; color: #000"
+              placeholder="Status"
+            />
+          </div>
+
+          <div class="relative flex flex-col gap-1">
+            <label class="text-[16px] font-bold" style="color: #000">
+              Fahrzeugnutzer
+            </label>
+            <div
+              class="flex h-9.25 cursor-pointer items-center justify-between rounded-[5px] border px-2"
+              style="border-color: #b7c2c2"
+              @click="
+                nutzerOpen = !nutzerOpen;
+                markeOpen = false;
+              "
+            >
+              <span
+                class="text-[14px]"
+                :style="fahrzeugnutzer ? 'color:#000' : 'color:#B7C2C2'"
+                >{{ fahrzeugnutzer || "Nutzer wählen" }}</span
+              >
+              <Icon
+                icon="ic:round-arrow-drop-down"
+                :class="nutzerIconClasses"
+              />
+            </div>
+            <div
+              v-if="nutzerOpen"
+              class="absolute top-full z-50 mt-1 w-full rounded-[5px] border overflow-y-auto bg-white shadow-md"
+              style="border-color: #b7c2c2"
+            >
+              <span class="px-2 text-[14px]">— Unbekannt —</span>
+              <div
+                v-for="opt in nutzerOptions"
+                :key="opt"
+                class="flex h-7.5 cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
+                style="color: #000"
+                @click="
+                  fahrzeugnutzer = opt;
+                  nutzerOpen = false;
+                "
+              >
+                {{ opt }}
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-auto flex justify-end pt-4">
+            <button
+              class="h-7.5 w-37.5 rounded-[5px] text-[14px] font-bold text-white transition-opacity"
+              :style="
+                buttonActive ? 'background:#EF8450' : 'background:#B7C2C2'
+              "
+              :disabled="
+                !buttonActive || isLoading
+              "
+              @click="handleSubmit"
+            >
+              {{ isLoading ? "Wird gespeichert..." : "Bestätigen" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+</template>
