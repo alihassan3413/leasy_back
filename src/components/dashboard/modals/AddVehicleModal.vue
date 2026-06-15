@@ -67,11 +67,11 @@ const nutzerOptions = ["Christin Mechtild", "Thorsten Jung", "Marcus Dietrich"];
 const isEditMode = computed(() => !!props.vehicle);
 
 const markeIconClasses = computed(() => [
-  "text-[40px] text-primary transition-transform duration-200",
+  "text-[24px] text-gray-500 transition-transform duration-200",
   markeOpen.value ? "rotate-180" : "rotate-0",
 ]);
 const nutzerIconClasses = computed(() => [
-  "text-[40px] text-primary transition-transform duration-200",
+  "text-[24px] text-gray-500 transition-transform duration-200",
   nutzerOpen.value ? "rotate-180" : "rotate-0",
 ]);
 
@@ -233,7 +233,7 @@ async function handleSubmit() {
 
 <template>
   <Dialog :open="showProfileDialog" @update:open="showProfileDialog = $event">
-    <DialogContent class="p-0 gap-0">
+    <DialogContent class="p-0 gap-0 rounded-2xl">
       <DialogHeader class="px-6 py-4 border-b border-gray-100">
         <DialogTitle class="text-xl font-bold text-[#10393B]">
           Kontodaten fehlen
@@ -263,269 +263,253 @@ async function handleSubmit() {
     @update:open="emit('update:open', $event)"
   >
     <DialogContent
-      class="p-0 gap-0 overflow-visible"
-      style="
-        width: 700px;
-        max-width: 700px;
-        border-radius: 5px;
-        border: 1px solid #ececec;
-      "
+      class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
+      style="width: 720px; max-width: 720px"
       :show-close-button="false"
     >
-      <div
-        class="flex h-12.5 items-center justify-between px-9 max-w-175"
-        style="background-color: #fafafa; border-bottom: 1px solid #b7c2c2"
-      >
-        <span class="text-[20px] font-bold" style="color: #10393b">{{
-          isEditMode ? "Fahrzeug bearbeiten" : "Neues Fahrzeug"
-        }}</span>
-        <button @click="close" class="transition-opacity hover:opacity-60">
-          <Icon icon="mdi:close" class="size-5" style="color: #b7c2c2" />
+      <div class="relative">
+        <button
+          @click="close"
+          class="absolute -right-1 -top-1 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
+        >
+          <Icon icon="mdi:close" class="size-8" />
         </button>
-      </div>
 
-      <p class="px-9 pt-5 text-[16px]" style="color: #000">
-        {{
-          isEditMode
-            ? "Bearbeiten Sie die Fahrzeugdaten im Formular unten."
-            : "Legen Sie ganz einfach ein neues Fahrzeug an – bitte füllen Sie dafür alle Angaben im Formular unten aus"
-        }}
-      </p>
-
-      <div class="flex gap-8 px-8 pb-6 pt-4">
-        <div class="flex w-77 flex-col gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-[16px] font-bold text-black">
-              Kennzeichen
-              <span class="text-[10px] font-bold ml-3 text-custom-black">
-                *(Format: ABC DE 1234)
-              </span>
-            </label>
-            <div
-              class="flex h-9 items-center rounded-[5px] border"
-              style="background: #ececec; border-color: #b7c2c2"
+        <div
+          class="bg-white border border-[#C6C6CD] p-6 inverted-corner inverted-corner-top-right"
+          style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
+        >
+          <div class="px-6 pt-6 mb-6">
+            <h2 class="text-[24px] font-bold leading-normal text-black">
+              {{ isEditMode ? "Fahrzeug bearbeiten" : "Neues Fahrzeug" }}
+            </h2>
+            <p
+              class="mt-1 mx-2 pb-4 text-base font-light leading-normal not-italic text-[#00000080]"
             >
+              {{
+                isEditMode
+                  ? "Bearbeiten Sie die Fahrzeugdaten im Formular unten."
+                  : "Please fill in all the details in the form below."
+              }}
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black">
+                Kennzeichen
+                <span class="text-[10px] font-medium text-gray-500 ml-2">
+                  *(Format: ABC DE 1234)
+                </span>
+              </label>
               <div
-                class="flex h-full w-5.5 shrink-0 flex-col items-center justify-center rounded-l-[4px]"
-                style="background: #00339b"
+                class="flex h-10 items-center overflow-hidden rounded-full border border-gray-300 bg-gray-100"
               >
-                <Icon
-                  icon="tabler:circle-dotted"
-                  class="size-6 text-[#FECD00]"
-                />
-                <span class="text-[14px] font-bold text-white leading-none"
-                  >D</span
+                <div
+                  class="ml-1 flex h-7 w-4 shrink-0 flex-col items-center justify-center rounded-[50px] bg-[#00339b]"
                 >
+                  <Icon
+                    icon="tabler:circle-dotted"
+                    class="size-3 text-[#FECD00]"
+                  />
+                  <span class="text-[10px] font-bold text-white leading-none"
+                    >D</span
+                  >
+                </div>
+                <div class="flex flex-1 h-full py-0.5 items-center px-1.5">
+                  <input
+                    v-model="city"
+                    class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400"
+                    placeholder="ABC"
+                    maxlength="3"
+                  />
+                </div>
+                <div
+                  class="flex flex-col items-center gap-0.5 px-1 text-gray-300"
+                >
+                  <Icon icon="cib:circle" class="w-2 h-2" />
+                  <Icon icon="mdi:badge-outline" class="w-2.5 h-2.5" />
+                </div>
+                <div class="flex flex-1 h-full py-0.5 items-center px-1.5">
+                  <input
+                    v-model="district"
+                    class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400"
+                    placeholder="DE"
+                    maxlength="2"
+                  />
+                </div>
+                <div class="flex flex-[1.4] h-full py-0.5 items-center px-1.5">
+                  <input
+                    v-model="number"
+                    class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400"
+                    placeholder="1234H"
+                    maxlength="5"
+                  />
+                </div>
               </div>
-              <div
-                class="flex flex-1 h-full items-center border-x"
-                style="border-color: #b7c2c2; background: #fafafa"
-              >
-                <input
-                  v-model="city"
-                  class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
-                  style="color: #1f2937"
-                  placeholder="ABC"
-                  maxlength="3"
-                />
-              </div>
-              <div class="p-1 flex flex-col gap-1">
-                <Icon icon="cib:circle" class="w-3 h-3 text-custom-black" />
-                <Icon
-                  icon="mdi:badge-outline"
-                  class="w-3.5 h-3.5 text-custom-black"
-                />
-              </div>
-              <div
-                class="flex flex-1 h-full items-center border-r"
-                style="border-color: #b7c2c2; background: #fafafa"
-              >
-                <input
-                  v-model="district"
-                  class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
-                  style="color: #1f2937"
-                  placeholder="DE"
-                  maxlength="2"
-                />
-              </div>
-              <div
-                class="flex h-full flex-1 items-center"
-                style="background: #fafafa"
-              >
-                <input
-                  v-model="number"
-                  class="h-full w-full bg-transparent px-1 text-center text-[16px] font-extrabold uppercase outline-none"
-                  style="color: #1f2937"
-                  placeholder="1234"
-                  maxlength="3"
-                />
-              </div>
+              <p v-if="plateError" class="text-xs text-red-500">
+                {{ plateError }}
+              </p>
             </div>
 
-            <p v-if="plateError" class="mt-1 text-xs text-red-500">
-              {{ plateError }}
-            </p>
-          </div>
-
-          <div class="relative flex flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color: #000">
-              Marke
-            </label>
-            <div
-              class="flex h-9.25 cursor-pointer items-center justify-between rounded-[5px] border px-2"
-              style="border-color: #b7c2c2"
-              @click="
-                markeOpen = !markeOpen;
-                nutzerOpen = false;
-              "
-            >
-              <span
-                class="text-[14px]"
-                :style="marke ? 'color:#000' : 'color:#B7C2C2'"
-                >{{ marke || "Marke wählen" }}</span
-              >
-              <Icon icon="ic:round-arrow-drop-down" :class="markeIconClasses" />
-            </div>
-            <div
-              v-if="markeOpen"
-              class="absolute top-full z-50 mt-1 max-h-37.5 w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
-              style="border-color: #b7c2c2"
-            >
-              <div
-                v-for="opt in markeOptions"
-                :key="opt"
-                class="flex h-7.5 cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
-                style="color: #000"
-                @click="
-                  marke = opt;
-                  markeOpen = false;
-                "
-              >
-                {{ opt }}
-              </div>
-            </div>
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color: #000">
-              Modell
-            </label>
-            <input
-              v-model="modell"
-              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
-              style="border-color: #b7c2c2; color: #000"
-            />
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color: #000">
-              Leasingende
-            </label>
-            <div
-              class="relative flex h-9.25 items-center rounded-[5px] border"
-              style="border-color: #b7c2c2"
-            >
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black">
+                FIN
+                <span class="text-[10px] font-medium text-gray-500 ml-2">
+                  *(seh. Fahrzeugschein Mitte oben)
+                </span>
+              </label>
               <input
-                v-model="leasingende"
-                type="date"
-                class="h-full w-full rounded-[5px] bg-transparent px-2 text-[14px] outline-none"
-                style="color: #000"
+                v-model="fin"
+                class="h-10 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
               />
+              <p v-if="finError" class="text-xs text-red-500">
+                {{ finError }}
+              </p>
             </div>
-          </div>
-        </div>
 
-        <div class="flex w-77 flex-col gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-[16px] font-bold text-black">
-              FIN
-              <span class="text-[10px] font-bold ml-3 text-custom-black">
-                *(seh. Fahrzeugschein Mitte oben)
-              </span>
-            </label>
-            <input
-              v-model="fin"
-              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
-              style="border-color: #b7c2c2; color: #000"
-              maxlength="17"
-            />
-            <p v-if="finError" class="mt-1 text-xs text-red-500">
-              {{ finError }}
-            </p>
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color: #000">
-              Rückgabestart
-            </label>
-            <input
-              v-model="rueckgabestart"
-              type="date"
-              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
-              style="border-color: #b7c2c2; color: #000"
-            />
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color: #000">
-              Status
-            </label>
-            <input
-              v-model="status"
-              class="h-9.25 rounded-[5px] border px-2 text-[14px] outline-none"
-              style="border-color: #b7c2c2; color: #000"
-              placeholder="Status"
-            />
-          </div>
-
-          <div class="relative flex flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color: #000">
-              Fahrzeugnutzer
-            </label>
-            <div
-              class="flex h-9.25 cursor-pointer items-center justify-between rounded-[5px] border px-2"
-              style="border-color: #b7c2c2"
-              @click="
-                nutzerOpen = !nutzerOpen;
-                markeOpen = false;
-              "
-            >
-              <span
-                class="text-[14px]"
-                :style="fahrzeugnutzer ? 'color:#000' : 'color:#B7C2C2'"
-                >{{ fahrzeugnutzer || "Nutzer wählen" }}</span
-              >
-              <Icon
-                icon="ic:round-arrow-drop-down"
-                :class="nutzerIconClasses"
-              />
-            </div>
-            <div
-              v-if="nutzerOpen"
-              class="absolute top-full z-50 mt-1 w-full rounded-[5px] border overflow-y-auto bg-white shadow-md"
-              style="border-color: #b7c2c2"
-            >
-              <span class="px-2 text-[14px]">— Unbekannt —</span>
+            <div class="relative flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black"> Marke </label>
               <div
-                v-for="opt in nutzerOptions"
-                :key="opt"
-                class="flex h-7.5 cursor-pointer items-center px-2 text-[14px] hover:bg-gray-50"
-                style="color: #000"
+                class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                tabindex="0"
                 @click="
-                  fahrzeugnutzer = opt;
+                  markeOpen = !markeOpen;
                   nutzerOpen = false;
                 "
               >
-                {{ opt }}
+                <span
+                  class="text-sm"
+                  :class="marke ? 'text-gray-800' : 'text-gray-400'"
+                  >{{ marke || "Marke wählen" }}</span
+                >
+                <Icon icon="mdi:chevron-down" :class="markeIconClasses" />
+              </div>
+              <div
+                v-if="markeOpen"
+                class="absolute top-full z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
+              >
+                <div
+                  v-for="opt in markeOptions"
+                  :key="opt"
+                  class="flex h-9 cursor-pointer items-center px-4 text-sm text-gray-700 hover:bg-gray-50"
+                  @click="
+                    marke = opt;
+                    markeOpen = false;
+                  "
+                >
+                  {{ opt }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black"> Modell </label>
+              <input
+                v-model="modell"
+                class="h-10 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
+                placeholder="Modell eingeben"
+              />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black">
+                Leasingende
+              </label>
+              <div
+                class="relative flex h-10 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
+              >
+                <input
+                  v-model="leasingende"
+                  type="date"
+                  class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
+                />
+                <Icon
+                  icon="mdi:calendar-outline"
+                  class="absolute right-4 text-gray-400"
+                />
+              </div>
+            </div>
+
+            <div class="relative flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black">
+                Fahrzeugnutzer
+              </label>
+              <div
+                class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                tabindex="0"
+                @click="
+                  nutzerOpen = !nutzerOpen;
+                  markeOpen = false;
+                "
+              >
+                <span
+                  class="text-sm"
+                  :class="fahrzeugnutzer ? 'text-gray-800' : 'text-gray-400'"
+                  >{{ fahrzeugnutzer || "Fahrzeugnutzer wählen" }}</span
+                >
+                <Icon icon="mdi:chevron-down" :class="nutzerIconClasses" />
+              </div>
+              <div
+                v-if="nutzerOpen"
+                class="absolute top-full z-50 mt-1 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
+              >
+                <span class="block px-4 py-2 text-sm text-gray-400"
+                  >— Unbekannt —</span
+                >
+                <div
+                  v-for="opt in nutzerOptions"
+                  :key="opt"
+                  class="flex h-9 cursor-pointer items-center px-4 text-sm text-gray-700 hover:bg-gray-50"
+                  @click="
+                    fahrzeugnutzer = opt;
+                    nutzerOpen = false;
+                  "
+                >
+                  {{ opt }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black">
+                Rückgabestart
+              </label>
+              <div
+                class="relative flex h-10 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
+              >
+                <input
+                  v-model="rueckgabestart"
+                  type="date"
+                  class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
+                />
+                <Icon
+                  icon="mdi:calendar-outline"
+                  class="absolute right-4 text-gray-400"
+                />
+              </div>
+            </div>
+
+            <div class="relative flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black"> Status </label>
+              <div
+                class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+              >
+                <span
+                  class="text-sm"
+                  :class="status ? 'text-gray-800' : 'text-gray-400'"
+                  >{{ status || "Status wählen" }}</span
+                >
+                <Icon icon="mdi:chevron-down" class="text-gray-400" />
               </div>
             </div>
           </div>
 
-          <div class="mt-auto flex justify-end pt-4">
+          <div class="mt-8 flex justify-center">
             <button
-              class="h-7.5 w-37.5 rounded-[5px] text-[14px] font-bold text-white transition-opacity"
+              class="h-10 px-6 rounded-full text-base font-semibold text-white transition-all duration-200 shadow-lg"
               :style="
-                buttonActive ? 'background:#EF8450' : 'background:#B7C2C2'
+                buttonActive ? 'background: #EF8450;' : 'background: #D9D9D9;'
               "
               :disabled="
                 !buttonActive ||
@@ -546,3 +530,85 @@ async function handleSubmit() {
     </DialogContent>
   </Dialog>
 </template>
+
+<style scoped>
+.inverted-corner {
+  --r: 38px;
+  --s: 32px;
+  --x: 0px;
+  --y: 0px;
+  border-radius: var(--r);
+}
+
+.inverted-corner-top-right {
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
+    radial-gradient(#000 70%, #0000 0%);
+  --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
+  --_d: (var(--s) + var(--r));
+
+  mask:
+    calc(100% - var(--_d) - var(--x)) 0 var(--_m),
+    100% calc(var(--_d) + var(--y)) var(--_m),
+    radial-gradient(var(--s) at 100% 0, #0000 99%, #000 calc(100% + 0.5px))
+      calc(-1 * var(--r) - var(--x)) calc(var(--r) + var(--y)),
+    var(--_g) calc(-1 * var(--_d) - var(--x)) 0,
+    var(--_g) 0 calc(var(--_d) + var(--y));
+  mask-repeat: no-repeat;
+}
+
+.inverted-corner-top-left {
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
+    radial-gradient(#000 70%, #0000 72%);
+  --_g: conic-gradient(at var(--r) var(--r), #000 75%, #0000 0);
+  --_d: (var(--s) + var(--r));
+
+  mask:
+    calc(var(--_d) + var(--x)) 0 var(--_m),
+    0 calc(var(--_d) + var(--y)) var(--_m),
+    radial-gradient(var(--s) at 0 0, #0000 99%, #000 calc(100% + 1px))
+      calc(var(--r) + var(--x)) calc(var(--r) + var(--y)),
+    var(--_g) calc(var(--_d) + var(--x)) 0,
+    var(--_g) 0 calc(var(--_d) + var(--y));
+  mask-repeat: no-repeat;
+}
+
+.inverted-corner-bottom-right {
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
+    radial-gradient(#000 70%, #0000 72%);
+  --_g: conic-gradient(
+    from 90deg at calc(100% - var(--r)) calc(100% - var(--r)),
+    #0000 25%,
+    #000 0
+  );
+  --_d: (var(--s) + var(--r));
+
+  mask:
+    calc(100% - var(--_d) - var(--x)) 100% var(--_m),
+    100% calc(100% - var(--_d) - var(--y)) var(--_m),
+    radial-gradient(var(--s) at 100% 100%, #0000 99%, #000 calc(100% + 1px))
+      calc(-1 * var(--r) - var(--x)) calc(-1 * var(--r) - var(--y)),
+    var(--_g) calc(-1 * var(--_d) - var(--x)) 0,
+    var(--_g) 0 calc(-1 * var(--_d) - var(--y));
+  mask-repeat: no-repeat;
+}
+
+.inverted-corner-bottom-left {
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
+    radial-gradient(#000 70%, #0000 72%);
+  --_g: conic-gradient(
+    from 180deg at var(--r) calc(100% - var(--r)),
+    #0000 25%,
+    #000 0
+  );
+  --_d: (var(--s) + var(--r));
+
+  mask:
+    calc(var(--_d) + var(--x)) 100% var(--_m),
+    0 calc(100% - var(--_d) - var(--y)) var(--_m),
+    radial-gradient(var(--s) at 0 100%, #0000 99%, #000 calc(100% + 1px))
+      calc(var(--r) + var(--x)) calc(-1 * var(--r) - var(--y)),
+    var(--_g) calc(var(--_d) + var(--x)) 0,
+    var(--_g) 0 calc(-1 * var(--_d) - var(--y));
+  mask-repeat: no-repeat;
+}
+</style>
