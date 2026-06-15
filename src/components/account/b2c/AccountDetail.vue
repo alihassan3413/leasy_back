@@ -313,9 +313,7 @@ const formatAddressLine2 = () => {
           <span class="h-px flex-1 bg-[#EDF2F2]" />
         </div>
         <p class="mt-1.5! text-[13px] text-[#7A9699]">
-          {{ isCreateMode ? "Bitte geben Sie Ihre Daten ein, um Ihr Profil zu erstellen." : "Adresse eingeben oder
-          direkt
-          auf der Karte auswählen." }}
+          {{ isCreateMode ? "Bitte geben Sie Ihre Daten ein, um Ihr Profil zu erstellen." : "Adresse eingeben oder direkt auf der Karte auswählen." }}
         </p>
 
         <div class="flex flex-col gap-6 lg:flex-row">

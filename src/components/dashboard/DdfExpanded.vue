@@ -536,7 +536,7 @@ watch(
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
                 <span class="text-[16px] font-normal" style="color: #64748b">
-                  Lease Provider
+                  Leasinggeber
                 </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.leasinggeber || "Nicht verfügbar" }}
