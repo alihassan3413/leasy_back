@@ -181,8 +181,9 @@ function close() {
             </p>
           </div>
 
-          
-           <div class="grid grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div
+            class="grid grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1"
+          >
             <!-- Service switches -->
             <div class="flex flex-col gap-1 col-span-2">
               <label class="text-sm font-semibold text-black">
@@ -215,7 +216,7 @@ function close() {
             </div>
 
             <!-- Station dropdown -->
-            <div class="relative flex flex-col gap-1 col-span-2 ">
+            <div class="relative flex flex-col gap-1 col-span-2">
               <label class="text-sm font-semibold text-black"> Station </label>
               <div
                 class="flex h-9 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
