@@ -9,6 +9,7 @@ import type { AdminVehicle } from "@/types";
 import AppMapPicker from "@/components/ui/AppMapPicker.vue";
 import { useForm } from "vee-validate";
 import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const { values } = useForm();
 
@@ -22,9 +23,6 @@ const emit = defineEmits<{
   success: [];
 }>();
 const selectedService = ref<"tuvsud" | "dekra">("tuvsud");
-
-//  Service selection
-// const tuvsudActive = ref(true);
 
 //  Stations
 const stations = ref<Station[]>([]);
@@ -75,7 +73,6 @@ function selectStation(station: Station) {
 const terminDate = ref("");
 const terminTime = ref("");
 
-// Replace terminIso with:
 const terminIso = computed(() => {
   const raw = values.terminDate as string;
   if (!raw || !terminTime.value) return "";
@@ -157,185 +154,284 @@ function close() {
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
-      class="p-0 gap-0 flex flex-col max-h-[90vh] overflow-hidden"
-      style="
-        width: 680px;
-        max-width: 680px;
-        border-radius: 5px;
-        border: 1px solid #ececec;
-      "
+      class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
+      style="width: 720px; max-width: 720px"
       :show-close-button="false"
     >
-      <!-- Header -->
-      <div
-        class="flex h-[50px] items-center justify-between px-9"
-        style="background-color: #fafafa; border-bottom: 1px solid #b7c2c2"
-      >
-        <span class="text-[20px] font-bold" style="color: #10393b">
-          Auftrag erstellen
-        </span>
-        <button @click="close" class="transition-opacity hover:opacity-60">
-          <Icon icon="mdi:close" class="size-5" style="color: #b7c2c2" />
-        </button>
-      </div>
-
-      <div class="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-9 py-6">
-        <!-- Service switches -->
-        <div class="flex flex-col gap-3">
-          <p class="text-[16px] font-bold" style="color: #10393b">
-            Service wählen
-          </p>
-          <div class="flex flex-col gap-2">
-            <!-- TÜV SÜD -->
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value="tuvsud"
-                v-model="selectedService"
-                class="accent-primary size-4"
-                @change="fetchStations"
-              />
-              <span class="text-base text-custom-black">TÜV SÜD</span>
-            </label>
-            <!-- DEKRA — selectable but shows empty dropdown -->
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value="dekra"
-                v-model="selectedService"
-                class="accent-primary size-4"
-                @change="fetchStations"
-              />
-              <span class="text-base text-custom-black">DEKRA</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Station dropdown -->
-        <div class="relative flex flex-col gap-1">
-          <label class="text-[16px] font-bold" style="color: #10393b">
-            Station
-          </label>
-          <div
-            class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
-            style="border-color: #b7c2c2"
-            @click="stationOpen = !stationOpen"
-          >
-            <span
-              class="truncate text-[14px]"
-              :style="selectedStation ? 'color:#000' : 'color:#B7C2C2'"
-            >
-              {{
-                selectedStation
-                  ? `${selectedStation.name} — ${selectedStation.ort}`
-                  : stationsLoading
-                    ? "Laden..."
-                    : "Station wählen"
-              }}
-            </span>
-            <Icon
-              icon="ic:round-arrow-drop-down"
-              class="text-[40px] text-primary shrink-0 transition-transform duration-200"
-              :class="stationOpen ? 'rotate-180' : 'rotate-0'"
-            />
-          </div>
-
-          <div
-            v-if="stationOpen"
-            class="absolute top-full mt-1 max-h-[180px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
-            style="border-color: #b7c2c2; z-index: 9999"
-          >
-            <div
-              v-if="stationsLoading"
-              class="px-3 py-2 text-[14px]"
-              style="color: #b7c2c2"
-            >
-              Laden...
-            </div>
-            <div
-              v-else-if="!stations.length"
-              class="px-3 py-2 text-[14px]"
-              style="color: #b7c2c2"
-            >
-              Keine Stationen gefunden
-            </div>
-            <div
-              v-for="station in stations"
-              :key="station.station_id"
-              class="flex cursor-pointer flex-col px-3 py-2 hover:bg-gray-50"
-              @click="selectStation(station)"
-            >
-              <span class="text-[14px] font-medium" style="color: #000">
-                {{ station.name }}
-              </span>
-              <span class="text-[12px]" style="color: #b7c2c2">
-                {{ station.strasse }}, {{ station.plz }} {{ station.ort }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Map -->
-        <div
-          class="h-[220px] shrink-0 w-full overflow-hidden rounded-[5px] border"
-          style="border-color: #b7c2c2"
+      <div class="relative">
+        <button
+          @click="close"
+          class="absolute -right-1 -top-1 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
         >
-          <AppMapPicker
-            :latitude="mapLat"
-            :longitude="mapLng"
-            :interactive="false"
-          />
-        </div>
+          <Icon icon="mdi:close" class="size-8" />
+        </button>
 
-        <!-- Termin row -->
-        <div class="flex gap-4">
-          <CalendarDateField
-            name="terminDate"
-            label="Datum"
-            :minDaysAhead="3"
-            class="flex-1"
-          />
-          <div class="flex flex-1 flex-col gap-1">
-            <label class="text-[16px] font-bold" style="color: #10393b">
-              Uhrzeit
-            </label>
-            <input
-              v-model="terminTime"
-              type="time"
-              class="h-[37px] rounded-[5px] border px-2 text-[14px] outline-none"
-              style="border-color: #b7c2c2; color: #000"
-            />
-          </div>
-        </div>
-
-        <!-- Remarks -->
-        <div class="flex flex-col gap-1">
-          <label class="text-[16px] font-bold" style="color: #10393b">
-            Bemerkungen
-            <span class="text-[12px] font-normal ml-1" style="color: #b7c2c2"
-              >(optional)</span
+        <div
+          class="bg-white border border-[#C6C6CD] p-4 inverted-corner inverted-corner-top-right"
+          style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
+        >
+          <div class="px-4 pt-4 mb-4">
+            <h2 class="text-[20px] font-bold leading-normal text-black">
+              Auftrag erstellen
+            </h2>
+            <p
+              class="mt-1 mx-2 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]"
             >
-          </label>
-          <textarea
-            v-model="remarks"
-            rows="2"
-            class="rounded-[5px] border px-2 py-1.5 text-[14px] outline-none resize-none"
-            style="border-color: #b7c2c2; color: #000"
-          />
-        </div>
+              Bitte füllen Sie alle Details im unten stehenden Formular aus.
+            </p>
+          </div>
 
-        <!-- Submit -->
-        <div class="flex justify-end">
-          <button
-            class="h-[36px] w-[160px] rounded-[5px] text-[14px] font-bold text-white transition-opacity"
-            :style="canSubmit ? 'background:#EF8450' : 'background:#B7C2C2'"
-            :disabled="!canSubmit"
-            @click="handleSubmit"
-          >
-            {{ isSubmitting ? "Lädt..." : "Bestätigen" }}
-          </button>
+          
+           <div class="grid grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
+            <!-- Service switches -->
+            <div class="flex flex-col gap-1 col-span-2">
+              <label class="text-sm font-semibold text-black">
+                Service wählen
+              </label>
+              <div class="flex flex-col gap-2">
+                <!-- TÜV SÜD -->
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="tuvsud"
+                    v-model="selectedService"
+                    class="accent-primary size-4"
+                    @change="fetchStations"
+                  />
+                  <span class="text-base text-gray-800">TÜV SÜD</span>
+                </label>
+                <!-- DEKRA -->
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="dekra"
+                    v-model="selectedService"
+                    class="accent-primary size-4"
+                    @change="fetchStations"
+                  />
+                  <span class="text-base text-gray-800">DEKRA</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Station dropdown -->
+            <div class="relative flex flex-col gap-1 col-span-2 ">
+              <label class="text-sm font-semibold text-black"> Station </label>
+              <div
+                class="flex h-9 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                tabindex="0"
+                @click="stationOpen = !stationOpen"
+              >
+                <span
+                  class="text-sm"
+                  :class="selectedStation ? 'text-gray-800' : 'text-gray-400'"
+                >
+                  {{
+                    selectedStation
+                      ? `${selectedStation.name} — ${selectedStation.ort}`
+                      : stationsLoading
+                        ? "Laden..."
+                        : "Station wählen"
+                  }}
+                </span>
+                <Icon
+                  icon="mdi:chevron-down"
+                  class="text-gray-500 text-[24px] transition-transform duration-200"
+                  :class="stationOpen ? 'rotate-180' : 'rotate-0'"
+                />
+              </div>
+
+              <div
+                v-if="stationOpen"
+                class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
+              >
+                <div
+                  v-if="stationsLoading"
+                  class="px-4 py-2 text-sm text-gray-400"
+                >
+                  Laden...
+                </div>
+                <div
+                  v-else-if="!stations.length"
+                  class="px-4 py-2 text-sm text-gray-400"
+                >
+                  Keine Stationen gefunden
+                </div>
+                <div
+                  v-for="station in stations"
+                  :key="station.station_id"
+                  class="flex cursor-pointer flex-col px-4 py-2 hover:bg-gray-50"
+                  @click="selectStation(station)"
+                >
+                  <span class="text-sm font-medium text-gray-800">
+                    {{ station.name }}
+                  </span>
+                  <span class="text-xs text-gray-400">
+                    {{ station.strasse }}, {{ station.plz }} {{ station.ort }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Map -->
+            <div
+              class="h-[140px] shrink-0 w-full overflow-hidden rounded-2xl border border-gray-300 col-span-2"
+            >
+              <AppMapPicker
+                :latitude="mapLat"
+                :longitude="mapLng"
+                :interactive="false"
+              />
+            </div>
+
+            <!-- Termin row -->
+            <div class="flex flex-col gap-1 col-span-2">
+              <div class="grid grid-cols-2 gap-x-4">
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm font-semibold text-black">
+                    Datum
+                  </label>
+                  <CalendarDateField
+                    name="terminDate"
+                    :minDaysAhead="3"
+                    class="h-9"
+                  />
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-sm font-semibold text-black">
+                    Uhrzeit
+                  </label>
+                  <div
+                    class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
+                  >
+                    <input
+                      v-model="terminTime"
+                      type="time"
+                      class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Remarks -->
+            <div class="flex flex-col gap-1 col-span-2">
+              <label class="text-sm font-semibold text-black">
+                Bemerkungen
+                <span class="text-xs font-normal text-gray-400 ml-1"
+                  >(optional)</span
+                >
+              </label>
+              <div
+                class="relative flex items-start rounded-full border border-gray-300 px-4 py-2 focus-within:border-emerald-500"
+              >
+                <textarea
+                  v-model="remarks"
+                  rows="2"
+                  class="w-full bg-transparent text-sm outline-none resize-none"
+                  placeholder="Bemerkungen hinzufügen..."
+                />
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="mt-2 flex justify-center col-span-2">
+              <button
+                class="h-9 px-6 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
+                :style="
+                  canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'
+                "
+                :disabled="!canSubmit || isSubmitting"
+                @click="handleSubmit"
+              >
+                {{ isSubmitting ? "Lädt..." : "Bestätigen" }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </DialogContent>
   </Dialog>
 </template>
+
+<style scoped>
+.inverted-corner {
+  --r: 38px;
+  --s: 32px;
+  --x: 0px;
+  --y: 0px;
+  border-radius: var(--r);
+}
+
+.inverted-corner-top-right {
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
+    radial-gradient(#000 70%, #0000 0%);
+  --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
+  --_d: (var(--s) + var(--r));
+
+  mask:
+    calc(100% - var(--_d) - var(--x)) 0 var(--_m),
+    100% calc(var(--_d) + var(--y)) var(--_m),
+    radial-gradient(var(--s) at 100% 0, #0000 99%, #000 calc(100% + 0.5px))
+      calc(-1 * var(--r) - var(--x)) calc(var(--r) + var(--y)),
+    var(--_g) calc(-1 * var(--_d) - var(--x)) 0,
+    var(--_g) 0 calc(var(--_d) + var(--y));
+  mask-repeat: no-repeat;
+}
+
+.inverted-corner-top-left {
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
+    radial-gradient(#000 70%, #0000 72%);
+  --_g: conic-gradient(at var(--r) var(--r), #000 75%, #0000 0);
+  --_d: (var(--s) + var(--r));
+
+  mask:
+    calc(var(--_d) + var(--x)) 0 var(--_m),
+    0 calc(var(--_d) + var(--y)) var(--_m),
+    radial-gradient(var(--s) at 0 0, #0000 99%, #000 calc(100% + 1px))
+      calc(var(--r) + var(--x)) calc(var(--r) + var(--y)),
+    var(--_g) calc(var(--_d) + var(--x)) 0,
+    var(--_g) 0 calc(var(--_d) + var(--y));
+  mask-repeat: no-repeat;
+}
+
+.inverted-corner-bottom-right {
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
+    radial-gradient(#000 70%, #0000 72%);
+  --_g: conic-gradient(
+    from 90deg at calc(100% - var(--r)) calc(100% - var(--r)),
+    #0000 25%,
+    #000 0
+  );
+  --_d: (var(--s) + var(--r));
+
+  mask:
+    calc(100% - var(--_d) - var(--x)) 100% var(--_m),
+    100% calc(100% - var(--_d) - var(--y)) var(--_m),
+    radial-gradient(var(--s) at 100% 100%, #0000 99%, #000 calc(100% + 1px))
+      calc(-1 * var(--r) - var(--x)) calc(-1 * var(--r) - var(--y)),
+    var(--_g) calc(-1 * var(--_d) - var(--x)) 0,
+    var(--_g) 0 calc(-1 * var(--_d) - var(--y));
+  mask-repeat: no-repeat;
+}
+
+.inverted-corner-bottom-left {
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
+    radial-gradient(#000 70%, #0000 72%);
+  --_g: conic-gradient(
+    from 180deg at var(--r) calc(100% - var(--r)),
+    #0000 25%,
+    #000 0
+  );
+  --_d: (var(--s) + var(--r));
+
+  mask:
+    calc(var(--_d) + var(--x)) 100% var(--_m),
+    0 calc(100% - var(--_d) - var(--y)) var(--_m),
+    radial-gradient(var(--s) at 0 100%, #0000 99%, #000 calc(100% + 1px))
+      calc(var(--r) + var(--x)) calc(-1 * var(--r) - var(--y)),
+    var(--_g) calc(var(--_d) + var(--x)) 0,
+    var(--_g) 0 calc(-1 * var(--_d) - var(--y));
+  mask-repeat: no-repeat;
+}
+</style>
