@@ -51,16 +51,22 @@ async function handleOrderSuccess() {
 
 function handleAction(action: string) {
   activeAction.value = action;
-  if (action === "Prozess starten") {
+  if (action === "Start Process") {
     orderModalOpen.value = true;
   }
 }
 </script>
 
 <template>
-  <TableRow class="border-b border-[#f0f5f5] cursor-pointer" style="height: 52px"
-    :class="isExpanded ? 'bg-gray-50' : 'bg-white'" @click="handleClick">
-    <TableCell class="h-[52px] truncate px-4 text-[14px] font-medium text-gray-700">
+  <TableRow
+    class="border-b border-[#f0f5f5] cursor-pointer"
+    style="height: 52px"
+    :class="isExpanded ? 'bg-gray-50' : 'bg-white'"
+    @click="handleClick"
+  >
+    <TableCell
+      class="h-[52px] truncate px-4 text-[14px] font-medium text-gray-700"
+    >
       {{ vehicle.licensePlate }}
     </TableCell>
     <TableCell class="h-[52px] truncate px-4 text-[14px] text-gray-600">
@@ -74,7 +80,10 @@ function handleAction(action: string) {
     </TableCell>
     <TableCell class="h-[52px] px-4">
       <div class="flex items-center gap-2">
-        <span class="w-3 h-3 rounded-full" style="background-color: #ef8450"></span>
+        <span
+          class="w-3 h-3 rounded-full"
+          style="background-color: #ef8450"
+        ></span>
         <span class="text-[14px] text-gray-600">Eingeplant</span>
       </div>
     </TableCell>
@@ -86,26 +95,41 @@ function handleAction(action: string) {
         <!-- Three dots menu -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <button class="transition-opacity hover:opacity-70 hover:bg-gray-100 p-1 rounded" @click.stop>
+            <button
+              class="transition-opacity hover:opacity-70 hover:bg-gray-100 p-1 rounded"
+              @click.stop
+            >
               <Icon icon="mdi:dots-vertical" class="w-5 h-5 text-gray-400" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-56 rounded-xl shadow-lg border border-gray-100">
-            <DropdownMenuItem @click="handleAction('Start Process')"
+          <DropdownMenuContent
+            align="end"
+            class="w-56 rounded-xl shadow-lg border border-gray-100"
+          >
+            <DropdownMenuItem
+              @click="handleAction('Start Process')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
-              :class="{ 'bg-gray-100': activeAction === 'Start Process' }">
+              :class="{ 'bg-gray-100': activeAction === 'Start Process' }"
+            >
               <Icon icon="solar:play-bold" class="w-6 h-6 text-gray-600" />
               <span class="text-gray-800 font-medium">Start Process</span>
             </DropdownMenuItem>
-            <DropdownMenuItem @click="handleAction('Assign Someone')"
+            <DropdownMenuItem
+              @click="handleAction('Assign Someone')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
-              :class="{ 'bg-gray-100': activeAction === 'Assign Someone' }">
-              <Icon icon="mdi:account-plus-outline" class="w-6 h-6 text-gray-600" />
+              :class="{ 'bg-gray-100': activeAction === 'Assign Someone' }"
+            >
+              <Icon
+                icon="mdi:account-plus-outline"
+                class="w-6 h-6 text-gray-600"
+              />
               <span class="text-gray-800 font-medium">Assign Someone</span>
             </DropdownMenuItem>
-            <DropdownMenuItem @click="handleAction('Archive')"
+            <DropdownMenuItem
+              @click="handleAction('Archive')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
-              :class="{ 'bg-gray-100': activeAction === 'Archive' }">
+              :class="{ 'bg-gray-100': activeAction === 'Archive' }"
+            >
               <Icon icon="mdi:archive-outline" class="w-6 h-6 text-gray-600" />
               <span class="text-gray-800 font-medium">Archive</span>
             </DropdownMenuItem>
@@ -113,12 +137,19 @@ function handleAction(action: string) {
         </DropdownMenu>
 
         <!-- Caret — rotates when expanded -->
-        <button class="transition-transform focus:outline-none" :class="isExpanded ? 'rotate-180' : ''">
+        <button
+          class="transition-transform focus:outline-none"
+          :class="isExpanded ? 'rotate-180' : ''"
+        >
           <Icon icon="ic:round-arrow-drop-down" :class="iconClasses" />
         </button>
       </div>
     </TableCell>
   </TableRow>
   <DdfExpanded v-if="isExpanded && !vehicle.completed" :vehicle="vehicle" />
-  <OrderCreationModal v-model:open="orderModalOpen" :vehicle="vehicle" @success="handleOrderSuccess" />
+  <OrderCreationModal
+    v-model:open="orderModalOpen"
+    :vehicle="vehicle"
+    @success="handleOrderSuccess"
+  />
 </template>
