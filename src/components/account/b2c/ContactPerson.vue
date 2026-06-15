@@ -7,7 +7,6 @@ import FormSelectField from "@/components/ui/form/FormSelectField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import { useB2CStore } from "@/stores/b2c.store";
 import type { B2CProfileUpdatePayload } from "@/types";
-import { b2cContactPersonSchema } from "@/validations/b2c.validation";
 
 const b2cStore = useB2CStore();
 const isEditMode = ref(false);
@@ -19,7 +18,6 @@ const anredeOptions = [
 ];
 
 const { handleSubmit, resetForm, isSubmitting } = useForm({
-  validationSchema: b2cContactPersonSchema,
   initialValues: {
     anrede: "",
     vorname: "",
@@ -82,21 +80,13 @@ const cancelEdit = () => {
         </p>
       </div>
 
-      <button
-        v-if="!isEditMode"
-        type="button"
-        @click="isEditMode = true"
-        class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3.5 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green"
-      >
+      <button v-if="!isEditMode" type="button" @click="isEditMode = true"
+        class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3.5 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green">
         <Icon icon="mdi:pencil-outline" class="size-4" />
         Bearbeiten
       </button>
-      <button
-        v-else
-        type="button"
-        @click="cancelEdit"
-        class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]"
-      >
+      <button v-else type="button" @click="cancelEdit"
+        class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]">
         <Icon icon="mdi:close" class="size-4" />
         Abbrechen
       </button>
@@ -106,8 +96,7 @@ const cancelEdit = () => {
     <div v-if="!isEditMode" class="px-8 py-7">
       <div class="flex items-center gap-4">
         <div
-          class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#EDF6F4] text-custom-green shadow-sm"
-        >
+          class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#EDF6F4] text-custom-green shadow-sm">
           <Icon icon="mdi:account-tie-outline" class="size-5" />
         </div>
         <div>
@@ -132,43 +121,20 @@ const cancelEdit = () => {
     <!-- EDIT MODE -->
     <form v-else @submit.prevent="onSubmit">
       <div class="flex flex-wrap gap-x-[30px] gap-y-5 px-8 py-7">
-        <FormSelectField
-          name="anrede"
-          label="Anrede"
-          :options="anredeOptions"
-          placeholder="Anrede"
-          width="w-[128px]"
-          class="shrink-0"
-        />
-        <FormTextField
-          name="vorname"
-          label="Vorname"
-          placeholder="Vorname"
-          class="min-w-[200px] flex-1"
-        />
-        <FormTextField
-          name="nachname"
-          label="Nachname"
-          placeholder="Nachname"
-          class="min-w-[200px] flex-1"
-        />
+        <FormSelectField name="anrede" label="Anrede" :options="anredeOptions" placeholder="Anrede" width="w-[128px]"
+          class="shrink-0" />
+        <FormTextField name="vorname" label="Vorname" placeholder="Vorname" class="min-w-[200px] flex-1" />
+        <FormTextField name="nachname" label="Nachname" placeholder="Nachname" class="min-w-[200px] flex-1" />
       </div>
 
-      <div
-        class="flex items-center justify-end gap-3 border-t border-[#EDF2F2] bg-[#F8FAFB] px-8 py-4"
-      >
-        <button
-          type="button"
-          @click="cancelEdit"
-          class="rounded-lg px-4 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]"
-        >
+      <div class="flex items-center justify-end gap-3 border-t border-[#EDF2F2] bg-[#F8FAFB] px-8 py-4">
+        <button type="button" @click="cancelEdit"
+          class="rounded-lg px-4 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]">
           Abbrechen
         </button>
-        <Button
-          type="submit"
+        <Button type="submit"
           class="h-[38px] rounded-lg bg-custom-green px-6 text-sm font-semibold text-white transition-all hover:bg-[#019d7a]"
-          :disabled="isSubmitting"
-        >
+          :disabled="isSubmitting">
           {{ isSubmitting ? "Wird gespeichert…" : "Speichern" }}
         </Button>
       </div>

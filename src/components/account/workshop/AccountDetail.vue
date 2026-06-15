@@ -3,14 +3,12 @@ import { ref, watch } from "vue";
 import { useForm } from "vee-validate";
 import { Icon } from "@iconify/vue";
 import { useWorkshopStore } from "@/stores/workshop.store";
-import { addressSchema } from "@/validations/workshop.validation";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import Button from "@/components/ui/button/Button.vue";
 
 const workshopStore = useWorkshopStore();
 
 const { handleSubmit, isSubmitting, setValues, errors } = useForm({
-  validationSchema: addressSchema,
   initialValues: {
     firmenname: "",
     ustIdNr: "",
@@ -105,10 +103,7 @@ const onFileChange = (e: Event) => {
     <!-- Header with Pencil Icon -->
     <div class="mb-6 flex items-center justify-between">
       <h2 class="text-xl font-bold text-color-primary">Kontodaten</h2>
-      <button
-        type="button"
-        class="text-custom-green transition-opacity hover:opacity-70"
-      >
+      <button type="button" class="text-custom-green transition-opacity hover:opacity-70">
         <Icon icon="mdi:pencil-outline" class="size-6" />
       </button>
     </div>
@@ -118,42 +113,20 @@ const onFileChange = (e: Event) => {
       <div class="flex justify-between gap-8 items-end">
         <!-- Square Logo Upload -->
         <div class="flex flex-col items-start gap-3">
-          <div
-            class="flex w-[97px] h-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-lg
-            border border-[#D9E2E2] bg-custom-gray transition-colors hover:bg-[#F0F2F2]"
-            @click="triggerLogoUpload"
-          >
+          <div class="flex w-[97px] h-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-lg
+            border border-[#D9E2E2] bg-custom-gray transition-colors hover:bg-[#F0F2F2]" @click="triggerLogoUpload">
             <img v-if="logoUrl" :src="logoUrl" class="size-full object-cover" />
-            <Icon
-              v-else
-              icon="mdi:image-outline"
-              class="size-16 text-green-gray"
-            />
+            <Icon v-else icon="mdi:image-outline" class="size-16 text-green-gray" />
           </div>
           <span class="text-base font-normal text-custom-black">Laden Sie ihr Logo auf</span>
-          <input
-            ref="fileInput"
-            type="file"
-            accept="image/*"
-            class="hidden"
-            @change="onFileChange"
-          />
+          <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange" />
         </div>
 
         <!-- Company Info Fields -->
         <div class="flex gap-7.5">
-          <FormTextField
-            name="firmenname"
-            label="Firmenname (lt. HGB/Gewerbeeintrag)*"
-            placeholder="HWT GmbH"
-            class="w-95"
-          />
-          <FormTextField
-            name="ustIdNr"
-            label="USt-IdNr."
-            placeholder="DE 127395564"
-            class="w-95"
-          />
+          <FormTextField name="firmenname" label="Firmenname (lt. HGB/Gewerbeeintrag)*" placeholder="HWT GmbH"
+            class="w-95" />
+          <FormTextField name="ustIdNr" label="USt-IdNr." placeholder="DE 127395564" class="w-95" />
         </div>
       </div>
 
@@ -168,21 +141,12 @@ const onFileChange = (e: Event) => {
           <!-- Address Fields -->
           <div class="grid flex-1 grid-cols-[2fr_1fr] gap-x-7.5 gap-y-3 lg:max-w-137.5">
             <!-- Row 1: Straße & Nr -->
-            <FormTextField
-              name="address.strasse"
-              label="Straße"
-              placeholder="Sechzig Str"
-              class="w-95"
-            />
+            <FormTextField name="address.strasse" label="Straße" placeholder="Sechzig Str" class="w-95" />
             <FormTextField name="address.nr" label="Nr." placeholder="45" class="w-44.5" />
 
             <!-- Row 2: Zusätzliche Anschrift & PLZ -->
-            <FormTextField
-              name="address.zusaetzlicheAnschrift"
-              label="Zusätzliche Anschrift"
-              placeholder=""
-              class="w-95"
-            />
+            <FormTextField name="address.zusaetzlicheAnschrift" label="Zusätzliche Anschrift" placeholder=""
+              class="w-95" />
             <FormTextField name="address.plz" label="PLZ" placeholder="50733" class="w-44.5" />
 
             <!-- Row 3: Ort & Land -->
@@ -197,14 +161,11 @@ const onFileChange = (e: Event) => {
 
           <!-- Map Placeholder -->
           <div
-            class="h-52.75 max-w-101.5 flex-1 overflow-hidden rounded-lg border border-[#D9E2E2] bg-[#F9FAFA] lg:h-auto"
-          >
-            <div
-              class="flex size-full items-center justify-center bg-[#E5E7EB] relative"
-            >
+            class="h-52.75 max-w-101.5 flex-1 overflow-hidden rounded-lg border border-[#D9E2E2] bg-[#F9FAFA] lg:h-auto">
+            <div class="flex size-full items-center justify-center bg-[#E5E7EB] relative">
               <div
-                class="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=Cologne,Germany&zoom=13&size=600x300&key=YOUR_API_KEY')] bg-cover bg-center opacity-40"
-              ></div>
+                class="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=Cologne,Germany&zoom=13&size=600x300&key=YOUR_API_KEY')] bg-cover bg-center opacity-40">
+              </div>
               <div class="z-10 flex flex-col items-center">
                 <Icon icon="mdi:map-marker" class="size-10 text-[#01B990]" />
               </div>
@@ -215,11 +176,9 @@ const onFileChange = (e: Event) => {
 
       <!-- Save Button -->
       <div class="flex justify-end mb-7.5">
-        <Button
-          type="submit"
+        <Button type="submit"
           class="h-8.5 rounded-[5px] bg-custom-green text-sm font-bold text-white transition-all hover:bg-[#019d7a] w-37.5"
-          :disabled="isSubmitting"
-        >
+          :disabled="isSubmitting">
           {{ isSubmitting ? "Wird gespeichert..." : "Speichern" }}
         </Button>
       </div>
