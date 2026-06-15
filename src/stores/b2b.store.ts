@@ -109,6 +109,13 @@ export const useB2BStore = defineStore("b2b", () => {
       return res;
     } catch (err) {
       const apiError = normalizeApiError(err);
+      if ((apiError as any).status === 404) {
+        // No company profile exists yet for this user — not a fatal error,
+        // just an unregistered B2B account. Show the page in empty state.
+        profile.value = null;
+        status.value = "success";
+        return null;
+      }
       error.value = apiError.message;
       status.value = "error";
       throw err;

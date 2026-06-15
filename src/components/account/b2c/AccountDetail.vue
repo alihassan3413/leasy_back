@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
+import { ref, watch } from "vue";
 import { useForm } from "vee-validate";
 import { Icon } from "@iconify/vue";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
@@ -13,16 +13,11 @@ import type { B2CProfileUpdatePayload, B2CProfileCreatePayload } from "@/types";
 
 const b2cStore = useB2CStore();
 const isEditMode = ref(false);
-// When there's no profile, we start in edit mode to let them create one
 const isCreateMode = ref(false);
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const avatarUrl = ref<string | null>(null);
 const avatarFile = ref<File | null>(null);
-
-onMounted(async () => {
-  await b2cStore.fetchProfile();
-});
 
 const anredeOptions = [
   { label: "Herr", value: "Herr" },
@@ -48,38 +43,35 @@ const { handleSubmit, resetForm, setFieldValue, values, isSubmitting } =
     },
   });
 
-watch(
-  () => b2cStore.profile,
-  (profile) => {
-    if (!profile) {
-      // No profile - start in view mode
-      isCreateMode.value = true;
-      isEditMode.value = false;
-      return;
-    }
-    // Profile exists - normal edit mode
-    isCreateMode.value = false;
+const syncFromProfile = () => {
+  const profile = b2cStore.profile;
+  if (!profile) {
+    isCreateMode.value = true;
     isEditMode.value = false;
-    resetForm({
-      values: {
-        anrede: profile.contact.salutation,
-        vorname: profile.contact.first_name,
-        nachname: profile.contact.last_name,
-        address: {
-          strasse: profile.address.street,
-          nr: profile.address.number,
-          zusaetzlicheAnschrift: profile.address.additional_address ?? "",
-          plz: profile.address.zip_code,
-          ort: profile.address.city,
-          latitude: profile.address.latitude,
-          longitude: profile.address.longitude,
-        },
+    return;
+  }
+  isCreateMode.value = false;
+  isEditMode.value = false;
+  resetForm({
+    values: {
+      anrede: profile.contact.salutation ?? "",
+      vorname: profile.contact.first_name ?? "",
+      nachname: profile.contact.last_name ?? "",
+      address: {
+        strasse: profile.address.street ?? "",
+        nr: profile.address.number ?? "",
+        zusaetzlicheAnschrift: profile.address.additional_address ?? "",
+        plz: profile.address.zip_code ?? "",
+        ort: profile.address.city ?? "",
+        latitude: profile.address.latitude ?? null,
+        longitude: profile.address.longitude ?? null,
       },
-    });
-    avatarUrl.value = profile.contact.avatar_url ?? null;
-  },
-  { immediate: true },
-);
+    },
+  });
+  avatarUrl.value = (profile.contact as any).avatar_url ?? null;
+};
+
+watch(() => b2cStore.profile, syncFromProfile, { immediate: true });
 
 const triggerAvatarUpload = () => {
   if (!isEditMode.value) return;
@@ -113,10 +105,13 @@ const onAddressFromMap = (resolved: ResolvedAddress) => {
   setFieldValue("address.longitude", resolved.longitude);
 };
 
+const saveError = ref<string | null>(null);
+
 const onSubmit = handleSubmit(async (formValues) => {
+  saveError.value = null;
+
   try {
     if (isCreateMode.value) {
-      // Create new profile
       const createPayload: B2CProfileCreatePayload = {
         address: {
           street: formValues.address.strasse,
@@ -137,22 +132,24 @@ const onSubmit = handleSubmit(async (formValues) => {
       };
       await b2cApi.createProfile(createPayload);
     } else if (b2cStore.profile) {
-      // Update existing profile
+      const existing = b2cStore.profile.address;
+      const lat = formValues.address.latitude;
+      const lng = formValues.address.longitude;
+
       const updatePayload: B2CProfileUpdatePayload = {
-        address_id: b2cStore.profile.address.address_id,
+        address_id: existing.address_id,
         contact_id: b2cStore.profile.contact.contact_id,
         address: {
-          street: formValues.address.strasse,
-          number: formValues.address.nr,
-          additional_address: formValues.address.zusaetzlicheAnschrift,
-          zip_code: formValues.address.plz,
-          city: formValues.address.ort,
-          country: b2cStore.profile.address.country,
-          latitude: formValues.address.latitude,
-          longitude: formValues.address.longitude,
+          street: formValues.address.strasse || existing.street || "",
+          number: formValues.address.nr || existing.number || "",
+          additional_address: formValues.address.zusaetzlicheAnschrift || existing.additional_address || "",
+          zip_code: formValues.address.plz || existing.zip_code || "",
+          city: formValues.address.ort || existing.city || "",
+          country: existing.country || "Deutschland",
+          ...(lat && lng ? { latitude: lat, longitude: lng } : {}),
         },
         contact: {
-          salutation: formValues.anrede,
+          salutation: formValues.anrede || b2cStore.profile.contact.salutation || "",
           first_name: formValues.vorname,
           last_name: formValues.nachname,
         },
@@ -160,221 +157,206 @@ const onSubmit = handleSubmit(async (formValues) => {
       };
       await b2cStore.updateProfile(updatePayload);
     }
-    // Refresh profile after create/update
+
     await b2cStore.fetchProfile();
     avatarFile.value = null;
     isEditMode.value = false;
   } catch (err) {
     console.error("Failed to save profile:", err);
+    saveError.value = "Speichern fehlgeschlagen. Bitte versuchen Sie es erneut.";
   }
 });
 
-const toggleEditMode = () => {
-  if (isEditMode.value) {
-    // Cancel edit
-    if (b2cStore.profile) {
-      const profile = b2cStore.profile;
-      resetForm({
-        values: {
-          anrede: profile.contact.salutation,
-          vorname: profile.contact.first_name,
-          nachname: profile.contact.last_name,
-          address: {
-            strasse: profile.address.street,
-            nr: profile.address.number,
-            zusaetzlicheAnschrift: profile.address.additional_address ?? "",
-            plz: profile.address.zip_code,
-            ort: profile.address.city,
-            latitude: profile.address.latitude,
-            longitude: profile.address.longitude,
-          },
-        },
-      });
-      avatarUrl.value = profile.contact.avatar_url ?? null;
-      avatarFile.value = null;
-    } else {
-      // Reset form if no profile
-      resetForm();
-      avatarUrl.value = null;
-      avatarFile.value = null;
-    }
-  }
-  isEditMode.value = !isEditMode.value;
+const cancelEdit = () => {
+  syncFromProfile();
+  avatarFile.value = null;
+  isEditMode.value = false;
+};
+
+const formatAddressLine1 = () => {
+  const a = b2cStore.profile?.address;
+  if (!a) return "—";
+  return [a.street, a.number].filter(Boolean).join(" ") || "—";
+};
+
+const formatAddressLine2 = () => {
+  const a = b2cStore.profile?.address;
+  if (!a) return "—";
+  return [a.zip_code, a.city].filter(Boolean).join(" ") || "—";
 };
 </script>
 
 <template>
-  <div
-    class="w-full rounded-[10px] border border-[#D9E2E2] bg-white px-10 py-6"
-  >
-    <!-- Header with Pencil / Close Icon -->
-    <div class="mb-6 flex items-center justify-between">
-      <h2 class="text-xl font-bold text-color-primary">Kontodaten</h2>
-      <button
-        type="button"
-        @click="toggleEditMode"
-        class="text-custom-green transition-opacity hover:opacity-70"
-      >
-        <Icon
-          :icon="isEditMode ? 'mdi:close' : 'mdi:pencil-outline'"
-          class="size-6"
-        />
+  <div class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm">
+    <!-- ── Card header ─────────────────────────────────── -->
+    <div class="flex items-center justify-between border-b border-[#EDF2F2] px-8 py-5">
+      <div>
+        <h2 class="text-[17px] font-bold text-[#10393B]">Kontodaten</h2>
+        <p class="mt-0.5 text-[13px] text-[#7A9699]">
+          Persönliche Angaben und Anschrift
+        </p>
+      </div>
+
+      <button v-if="!isEditMode" type="button" @click="isEditMode = true"
+        class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3.5 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green">
+        <Icon icon="mdi:pencil-outline" class="size-4" />
+        {{ isCreateMode ? "Profil erstellen" : "Bearbeiten" }}
+      </button>
+      <button v-else type="button" @click="cancelEdit"
+        class="flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]">
+        <Icon icon="mdi:close" class="size-4" />
+        Abbrechen
       </button>
     </div>
 
-    <!-- No profile message -->
-    <div v-if="!b2cStore.profile && !isEditMode" class="mb-6 text-center py-8">
-      <p class="text-lg text-gray-600">Sie haben noch kein Profil erstellt!</p>
-      <p class="text-sm text-gray-500 mt-2">
-        Klicken Sie auf den Stift-Button oben, um Ihr Profil zu erstellen.
+    <!-- ════════════ NO PROFILE EMPTY STATE ════════════ -->
+    <div v-if="isCreateMode && !isEditMode" class="px-8 py-12 text-center">
+      <Icon icon="mdi:account-circle-outline" class="mx-auto mb-3 size-12 text-[#9CB3B4]" />
+      <p class="text-[15px] font-semibold text-[#10393B]">Noch kein Profil hinterlegt</p>
+      <p class="mt-1 text-[13px] text-[#7A9699]">
+        Klicken Sie auf „Profil erstellen", um Ihre Daten zu hinterlegen.
       </p>
     </div>
 
-    <form
-      @submit.prevent="onSubmit"
-      class="space-y-8"
-      v-if="isEditMode || b2cStore.profile"
-    >
-      <!-- Avatar + Contact info -->
-      <div class="flex items-end gap-8">
-        <!-- Avatar -->
-        <div class="flex flex-col items-start gap-3 shrink-0">
-          <div
-            class="flex size-24 items-center justify-center overflow-hidden rounded-full"
-            :class="isEditMode ? 'cursor-pointer' : 'cursor-default'"
-            @click="triggerAvatarUpload"
-          >
-            <img
-              :src="avatarUrl || profileImage"
-              alt="Profilbild"
-              class="size-full object-cover"
-            />
+    <!-- ════════════════ READ MODE ════════════════ -->
+    <div v-else-if="!isEditMode" class="px-5 py-8 sm:px-8">
+      <div class="flex flex-col gap-7 lg:flex-row lg:items-start">
+        <!-- Data list -->
+        <dl class="grid min-w-0 flex-1 grid-cols-1 gap-x-10 gap-y-7 sm:grid-cols-2">
+          <div class="min-w-0">
+            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+              Name
+            </dt>
+            <dd class="mt-1.5 wrap-break-word text-[15px] font-semibold text-[#10393B]">
+              {{
+                [
+                  b2cStore.profile?.contact?.salutation,
+                  b2cStore.profile?.contact?.first_name,
+                  b2cStore.profile?.contact?.last_name,
+                ]
+                  .filter(Boolean)
+                  .join(" ") || "—"
+              }}
+            </dd>
           </div>
-          <span
-            v-if="isEditMode"
-            class="whitespace-nowrap text-base font-normal text-custom-black"
-          >
-            Profilbild ändern
-          </span>
-          <input
-            ref="fileInput"
-            type="file"
-            accept="image/*"
-            class="hidden"
-            @change="onFileChange"
-          />
-        </div>
 
-        <!-- Contact fields: fill remaining row, never overflow -->
-        <div class="flex flex-1 min-w-0 gap-[30px]">
-          <FormSelectField
-            name="anrede"
-            label="Anrede"
-            placeholder="Anrede"
-            :options="anredeOptions"
-            width="w-[128px]"
-            :disabled="!isEditMode"
-            class="shrink-0"
-          />
-          <FormTextField
-            name="vorname"
-            label="Vorname"
-            placeholder="Vorname"
-            class="flex-1 min-w-0"
-            :disabled="!isEditMode"
-          />
-          <FormTextField
-            name="nachname"
-            label="Nachname"
-            placeholder="Nachname"
-            class="flex-1 min-w-0"
-            :disabled="!isEditMode"
-          />
+          <div class="min-w-0">
+            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+              E-Mail
+            </dt>
+            <dd class="mt-1.5 break-all text-[15px] font-semibold text-[#10393B]">
+              {{ b2cStore.profile?.email || "—" }}
+            </dd>
+          </div>
+
+          <div class="min-w-0">
+            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+              Anschrift
+            </dt>
+            <dd class="mt-1.5 wrap-break-word text-[15px] font-semibold leading-relaxed text-[#10393B]">
+              {{ formatAddressLine1() }}<br />
+              <template v-if="b2cStore.profile?.address?.additional_address">
+                {{ b2cStore.profile.address.additional_address }}<br />
+              </template>
+              {{ formatAddressLine2() }}
+            </dd>
+          </div>
+
+          <div class="min-w-0">
+            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+              Land
+            </dt>
+            <dd class="mt-1.5 text-[15px] font-semibold text-[#10393B]">
+              {{ b2cStore.profile?.address?.country || "Deutschland" }}
+            </dd>
+          </div>
+        </dl>
+
+        <!-- Static map preview -->
+        <div class="h-[185px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[260px]">
+          <AppMapPicker :latitude="values.address?.latitude ?? null" :longitude="values.address?.longitude ?? null"
+            :interactive="false" />
         </div>
       </div>
+    </div>
 
-      <!-- Address Section -->
-      <div class="space-y-4 pt-4">
-        <p class="text-xl font-bold text-custom-black">
-          {{
-            isCreateMode
-              ? "Bitte geben Sie Ihre Daten ein, um Ihr Profil zu erstellen."
-              : "Bitte geben Sie die Adresse ein oder wählen Sie diese direkt in der Karte aus."
-          }}
+    <!-- ════════════════ EDIT MODE ════════════════ -->
+    <form v-else @submit.prevent="onSubmit">
+      <div class="space-y-7 px-8 py-7">
+        <!-- Avatar + contact -->
+        <div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:gap-8">
+          <div class="shrink-0">
+            <button type="button" @click="triggerAvatarUpload"
+              class="group relative block size-20 overflow-hidden rounded-full ring-2 ring-[#D1DCDC] ring-offset-2 transition-all hover:ring-custom-green">
+              <img :src="avatarUrl || profileImage" alt="Profilbild" class="size-full object-cover" />
+              <span
+                class="absolute inset-0 flex items-center justify-center bg-[#10393B]/50 opacity-0 transition-opacity group-hover:opacity-100">
+                <Icon icon="mdi:camera-outline" class="size-6 text-white" />
+              </span>
+            </button>
+            <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange" />
+          </div>
+
+          <div class="flex min-w-0 flex-1 flex-wrap gap-x-[30px] gap-y-4">
+            <FormSelectField name="anrede" label="Anrede" placeholder="Anrede" :options="anredeOptions"
+              width="w-[128px]" class="shrink-0" />
+            <FormTextField name="vorname" label="Vorname" placeholder="Vorname" class="min-w-[180px] flex-1" />
+            <FormTextField name="nachname" label="Nachname" placeholder="Nachname" class="min-w-[180px] flex-1" />
+          </div>
+        </div>
+
+        <!-- Divider with label -->
+        <div class="flex items-center gap-3">
+          <span class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+            Anschrift
+          </span>
+          <span class="h-px flex-1 bg-[#EDF2F2]" />
+        </div>
+        <p class="mt-1.5! text-[13px] text-[#7A9699]">
+          {{ isCreateMode ? "Bitte geben Sie Ihre Daten ein, um Ihr Profil zu erstellen." : "Adresse eingeben oder
+          direkt
+          auf der Karte auswählen." }}
         </p>
 
-        <div class="flex gap-6">
-          <!-- Address grid: shares the row with the map. min-w-0 so it can shrink. -->
-          <div
-            class="grid flex-1 min-w-0 grid-cols-[2fr_1fr] gap-x-[30px] gap-y-3"
-          >
-            <FormTextField
-              name="address.strasse"
-              label="Straße"
-              placeholder="Straße"
-              :disabled="!isEditMode"
-            />
-            <FormTextField
-              name="address.nr"
-              label="Nr."
-              placeholder="Nr."
-              :disabled="!isEditMode"
-            />
-
-            <FormTextField
-              name="address.zusaetzlicheAnschrift"
-              label="Zusätzliche Anschrift"
-              placeholder="Adresszusatz"
-              :disabled="!isEditMode"
-            />
-            <FormTextField
-              name="address.plz"
-              label="PLZ"
-              placeholder="PLZ"
-              :disabled="!isEditMode"
-            />
-
-            <FormTextField
-              name="address.ort"
-              label="Ort"
-              placeholder="Ort"
-              :disabled="!isEditMode"
-            />
+        <div class="flex flex-col gap-6 lg:flex-row">
+          <div class="grid min-w-0 flex-1 grid-cols-[2fr_1fr] gap-x-[30px] gap-y-5">
+            <FormTextField name="address.strasse" label="Straße" placeholder="Straße" />
+            <FormTextField name="address.nr" label="Nr." placeholder="Nr." />
+            <FormTextField name="address.zusaetzlicheAnschrift" label="Zusätzliche Anschrift"
+              placeholder="Adresszusatz" />
+            <FormTextField name="address.plz" label="PLZ" placeholder="PLZ" />
+            <FormTextField name="address.ort" label="Ort" placeholder="Ort" />
             <div class="flex flex-col">
-              <span class="mb-1.5 text-sm font-bold text-black">Land</span>
-              <span class="py-2 text-[15px] font-medium text-[#10393B]">
-                {{ b2cStore.profile?.address.country || "Deutschland" }}
+              <span class="mb-1.5 text-sm font-semibold text-[#10393B]">Land</span>
+              <span class="py-2 text-[15px] font-semibold text-[#10393B]">
+                {{ b2cStore.profile?.address?.country || "Deutschland" }}
               </span>
             </div>
           </div>
 
-          <!-- Map: fixed width on laptop, fixed height so Leaflet can measure. -->
-          <div
-            class="h-[260px] w-[400px] shrink-0 overflow-hidden rounded-lg border border-[#D9E2E2]"
-          >
-            <AppMapPicker
-              :latitude="values.address?.latitude ?? null"
-              :longitude="values.address?.longitude ?? null"
-              :interactive="isEditMode"
-              @resolved="onAddressFromMap"
-            />
+          <div class="h-[260px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[380px]">
+            <AppMapPicker :latitude="values.address?.latitude ?? null" :longitude="values.address?.longitude ?? null"
+              :interactive="true" @resolved="onAddressFromMap" />
           </div>
         </div>
       </div>
 
-      <!-- Save Button -->
-      <div v-if="isEditMode" class="mb-[30px] flex justify-end">
-        <Button
-          type="submit"
-          class="h-[34px] w-[150px] rounded-[5px] bg-custom-green text-sm font-bold text-white transition-all hover:bg-[#019d7a]"
-          :disabled="isSubmitting"
-        >
+      <!-- Action footer -->
+      <div class="flex items-center justify-end gap-3 border-t border-[#EDF2F2] bg-[#F8FAFB] px-8 py-4">
+        <p v-if="saveError" class="mr-auto text-sm text-red-500">{{ saveError }}</p>
+        <button type="button" @click="cancelEdit"
+          class="rounded-lg px-4 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]">
+          Abbrechen
+        </button>
+        <Button type="submit"
+          class="h-[38px] rounded-lg bg-custom-green px-6 text-sm font-semibold text-white transition-all hover:bg-[#019d7a]"
+          :disabled="isSubmitting">
           {{
             isSubmitting
-              ? "Wird gespeichert..."
+              ? "Wird gespeichert…"
               : isCreateMode
                 ? "Profil erstellen"
-                : "Speichern"
+                : "Änderungen speichern"
           }}
         </Button>
       </div>
