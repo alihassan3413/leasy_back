@@ -67,11 +67,11 @@ const nutzerOptions = ["Christin Mechtild", "Thorsten Jung", "Marcus Dietrich"];
 const isEditMode = computed(() => !!props.vehicle);
 
 const markeIconClasses = computed(() => [
-  "text-[24px] text-gray-500500 transition-transform duration-200",
+  "text-[24px] text-gray-500 transition-transform duration-200",
   markeOpen.value ? "rotate-180" : "rotate-0",
 ]);
 const nutzerIconClasses = computed(() => [
-  "text-[24px] tegr-y-500ay-500 transition-transform duration-200",
+  "text-[24px] text-gray-500 transition-transform duration-200",
   nutzerOpen.value ? "rotate-180" : "rotate-0",
 ]);
 
