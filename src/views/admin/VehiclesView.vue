@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from "vue";
+import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { Icon } from "@iconify/vue";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -47,10 +47,13 @@ async function toggleExpand(id: string) {
 // ── Order creation modal ──────────────────────────────────────────
 const orderModalOpen = ref(false);
 const selectedVehicle = ref<AdminVehicle | null>(null);
+// 3-dot menu state
+const openMenuId = ref<string | null>(null);
 
 function openCreateOrder(vehicle: AdminVehicle) {
   selectedVehicle.value = vehicle;
   orderModalOpen.value = true;
+  openMenuId.value = null;
 }
 
 function onOrderSuccess() {
@@ -153,7 +156,21 @@ watch(expandedId, (newId) => {
     loadDocuments(newId);
   }
 });
-onMounted(() => void loadVehicles());
+
+function handleClickOutside(event: MouseEvent) {
+  if (openMenuId.value) {
+    openMenuId.value = null;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+  void loadVehicles();
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 </script>
 
 <template>
@@ -410,25 +427,165 @@ onMounted(() => void loadVehicles());
                 <!-- Expand toggle -->
                 <td class="px-3 py-3.5">
                   <div class="flex items-center gap-2">
-                    <span
-                      v-if="
-                        !v.current_auftragsnummer &&
-                        (!v.order_history || v.order_history.length === 0)
-                      "
-                      class="w-8 h-8 flex items-center justify-center rounded-[9px] text-[#bcccca] hover:bg-[#01B990] hover:text-white transition-all cursor-pointer"
-                      @click.stop="openCreateOrder(v)"
-                    >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.2"
+                    <!-- 3-dot menu -->
+                    <div class="relative">
+                      <button
+                        class="w-8 h-8 flex items-center justify-center rounded-[9px] text-[#bcccca] hover:bg-[#10393b]/10 hover:text-[#10393b] transition-all"
+                        @click.stop="
+                          openMenuId =
+                            openMenuId === v.vehicle_id ? null : v.vehicle_id
+                        "
                       >
-                        <path d="M12 5v14M5 12h14"></path>
-                      </svg>
-                    </span>
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <circle cx="12" cy="6" r="1.5"></circle>
+                          <circle cx="12" cy="12" r="1.5"></circle>
+                          <circle cx="12" cy="18" r="1.5"></circle>
+                        </svg>
+                      </button>
+
+                      <!-- Dropdown menu -->
+                      <div
+                        v-if="openMenuId === v.vehicle_id"
+                        class="absolute right-0 top-full mt-1 z-[100] bg-white rounded-[16px] border border-[#eef3f2] shadow-[0_4px_12px_rgba(16,57,59,0.08)] py-2 min-w-[240px]"
+                      >
+                        <button
+                          class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
+                          @click.stop="openMenuId = null"
+                        >
+                          <span class="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path
+                                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                              />
+                              <path
+                                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                              />
+                            </svg>
+                            Status aktualisieren
+                          </span>
+                        </button>
+                        <button
+                          class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
+                          @click.stop="openMenuId = null"
+                        >
+                          <span class="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path
+                                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                              />
+                              <polyline points="14 2 14 8 20 8" />
+                              <path d="M16 13H8" />
+                              <path d="M16 17H8" />
+                            </svg>
+                            Bericht hochladen
+                          </span>
+                        </button>
+                        <button
+                          class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
+                          @click.stop="openMenuId = null"
+                        >
+                          <span class="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <rect x="2" y="4" width="20" height="16" rx="2" />
+                              <path d="M6 8h12" />
+                              <path d="M6 12h6" />
+                              <path d="M6 16h12" />
+                            </svg>
+                            Rechnung hochladen
+                          </span>
+                        </button>
+                        <button
+                          class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
+                          @click.stop="openMenuId = null"
+                        >
+                          <span class="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M12 5v14M5 12h14" />
+                            </svg>
+                            Angebot erstellen
+                          </span>
+                        </button>
+                        <div class="h-px bg-[#eef3f2] my-1"></div>
+                        <button
+                          class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
+                          @click.stop="openCreateOrder(v)"
+                        >
+                          <span class="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M9 11l3 3L22 4" />
+                              <path
+                                d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                              />
+                            </svg>
+                            Auftrag erstellen
+                          </span>
+                        </button>
+                        <button
+                          class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
+                          @click.stop="toggleExpand(v.vehicle_id)"
+                        >
+                          <span class="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path
+                                d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                              ></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            Details anzeigen
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
                     <span
                       class="w-8 h-8 flex items-center justify-center rounded-[9px] text-[#bcccca] group-hover:bg-[#10393b] group-hover:text-white transition-all"
                     >

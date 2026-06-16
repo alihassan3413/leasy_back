@@ -5,6 +5,7 @@ import { formatGermanDate } from "@/lib/formatting";
 import type { AdminOrder } from "@/types";
 import { toast } from "vue-sonner";
 import AdminChangeOrderStatusModal from "@/components/admin/AdminChangeOrderStatusModal.vue";
+import AdminConfirmOrderModal from "@/components/admin/AdminConfirmOrderModal.vue";
 
 // ── List state ────────────────────────────────────────────────────
 const userType = ref<"Firmenkunde" | "Privatkunde" | "all">("all");
@@ -22,6 +23,8 @@ const loading = ref(false);
 const error = ref("");
 const modalOpen = ref(false);
 const selectedOrder = ref<AdminOrder | null>(null);
+const confirmModalOpen = ref(false);
+const selectedConfirmOrder = ref<AdminOrder | null>(null);
 
 // ── Status config ─────────────────────────────────────────────────
 const statusFilterOptions = [
@@ -150,6 +153,16 @@ function handleChangeStatus(order: AdminOrder) {
 
 async function handleOrderStatusUpdated() {
   toast.success("Auftragsstatus erfolgreich aktualisiert!");
+  await loadOrders();
+}
+
+function handleConfirmOrder(order: AdminOrder) {
+  selectedConfirmOrder.value = order;
+  confirmModalOpen.value = true;
+}
+
+async function handleOrderConfirmed() {
+  toast.success("Auftrag erfolgreich bestätigt!");
   await loadOrders();
 }
 </script>
@@ -415,6 +428,30 @@ async function handleOrderStatusUpdated() {
                     {{ getStatus(o.order_status).label }}
                   </span>
                   <button
+                    v-if="
+                      ['order_requested', 'order_placed'].includes(
+                        o.order_status,
+                      )
+                    "
+                    @click="handleConfirmOrder(o)"
+                    class="p-1 hover:bg-emerald-50 rounded-full transition-colors"
+                    title="Auftrag bestätigen"
+                  >
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#01B990"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22,4 12,14.01 9,11.01" />
+                    </svg>
+                  </button>
+                  <button
                     @click="handleChangeStatus(o)"
                     class="p-1 hover:bg-[#10393b]/10 rounded-full transition-colors"
                     title="Status ändern"
@@ -503,6 +540,13 @@ async function handleOrderStatusUpdated() {
       :status-options="modalStatusOptions"
       @update:open="modalOpen = $event"
       @order-status-updated="handleOrderStatusUpdated"
+    />
+
+    <AdminConfirmOrderModal
+      :open="confirmModalOpen"
+      :order="selectedConfirmOrder"
+      @update:open="confirmModalOpen = $event"
+      @order-confirmed="handleOrderConfirmed"
     />
   </div>
 </template>

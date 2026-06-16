@@ -31,4 +31,19 @@ export const adminOrdersApi = {
   ): Promise<unknown> {
     return post(`/order/${provider}/order/approve/${orderId}`);
   },
+  
+  updateOrderStatus(
+    orderId: string,
+    status: string,
+  ): Promise<unknown> {
+    return post(`/admin/order/${encodeURIComponent(orderId)}/status`, { status });
+  },
+
+  confirmOrder(
+    provider: "tuvsud" | "dekra",
+    orderId: string,
+    confirmationDate?: string,
+  ): Promise<unknown> {
+    return post(`/order/${provider}/order/confirm/${orderId}`, confirmationDate ? { confirmationDate } : {});
+  },
 }
