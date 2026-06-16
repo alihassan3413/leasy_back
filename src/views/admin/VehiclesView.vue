@@ -66,8 +66,6 @@ const modalStatusOptions = [
 // Upload document modals
 const uploadReportOpen = ref(false);
 const uploadInvoiceOpen = ref(false);
-// Create offer modal
-const createOfferOpen = ref(false);
 
 function openCreateOrder(vehicle: AdminVehicle) {
   selectedVehicle.value = vehicle;
@@ -148,12 +146,6 @@ function openUploadReport(vehicle: AdminVehicle) {
 function openUploadInvoice(vehicle: AdminVehicle) {
   selectedVehicle.value = vehicle;
   uploadInvoiceOpen.value = true;
-  openMenuId.value = null;
-}
-
-function openCreateOffer(vehicle: AdminVehicle) {
-  selectedVehicle.value = vehicle;
-  createOfferOpen.value = true;
   openMenuId.value = null;
 }
 
@@ -652,7 +644,6 @@ onBeforeUnmount(() => {
                         </button>
                         <button
                           class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
-                          @click.stop="openCreateOffer(v)"
                         >
                           <span class="flex items-center gap-2">
                             <svg
@@ -813,50 +804,6 @@ onBeforeUnmount(() => {
       :vehicle-id="selectedVehicle?.vehicle_id"
       @update:open="uploadInvoiceOpen = $event"
     />
-
-    <!-- Create Offer Modal (placeholder) -->
-    <Dialog :open="createOfferOpen" @update:open="createOfferOpen = $event">
-      <DialogContent
-        class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
-        style="width: 620px; max-width: 620px"
-        :show-close-button="false"
-      >
-        <div class="relative">
-          <button
-            @click="createOfferOpen = false"
-            class="absolute -right-1 -top-1 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
-          >
-            <Icon icon="mdi:close" class="size-8" />
-          </button>
-
-          <div
-            class="bg-white border border-[#C6C6CD] p-6 inverted-corner inverted-corner-top-right"
-            style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
-          >
-            <div class="px-4 pt-4 mb-4">
-              <h2 class="text-[24px] font-bold leading-normal text-black">
-                Angebot erstellen
-              </h2>
-              <p
-                class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]"
-              >
-                Diese Funktion wird bald verfügbar sein.
-              </p>
-            </div>
-
-            <div class="flex justify-center">
-              <button
-                class="h-10 px-6 rounded-full text-base font-semibold text-white transition-all duration-200 shadow-lg"
-                style="background: #ef8450"
-                @click="createOfferOpen = false"
-              >
-                Schließen
-              </button>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
   </div>
 </template>
 
