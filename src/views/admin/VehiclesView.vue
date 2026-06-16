@@ -3,11 +3,14 @@ import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import { Icon } from "@iconify/vue";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { adminVehiclesApi, vehicleApi } from "@/api";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { adminVehiclesApi, vehicleApi, adminOrdersApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
-import type { AdminVehicle } from "@/types";
+import type { AdminVehicle, AdminOrder } from "@/types";
 import AdminOrderCreationModal from "@/components/admin/AdminOrderCreationModal.vue";
 import AdminVehicleOrderHistory from "@/components/admin/AdminVehicleOrderHistory.vue";
+import AdminChangeOrderStatusModal from "@/components/admin/AdminChangeOrderStatusModal.vue";
+import UploadDocumentModal from "@/components/dashboard/modals/UploadDocumentModal.vue";
 
 // ── List state ────────────────────────────────────────────────────
 const userType = ref<"Firmenkunde" | "Privatkunde" | "all">("all");
@@ -44,15 +47,113 @@ async function toggleExpand(id: string) {
   }
 }
 
-// ── Order creation modal ──────────────────────────────────────────
+// Order creation modal
 const orderModalOpen = ref(false);
 const selectedVehicle = ref<AdminVehicle | null>(null);
 // 3-dot menu state
 const openMenuId = ref<string | null>(null);
+// Status update modal
+const statusModalOpen = ref(false);
+const selectedOrderForStatus = ref<AdminOrder | null>(null);
+const modalStatusOptions = [
+  { label: "Anfrage gesendet", value: "order_requested" },
+  { label: "Bestellt", value: "order_placed" },
+  { label: "Bestätigt", value: "confirmed" },
+  { label: "Geprüft", value: "inspected" },
+  { label: "Geliefert", value: "delivered" },
+  { label: "Abgeschlossen", value: "completed" },
+];
+// Upload document modals
+const uploadReportOpen = ref(false);
+const uploadInvoiceOpen = ref(false);
+// Create offer modal
+const createOfferOpen = ref(false);
 
 function openCreateOrder(vehicle: AdminVehicle) {
   selectedVehicle.value = vehicle;
   orderModalOpen.value = true;
+  openMenuId.value = null;
+}
+
+function openStatusUpdate(vehicle: AdminVehicle) {
+  // Try to get current order from various places
+  let currentOrder: AdminOrder | null = null;
+
+  // First check orders array for a more complete order object
+  if (vehicle.orders && vehicle.orders.length > 0) {
+    const order = vehicle.orders[0];
+    currentOrder = {
+      id: order.id,
+      vehicle_id: vehicle.vehicle_id,
+      auftragsnummer: order.auftragsnummer,
+      leasyback_partner: order.leasyback_partner,
+      order_status: order.order_status,
+      sent_at: order.sent_at || "",
+      created_at: order.created_at,
+      response_status: order.response_status || 0,
+      license_plate: vehicle.license_plate,
+      vin: vehicle.vin,
+      make: vehicle.make,
+      model: vehicle.model,
+      user_id: vehicle.user_id,
+      user_email: vehicle.user_email,
+      user_type: vehicle.user_type,
+      b2b_id: vehicle.b2b_id,
+      company_name: vehicle.company_name,
+      confirmation_date: null,
+    };
+  }
+  // Then check order_history
+  else if (vehicle.order_history && vehicle.order_history.length > 0) {
+    const historyItem = vehicle.order_history[0];
+    currentOrder = {
+      id: historyItem.id,
+      vehicle_id: vehicle.vehicle_id,
+      auftragsnummer: historyItem.auftragsnummer,
+      leasyback_partner: historyItem.leasyback_partner,
+      order_status: historyItem.order_status,
+      sent_at: historyItem.sent_at,
+      created_at: historyItem.created_at,
+      response_status: historyItem.response_status,
+      license_plate: vehicle.license_plate,
+      vin: vehicle.vin,
+      make: vehicle.make,
+      model: vehicle.model,
+      user_id: vehicle.user_id,
+      user_email: vehicle.user_email,
+      user_type: vehicle.user_type,
+      b2b_id: vehicle.b2b_id,
+      company_name: vehicle.company_name,
+      confirmation_date: historyItem.confirmation_date,
+    };
+  }
+
+  if (currentOrder) {
+    selectedOrderForStatus.value = currentOrder;
+    statusModalOpen.value = true;
+    openMenuId.value = null;
+  }
+}
+
+function onOrderStatusUpdated() {
+  loadVehicles();
+}
+
+function openUploadReport(vehicle: AdminVehicle) {
+  selectedVehicle.value = vehicle;
+  uploadReportOpen.value = true;
+  openMenuId.value = null;
+}
+
+function openUploadInvoice(vehicle: AdminVehicle) {
+  selectedVehicle.value = vehicle;
+  uploadInvoiceOpen.value = true;
+  openMenuId.value = null;
+}
+
+function openCreateOffer(vehicle: AdminVehicle) {
+  selectedVehicle.value = vehicle;
+  createOfferOpen.value = true;
   openMenuId.value = null;
 }
 
@@ -456,8 +557,12 @@ onBeforeUnmount(() => {
                         class="absolute right-0 top-full mt-1 z-[100] bg-white rounded-[16px] border border-[#eef3f2] shadow-[0_4px_12px_rgba(16,57,59,0.08)] py-2 min-w-[240px]"
                       >
                         <button
+                          v-if="
+                            (v.orders && v.orders.length > 0) ||
+                            (v.order_history && v.order_history.length > 0)
+                          "
                           class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
-                          @click.stop="openMenuId = null"
+                          @click.stop="openStatusUpdate(v)"
                         >
                           <span class="flex items-center gap-2">
                             <svg
@@ -479,8 +584,31 @@ onBeforeUnmount(() => {
                           </span>
                         </button>
                         <button
+                          v-else
+                          class="w-full text-left px-4 py-2 text-sm text-[#9bb0af] cursor-not-allowed"
+                        >
+                          <span class="flex items-center gap-2">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path
+                                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                              />
+                              <path
+                                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                              />
+                            </svg>
+                            Kein Auftrag vorhanden
+                          </span>
+                        </button>
+                        <button
                           class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
-                          @click.stop="openMenuId = null"
+                          @click.stop="openUploadReport(v)"
                         >
                           <span class="flex items-center gap-2">
                             <svg
@@ -503,7 +631,7 @@ onBeforeUnmount(() => {
                         </button>
                         <button
                           class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
-                          @click.stop="openMenuId = null"
+                          @click.stop="openUploadInvoice(v)"
                         >
                           <span class="flex items-center gap-2">
                             <svg
@@ -524,7 +652,7 @@ onBeforeUnmount(() => {
                         </button>
                         <button
                           class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
-                          @click.stop="openMenuId = null"
+                          @click.stop="openCreateOffer(v)"
                         >
                           <span class="flex items-center gap-2">
                             <svg
@@ -665,6 +793,70 @@ onBeforeUnmount(() => {
       :vehicle="selectedVehicle"
       @success="onOrderSuccess"
     />
+
+    <AdminChangeOrderStatusModal
+      :open="statusModalOpen"
+      :order="selectedOrderForStatus"
+      :status-options="modalStatusOptions"
+      @update:open="statusModalOpen = $event"
+      @order-status-updated="onOrderStatusUpdated"
+    />
+
+    <UploadDocumentModal
+      :open="uploadReportOpen"
+      :vehicle-id="selectedVehicle?.vehicle_id"
+      @update:open="uploadReportOpen = $event"
+    />
+
+    <UploadDocumentModal
+      :open="uploadInvoiceOpen"
+      :vehicle-id="selectedVehicle?.vehicle_id"
+      @update:open="uploadInvoiceOpen = $event"
+    />
+
+    <!-- Create Offer Modal (placeholder) -->
+    <Dialog :open="createOfferOpen" @update:open="createOfferOpen = $event">
+      <DialogContent
+        class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
+        style="width: 620px; max-width: 620px"
+        :show-close-button="false"
+      >
+        <div class="relative">
+          <button
+            @click="createOfferOpen = false"
+            class="absolute -right-1 -top-1 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
+          >
+            <Icon icon="mdi:close" class="size-8" />
+          </button>
+
+          <div
+            class="bg-white border border-[#C6C6CD] p-6 inverted-corner inverted-corner-top-right"
+            style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
+          >
+            <div class="px-4 pt-4 mb-4">
+              <h2 class="text-[24px] font-bold leading-normal text-black">
+                Angebot erstellen
+              </h2>
+              <p
+                class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]"
+              >
+                Diese Funktion wird bald verfügbar sein.
+              </p>
+            </div>
+
+            <div class="flex justify-center">
+              <button
+                class="h-10 px-6 rounded-full text-base font-semibold text-white transition-all duration-200 shadow-lg"
+                style="background: #ef8450"
+                @click="createOfferOpen = false"
+              >
+                Schließen
+              </button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
