@@ -10,6 +10,7 @@ import AppMapPicker from "@/components/ui/AppMapPicker.vue";
 import { useForm } from "vee-validate";
 import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import AdminCreateStationModal from "./AdminCreateStationModal.vue";
 
 const { values } = useForm();
 
@@ -29,6 +30,7 @@ const stations = ref<Station[]>([]);
 const stationsLoading = ref(false);
 const stationOpen = ref(false);
 const selectedStation = ref<Station | null>(null);
+const createStationModalOpen = ref(false);
 
 async function fetchStations() {
   stationsLoading.value = true;
@@ -146,6 +148,13 @@ watch(
   },
 );
 
+function handleStationCreated(station: Station) {
+  // Add the new station to the list
+  stations.value.push(station);
+  // Select the new station
+  selectStation(station);
+}
+
 function close() {
   emit("update:open", false);
 }
@@ -217,7 +226,18 @@ function close() {
 
             <!-- Station dropdown -->
             <div class="relative flex flex-col gap-1 col-span-2">
-              <label class="text-sm font-semibold text-black"> Station </label>
+              <div class="flex items-center justify-between">
+                <label class="text-sm font-semibold text-black">
+                  Station
+                </label>
+                <button
+                  class="text-sm font-semibold px-2 py-1 rounded-full transition-colors hover:bg-gray-100"
+                  style="color: #ef8450"
+                  @click.stop="createStationModalOpen = true"
+                >
+                  + Station erstellen
+                </button>
+              </div>
               <div
                 class="flex h-9 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
                 tabindex="0"
@@ -353,6 +373,12 @@ function close() {
       </div>
     </DialogContent>
   </Dialog>
+  <AdminCreateStationModal
+    :open="createStationModalOpen"
+    :default-provider="selectedService"
+    @update:open="createStationModalOpen = $event"
+    @success="handleStationCreated"
+  />
 </template>
 
 <style scoped>

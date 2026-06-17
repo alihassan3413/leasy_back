@@ -65,6 +65,17 @@ export const vehicleApi = {
     return get<Station[]>(`/order/stations/${provider}`);
   },
 
+  createStation(payload: {
+    provider: "tuvsud" | "dekra";
+    name: string;
+    strasse: string;
+    plz: string;
+    ort: string;
+    bundesland: string;
+  }): Promise<Station> {
+    return post<Station, any>("/order/stations/create", payload);
+  },
+
   createOrder(
     provider: "tuvsud" | "dekra",
     vehicleId: string,
