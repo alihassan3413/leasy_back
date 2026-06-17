@@ -10,7 +10,8 @@ import type { AdminVehicle, AdminOrder } from "@/types";
 import AdminOrderCreationModal from "@/components/admin/AdminOrderCreationModal.vue";
 import AdminVehicleOrderHistory from "@/components/admin/AdminVehicleOrderHistory.vue";
 import AdminChangeOrderStatusModal from "@/components/admin/AdminChangeOrderStatusModal.vue";
-import UploadDocumentModal from "@/components/dashboard/modals/UploadDocumentModal.vue";
+import AdminUploadReportModal from "@/components/admin/AdminUploadReportModal.vue";
+import AdminUploadInvoiceModal from "@/components/admin/AdminUploadInvoiceModal.vue";
 import AdminCreateOfferModal from "@/components/admin/AdminCreateOfferModal.vue";
 
 // ── List state ────────────────────────────────────────────────────
@@ -636,10 +637,10 @@ onBeforeUnmount(() => {
       :status-options="modalStatusOptions" @update:open="statusModalOpen = $event"
       @order-status-updated="onOrderStatusUpdated" />
 
-    <UploadDocumentModal :open="uploadReportOpen" :vehicle-id="selectedVehicle?.vehicle_id"
+    <AdminUploadReportModal :open="uploadReportOpen" :vehicle-id="selectedVehicle?.vehicle_id"
       @update:open="uploadReportOpen = $event" />
 
-    <UploadDocumentModal :open="uploadInvoiceOpen" :vehicle-id="selectedVehicle?.vehicle_id"
+    <AdminUploadInvoiceModal :open="uploadInvoiceOpen" :vehicle-id="selectedVehicle?.vehicle_id"
       @update:open="uploadInvoiceOpen = $event" />
     <AdminCreateOfferModal :open="offerModalOpen" :vehicle="selectedVehicle" @update:open="offerModalOpen = $event"
       @success="loadVehicles" />
