@@ -40,10 +40,12 @@ export const adminOrdersApi = {
   },
 
   confirmOrder(
-    provider: "tuvsud" | "dekra",
-    orderId: string,
-    confirmationDate?: string,
+    auftragsnummer: string,
   ): Promise<unknown> {
-    return post(`/order/${provider}/order/confirm/${orderId}`, confirmationDate ? { confirmationDate } : {});
+    return post(`/order/others/confirm?auftragsnummer=${encodeURIComponent(auftragsnummer)}`, undefined, {
+      headers: {
+        'x-api-key': 'tuvsud_confirmation'
+      }
+    });
   },
 }
