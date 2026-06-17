@@ -92,6 +92,17 @@ function handleAction(action: string) {
     </TableCell>
     <TableCell class="h-[52px] px-4 text-right">
       <div class="flex items-center justify-end gap-1">
+        <!-- Start Process button -->
+        <button
+          @click.stop="handleAction('Start Process')"
+          class="transition-opacity hover:opacity-70 hover:bg-orange-50 p-1 rounded"
+        >
+          <Icon
+            icon="solar:play-bold"
+            class="w-5 h-5"
+            style="color: rgb(239, 132, 80)"
+          />
+        </button>
         <!-- Three dots menu -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
