@@ -31,4 +31,21 @@ export const adminOrdersApi = {
   ): Promise<unknown> {
     return post(`/order/${provider}/order/approve/${orderId}`);
   },
+  
+  updateOrderStatus(
+    orderId: string,
+    status: string,
+  ): Promise<unknown> {
+    return post(`/admin/order/${encodeURIComponent(orderId)}/status`, { status });
+  },
+
+  confirmOrder(
+    auftragsnummer: string,
+  ): Promise<unknown> {
+    return post(`/order/others/confirm?auftragsnummer=${encodeURIComponent(auftragsnummer)}`, undefined, {
+      headers: {
+        'x-api-key': 'tuvsud_confirmation'
+      }
+    });
+  },
 }
