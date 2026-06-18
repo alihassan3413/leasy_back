@@ -279,12 +279,12 @@ async function handleSubmit() {
           class="bg-white border border-[#C6C6CD] p-6 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
-          <div class="px-6 pt-6 mb-6">
+          <div class="px-2 pt-2 mb-2">
             <h2 class="text-[24px] font-bold leading-normal text-black">
               {{ isEditMode ? "Fahrzeug bearbeiten" : "Neues Fahrzeug" }}
             </h2>
             <p
-              class="mt-1 mx-2 pb-4 text-base font-light leading-normal not-italic text-[#00000080]"
+              class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]"
             >
               {{
                 isEditMode
@@ -342,8 +342,8 @@ async function handleSubmit() {
                   <input
                     v-model="number"
                     class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400"
-                    placeholder="1234H"
-                    maxlength="5"
+                    placeholder="12H"
+                    maxlength="3"
                   />
                 </div>
               </div>
@@ -362,6 +362,8 @@ async function handleSubmit() {
               <input
                 v-model="fin"
                 class="h-10 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
+                placeholder="FIN eingeben"
+                maxlength="17"
               />
               <p v-if="finError" class="text-xs text-red-500">
                 {{ finError }}
@@ -426,7 +428,7 @@ async function handleSubmit() {
                 />
                 <Icon
                   icon="mdi:calendar-outline"
-                  class="absolute right-4 text-gray-400"
+                  class="absolute right-4 text-gray-400 pointer-events-none"
                 />
               </div>
             </div>
