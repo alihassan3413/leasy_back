@@ -179,12 +179,12 @@ function close() {
           class="bg-white border border-[#C6C6CD] p-4 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
-          <div class="px-4 pt-4 mb-4">
+          <div class="px-3 pt-2 mb-2">
             <h2 class="text-[20px] font-bold leading-normal text-black">
               Auftrag erstellen
             </h2>
             <p
-              class="mt-1 mx-2 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]"
+              class="mt-1 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]"
             >
               Bitte füllen Sie alle Details im unten stehenden Formular aus.
             </p>
@@ -315,7 +315,8 @@ function close() {
                   <CalendarDateField
                     name="terminDate"
                     :minDaysAhead="3"
-                    class="h-9"
+                    inputRounded="rounded-2xl"
+                    inputClass="any-extra-class"
                   />
                 </div>
                 <div class="flex flex-col gap-1">
@@ -344,7 +345,7 @@ function close() {
                 >
               </label>
               <div
-                class="relative flex items-start rounded-full border border-gray-300 px-4 py-2 focus-within:border-emerald-500"
+                class="relative flex items-start rounded-4xl border border-gray-300 px-4 py-2 focus-within:border-emerald-500"
               >
                 <textarea
                   v-model="remarks"
