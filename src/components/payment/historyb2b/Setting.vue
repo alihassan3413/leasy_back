@@ -27,22 +27,22 @@ const handleBillingSubmit = (data: any) => {
 </script>
 
 <template>
-  <div class="w-full bg-white rounded-[5px] p-5">
-    <h2 class="text-xl font-bold text-color-primary mb-8">Einstellungen</h2>
+  <div class="w-full bg-white rounded-[5px] p-4 md:p-5">
+    <h2 class="text-lg md:text-xl font-bold text-color-primary mb-6 md:mb-8">Einstellungen</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-x-12 gap-y-6">
+    <div class="grid grid-cols-1 gap-y-4 md:grid-cols-[1fr_2fr] gap-x-12 gap-y-6">
       <!-- Left: Action Buttons -->
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-3 md:gap-4">
         <Button
           variant="primary"
-          class="w-full max-w-57.5 rounded-[5px] font-bold py-2.5"
+          class="w-full max-w-full md:max-w-57.5 rounded-[5px] font-bold py-2.5"
           @click="handlePaymentMethodChange"
         >
           Zahlungsmethode ändern
         </Button>
         <Button
           variant="primary"
-          class="w-full max-w-57.5 rounded-[5px] font-bold py-2.5"
+          class="w-full max-w-full md:max-w-57.5 rounded-[5px] font-bold py-2.5"
           @click="handleBillingAddressChange"
         >
           Rechnungsadresse ändern
@@ -50,18 +50,18 @@ const handleBillingSubmit = (data: any) => {
       </div>
 
       <!-- Right: Current Info -->
-      <div class="space-y-6 pt-2">
-        <div class="flex items-start">
-          <span class="w-72 shrink-0 font-bold text-custom-black"
+      <div class="space-y-4 md:space-y-6 pt-0 md:pt-2">
+        <div class="flex flex-col md:flex-row md:items-start gap-1 md:gap-0">
+          <span class="text-sm md:text-base font-bold text-custom-black"
             >Aktuelle Kontodaten</span
           >
-          <span class="text-custom-black opacity-70">XXXX XXXX XXXX 1234</span>
+          <span class="text-sm md:text-base text-custom-black opacity-70">XXXX XXXX XXXX 1234</span>
         </div>
-        <div class="flex items-start">
-          <span class="w-72 shrink-0 font-bold text-custom-black"
+        <div class="flex flex-col md:flex-row md:items-start gap-1 md:gap-0">
+          <span class="text-sm md:text-base font-bold text-custom-black"
             >Aktuelle Rechnungsadresse</span
           >
-          <span class="text-custom-black opacity-70 leading-tight">
+          <span class="text-sm md:text-base text-custom-black opacity-70 leading-tight">
             HWT GmbH, Theodorstraße 9, XXX
           </span>
         </div>

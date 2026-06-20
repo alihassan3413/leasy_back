@@ -43,9 +43,10 @@ const transactions = [
 
 <template>
   <div class="w-full pt-2">
-    <h2 class="text-[22px] font-normal text-color-primary my-4 pl-8">Transaktionen</h2>
+    <h2 class="text-lg md:text-[22px] font-normal text-color-primary my-4 pl-3 md:pl-8">Transaktionen</h2>
 
-    <div class="overflow-hidden rounded-[5px] border border-green-gray">
+    <!-- Desktop: Table View -->
+    <div class="hidden md:block overflow-hidden rounded-[5px] border border-green-gray">
       <Table>
         <TableHeader>
           <TableRow
@@ -101,6 +102,43 @@ const transactions = [
           </TableRow>
         </TableBody>
       </Table>
+    </div>
+
+    <!-- Mobile: Card View -->
+    <div class="md:hidden flex flex-col gap-3">
+      <div
+        v-for="(transaction, index) in transactions"
+        :key="index"
+        class="bg-white border border-green-gray rounded-[5px] p-4"
+      >
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <span class="text-xs text-gray-500">Ausstellung</span>
+            <p class="text-sm font-medium text-custom-black">{{ transaction.ausstellung }}</p>
+          </div>
+          <button class="text-custom-green hover:opacity-80 transition-opacity">
+            <Icon icon="mdi:file-download-outline" class="size-5 cursor-pointer" />
+          </button>
+        </div>
+        <div class="space-y-1">
+          <div class="flex justify-between">
+            <span class="text-xs text-gray-500">Rechnungsnummer</span>
+            <span class="text-sm text-custom-black">{{ transaction.rechnungsnummer }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-xs text-gray-500">Kenzeichen</span>
+            <span class="text-sm font-medium text-custom-black">{{ transaction.kenzeichen }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-xs text-gray-500">Rechnungsbetrag</span>
+            <span class="text-sm font-bold text-custom-black">{{ transaction.rechnungsbetrag }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-xs text-gray-500">Rechnungssaldo</span>
+            <span class="text-sm text-custom-black">{{ transaction.rechnungssaldo }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
