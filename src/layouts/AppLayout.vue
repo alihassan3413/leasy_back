@@ -60,7 +60,7 @@ function navigateTo(name: string) {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden m-4 md:m-4">
+  <div class="flex h-screen flex-col overflow-hidden md:m-4">
     <!-- Body: sidebar + main for desktop -->
     <div class="hidden md:flex flex-1 overflow-hidden relative">
       <AppSidebar />
