@@ -28,15 +28,15 @@ const handleTimezoneChange = () => {
 </script>
 
 <template>
-  <div class="w-full bg-white rounded-[10px] border border-[#D9E2E2] p-8">
-    <h2 class="text-xl font-bold text-color-primary mb-6">
+  <div class="w-full bg-white rounded-[10px] border border-[#D9E2E2] p-4 md:p-8">
+    <h2 class="text-lg md:text-xl font-bold text-color-primary mb-4 md:mb-6">
       Allgemeine Einstellungen
     </h2>
 
-    <div class="space-y-6">
+    <div class="space-y-4 md:space-y-6">
       <!-- Timezone Section -->
-      <div class="flex justify-between items-end gap-4">
-        <div class="flex-1 max-w-137.5">
+      <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4">
+        <div class="flex-1 w-full md:max-w-137.5">
           <FormSelectDropDown
             v-model="selectedTimezone"
             label="Zeitzone"
@@ -46,14 +46,14 @@ const handleTimezoneChange = () => {
         </div>
         <Button
           @click="handleTimezoneChange"
-          class="bg-custom-green hover:bg-[#019d7a] text-white font-bold h-9 px-23 rounded-[5px]"
+          class="w-full md:w-auto bg-custom-green hover:bg-[#019d7a] text-white font-bold h-9 px-4 md:px-23 rounded-[5px]"
         >
           Zeitzone ändern
         </Button>
       </div>
 
       <!-- Language Section -->
-      <div class="max-w-137.5">
+      <div class="w-full md:max-w-137.5">
         <FormSelectDropDown
           v-model="selectedLanguage"
           label="Sprache"
@@ -63,12 +63,12 @@ const handleTimezoneChange = () => {
       </div>
 
       <!-- Notification Settings -->
-      <div class="pt-4">
-        <h3 class="text-base font-normal text-[#5C6F6F] mb-4">
+      <div class="pt-3 md:pt-4">
+        <h3 class="text-sm md:text-base font-normal text-[#5C6F6F] mb-3 md:mb-4">
           Benachrichtigungseinstellungen
         </h3>
 
-        <div class="space-y-4 max-w-137.5">
+        <div class="space-y-3 md:space-y-4 w-full md:max-w-137.5">
           <Switch v-model="pushNotifications" label="Push" />
           <Switch v-model="emailNotifications" label="E-mail" />
         </div>
