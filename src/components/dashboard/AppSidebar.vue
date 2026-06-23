@@ -5,6 +5,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "@/composables/useAuth";
 import type { UserRole } from "@/types";
 import { useB2BStore } from "@/stores/b2b.store";
+import leasybackLogo from "@/assets/logo/leasyback-logo.svg";
 
 const collapsed = ref(false);
 const route = useRoute();
@@ -149,7 +150,7 @@ watch(
     <div
       class="flex items-center gap-2.5 px-1 h-10 mb-7 shrink-0 overflow-hidden"
     >
-      <div
+      <!-- <div
         class="w-10 h-10 rounded-[13px] flex items-center justify-center shrink-0"
         style="
           background: linear-gradient(150deg, #01b990, #10393b);
@@ -159,19 +160,21 @@ watch(
         <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
           <path d="M6 11 L11 6 L16 11 L11 16 Z" fill="white" opacity="0.95" />
         </svg>
-      </div>
+      </div> -->
       <transition name="lb-fade">
         <div
           v-if="!collapsed"
           class="flex flex-col leading-none whitespace-nowrap overflow-hidden"
         >
-          <span class="text-[16px] font-extrabold text-white tracking-[-0.4px]">
-            Leasy<span class="text-[#01B990]">Back</span>
-          </span>
-          <span
+          <img
+            :src="leasybackLogo"
+            alt="LeasyBack"
+            class="h-5.5 w-auto shrink-0"
+          />
+          <!-- <span
             class="text-[9.5px] font-bold text-white/35 uppercase tracking-[0.1em] mt-1"
-            >{{ user.value?.role === "ADMIN" ? "Admin" : "App" }}</span
-          >
+            >{{ user.value?.role === "ADMIN" ? "Admin" : "App" }}</span -->
+          <!-- > -->
         </div>
       </transition>
     </div>
