@@ -1,0 +1,8 @@
+.claude/
+build/
+.dart_tool/
+node_modules/
+dist/
+
+# MCP config — may contain API tokens, never commit
+.mcp.json

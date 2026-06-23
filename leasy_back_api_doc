@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leasyback API Documentation</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#0f172a; --text:#e5e7eb; --muted:#9ca3af; --accent:#22d3ee; --border:#1f2937;
+    --code:#0b1020;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .layout{display:grid;grid-template-columns: 280px 1fr; min-height:100vh}
+  nav{background:#0a0f1c;border-right:1px solid var(--border);padding:20px;position:sticky;top:0;height:100vh;overflow:auto}
+  .brand{font-weight:800;letter-spacing:.3px;margin-bottom:10px}
+  .muted{color:var(--muted)}
+  .nav-section{margin-top:16px}
+  .nav-section h4{margin:10px 0 6px 0;font-size:12px;color:#93c5fd;text-transform:uppercase;letter-spacing:.08em}
+  .nav ul{list-style:none;padding-left:0;margin:0}
+  .nav li{margin:6px 0}
+  main{padding:26px}
+  .container{max-width:1100px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
+  h1{font-size:28px;margin:0 0 6px 0}
+  h2{font-size:20px;margin:18px 0 8px 0}
+  h3{font-size:16px;margin:14px 0 6px 0;color:#93c5fd}
+  h4{font-size:14px;margin:10px 0 4px 0}
+  .pill{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--muted)}
+  .grid-2{display:grid;grid-template-columns: 1fr 1fr; gap:16px}
+  @media(max-width: 920px){.layout{grid-template-columns:1fr} nav{position:relative;height:auto} .grid-2{grid-template-columns: 1fr}}
+  pre{background:var(--code);border:1px solid var(--border);padding:12px;border-radius:10px;overflow:auto}
+  code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:13px}
+  .endpoint{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .method{font-weight:700;font-size:12px;padding:2px 8px;border-radius:6px}
+  .GET{background:#0c3b31;color:#6ee7b7;border:1px solid #14532d}
+  .POST{background:#1e293b;color:#93c5fd;border:1px solid #29354a}
+  .PATCH{background:#3b2f0c;color:#facc15;border:1px solid #4d3b0f}
+  .PUT{background:#3b2f0c;color:#facc15;border:1px solid #4d3b0f}
+  .auth{font-size:12px;color:#fda4af}
+  .table{width:100%;border-collapse:collapse;margin:10px 0}
+  .table th,.table td{border:1px solid var(--border);padding:8px;text-align:left}
+  .table th{background:#0e1526}
+  .k{color:#60a5fa}
+  .s{color:#f472b6}
+  .n{color:#f59e0b}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="nav">
+    <div class="brand">Leasyback API</div>
+    <div class="muted" style="font-size:13px;margin-bottom:10px">Base URL: <code>https://api.leasyback.com</code></div>
+    <div class="nav-section">
+      <h4>Overview</h4>
+      <ul>
+        <li><a href="#intro">Introduction</a></li>
+        <li><a href="#conventions">Conventions</a></li>
+        <li><a href="#auth">Authentication</a></li>
+      </ul>
+    </div>
+    <div class="nav-section">
+      <h4>Auth</h4>
+      <ul>
+        <li><a href="#register">1. Register</a></li>
+        <li><a href="#login">2. Login</a></li>
+        <li><a href="#change-password">3. Change password</a></li>
+      </ul>
+    </div>
+    <div class="nav-section">
+      <h4>B2B</h4>
+      <ul>
+        <li><a href="#b2b-create">4. Create</a></li>
+        <li><a href="#b2b-update">5. Update</a></li>
+        <li><a href="#b2b-display">6. Display</a></li>
+      </ul>
+    </div>
+    <div class="nav-section">
+      <h4>B2C</h4>
+      <ul>
+        <li><a href="#b2c-create">7. Create</a></li>
+        <li><a href="#b2c-update">8. Update</a></li>
+        <li><a href="#b2c-display">9. Display</a></li>
+      </ul>
+    </div>
+    <div class="nav-section">
+      <h4>Workshop</h4>
+      <ul>
+        <li><a href="#workshop-create">10. Create</a></li>
+        <li><a href="#workshop-update">11. Update</a></li>
+        <li><a href="#workshop-display">12. Display</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <div class="card" id="intro">
+        <h1>Leasyback API Documentation <span class="pill">v1.0</span></h1>
+        <p class="muted">This document describes the HTTP API for Leasyback. Endpoints use JSON and return standard HTTP status codes. Provide JWT tokens in the <code>Authorization</code> header where required.</p>
+      </div>
+
+      <div class="card" id="conventions">
+        <h2>Conventions</h2>
+        <ul>
+          <li>Content type: <code>application/json</code></li>
+          <li>Timestamps use ISO 8601 (UTC).</li>
+          <li>Errors return a JSON body with a descriptive message and an appropriate 4xx/5xx status.</li>
+        </ul>
+      </div>
+
+      <div class="card" id="auth">
+        <h2>Authentication</h2>
+        <p>Authenticated endpoints require a JWT:</p>
+        <pre><code>Authorization: Bearer &lt;JWT_TOKEN&gt;</code></pre>
+      </div>
+
+      <!-- 1 Register -->
+      <div class="card" id="register">
+        <h2>1. Register</h2>
+        <div class="endpoint"><span class="method POST">POST</span> <code>/auth/register</code></div>
+        <h3>Request</h3>
+        <pre><code class="json">{
+  <span class="k">"user_email"</span>: <span class="s">"test@gmail.com"</span>,
+  <span class="k">"password"</span>: <span class="s">"12345678"</span>,
+  <span class="k">"user_type"</span>: <span class="s">"Privatkunde"</span>
+}</code></pre>
+        <p class="muted">Acceptable <code>user_type</code> values: <code>Privatkunde</code>, <code>Firmenkunde</code>, <code>Werksatatt</code>, <code>Admin</code></p>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "ok": true,
+  "data": {
+    "created_at": "2025-11-11T15:11:52.643534Z",
+    "user_email": "test@gmail.com",
+    "user_id": "65a75cf6-d62b-4a93-ab60-3a427ccec33d",
+    "user_type": "Privatkunde"
+  },
+  "message": "User registered"
+}</code></pre>
+      </div>
+
+      <!-- 2 Login -->
+      <div class="card" id="login">
+        <h2>2. Login</h2>
+        <div class="endpoint"><span class="method POST">POST</span> <code>/auth/login</code></div>
+        <h3>Request</h3>
+        <pre><code class="json">{
+  "user_email": "test@gmail.com",
+  "password": "12345678"
+}</code></pre>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "ok": true,
+  "data": {
+    "token": "JWT_TOKEN",
+    "user_type": "Privatkunde",
+    "user_id": "65a75cf6-d62b-4a93-ab60-3a427ccec33d"
+  },
+  "message": "Login successful"
+}</code></pre>
+      </div>
+
+      <!-- 3 Change Password -->
+      <div class="card" id="change-password">
+        <h2>3. Change password</h2>
+        <div class="endpoint"><span class="method POST">POST</span> <code>/auth/changepassword</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <pre><code>Authorization: Bearer &lt;JWT_TOKEN&gt;</code></pre>
+        <h3>Request</h3>
+        <pre><code class="json">{
+  "current_password": "12345678",
+  "new_password": "1234567800"
+}</code></pre>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "message": "Password updated successfully"
+}</code></pre>
+      </div>
+
+      <!-- 4 B2B Create -->
+      <div class="card" id="b2b-create">
+        <h2>4. B2B profile create</h2>
+        <div class="endpoint"><span class="method POST">POST</span> <code>/b2b/create</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <h3>Request</h3>
+        <pre><code class="json">{
+  "company_name": "TechCorp GmbH",
+  "vat_id": "DE123456789",
+  "logo_url": "https://techcorp.com/logo.png",
+  "contact_email": "info@techcorp.com",
+  "address": {
+    "street": "Musterstraße",
+    "number": "42",
+    "zip_code": "10115",
+    "city": "Berlin",
+    "country": "Germany"
+  },
+  "contact": {
+    "salutation": "Herr",
+    "first_name": "Max",
+    "last_name": "Mustermann",
+    "international_prefix": "+49",
+    "primary_phone_number": "301234567"
+  }
+}</code></pre>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "b2b_id": "adf1fbe6-284e-4ff7-a3f3-afcf74724a15",
+  "contact_id": "74e83da3-76a1-4870-a727-9d3355f6b6e6",
+  "address_id": "5b42573f-dd02-4941-b57a-f636de494b0d",
+  "company_name": "TechCorp GmbH",
+  "vat_id": "DE123456789",
+  "logo_url": "https://techcorp.com/logo.png",
+  "contact_email": "info@techcorp.com",
+  "created_at": "2025-11-11T15:22:08.613095Z",
+  "updated_at": "2025-11-11T15:22:08.613095Z"
+}</code></pre>
+      </div>
+
+      <!-- 5 B2B Update -->
+      <div class="card" id="b2b-update">
+        <h2>5. B2B profile update</h2>
+        <div class="endpoint"><span class="method PATCH">PATCH</span> <code>/b2b/{b2b_id}</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <p>Path parameter: <code>b2b_id</code> </p>
+        <h3>Request</h3>
+        <pre><code class="json">{
+  "company_name": "TechCorp GmbH",
+  "vat_id": "DE123456789",
+  "logo_url": "https://techcorp.com/logo.png",
+  "contact_email": "info@techcorp.com",
+  "address": {
+    "street": "Musterstraße",
+    "number": "42",
+    "zip_code": "10115",
+    "city": "Berlin",
+    "country": "Germany"
+  },
+  "contact": {
+    "salutation": "Herr",
+    "first_name": "Max",
+    "last_name": "Mustermann",
+    "international_prefix": "+49",
+    "primary_phone_number": "3012345",
+    "phone_numbers": [
+      { "international_prefix": "+49", "phone_number": "123456", "is_primary_contact": false }
+    ]
+  }
+}</code></pre>
+        <h3>Response 200</h3>
+        <pre><code class="json">"B2b updated successfully"</code></pre>
+      </div>
+
+      <!-- 6 B2B Display -->
+      <div class="card" id="b2b-display">
+        <h2>6. B2B profile display</h2>
+        <div class="endpoint"><span class="method GET">GET</span> <code>/b2b/user_id/{user_id}</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <p>Path parameter: <code>user_id</code> </p>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "b2b": "30ffd81d-edc7-4d96-af6d-2aae068252af",
+  "company_name": "TechCorp GmbH",
+  "logo_url": "https://techcorp.com/logo.png",
+  "contact_email": "info@techcorp.com",
+  "vat_id": "DE123456789",
+  "created_at": "2025-11-11T16:17:34.272442Z",
+  "updated_at": "2025-11-11T16:17:34.272442Z",
+  "contact": {
+    "contact_id": "d44ee5a0-5406-4818-8337-0f81365d0c23",
+    "salutation": "Herr",
+    "first_name": "Max",
+    "last_name": "Mustermann",
+    "phone_numbers": [
+      { "international_prefix": "+49", "phone_number": "301234567", "is_primary_contact": true }
+    ]
+  },
+  "address": {
+    "address_id": "4102c66b-68be-47fa-9748-9fce43179235",
+    "street": "Musterstraße",
+    "number": "42",
+    "additional_address": null,
+    "zip_code": "10115",
+    "city": "Berlin",
+    "country": "Germany"
+  }
+}</code></pre>
+      </div>
+
+      <!-- 7 B2C Create -->
+      <div class="card" id="b2c-create">
+        <h2>7. B2C profile create</h2>
+        <div class="endpoint"><span class="method POST">POST</span> <code>/userprofile/address-contact</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <h3>Request</h3>
+        <pre><code class="json">{
+  "address": {
+    "street": "Main Street",
+    "number": "42A",
+    "additional_address": "Apt. 5B",
+    "zip_code": "10115",
+    "city": "Berlin",
+    "country": "Germany",
+    "longitude": 123456.8877,
+    "latitude": 1234555.889
+  },
+  "contact": {
+    "salutation": "Mr.",
+    "first_name": "John",
+    "last_name": "Doe"
+  },
+  "phones": [
+    { "international_prefix": "+49", "phone_number": "301234567" },
+    { "international_prefix": "+49", "phone_number": "301234568" }
+  ]
+}</code></pre>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "address_id": "a7aee0d8-a183-4c8b-8d3c-067c5ed9ab24",
+  "contact_id": "7b0804b3-7af6-46ec-a18f-eb84af0f3eb6",
+  "status": "created"
+}</code></pre>
+      </div>
+
+      <!-- 8 B2C Update -->
+      <div class="card" id="b2c-update">
+        <h2>8. B2C profile update</h2>
+        <div class="endpoint"><span class="method PUT">PUT</span> <code>/userprofile/address-contact</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <h3>Request</h3>
+        <pre><code class="json">{
+  "address_id": "ea940b5d-0010-4ee3-9fbe-67b8d3882a76",
+  "contact_id": "18e506cb-2d1d-4b86-95c7-86ed3fe62c9e",
+  "address": {
+    "street": "Updated Street",
+    "number": "50B",
+    "additional_address": "Office 12",
+    "zip_code": "10243",
+    "city": "Berlin",
+    "country": "Germany",
+    "longitude": 123456.8877,
+    "latitude": 1234555.8
+  },
+  "contact": {
+    "salutation": "Dr.",
+    "first_name": "John",
+    "last_name": "Smith"
+  },
+  "phones": [
+    { "international_prefix": "+49", "phone_number": "309876543" }
+  ]
+}</code></pre>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "address_id": "ea940b5d-0010-4ee3-9fbe-67b8d3882a76",
+  "contact_id": "18e506cb-2d1d-4b86-95c7-86ed3fe62c9e",
+  "status": "updated"
+}</code></pre>
+      </div>
+
+      <!-- 9 B2C Display -->
+      <div class="card" id="b2c-display">
+        <h2>9. B2C profile display</h2>
+        <div class="endpoint"><span class="method GET">GET</span> <code>/userprofile/user-profile</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "user_id": "e7360ba3-3303-4fac-b596-e7ff3bcaf694",
+  "email": "test@gmail.com",
+  "is_admin": false,
+  "address": {
+    "address_id": "cf2be17b-04e7-4794-aa90-4b5cafc7c01d",
+    "street": "Sechzig Str2",
+    "number": "451",
+    "additional_address": "test",
+    "zip_code": "50733",
+    "city": "Köln",
+    "country": "Deutschland",
+    "longitude": 6.953101,
+    "latitude": 50.935173
+  },
+  "contact": {
+    "contact_id": "512356ec-453b-4502-aaae-2e7b73062316",
+    "salutation": "Frau",
+    "first_name": "Christin",
+    "last_name": "Mechtildtest"
+  },
+  "phones": [],
+  "preferences": {
+    "preference_id": "ebdec955-ce6c-4584-ae6a-0b688ba21c58",
+    "timezone": "Europe/Berlin",
+    "sprache": "de",
+    "benachrichtigungseinstellungen_push": true,
+    "benachrichtigungseinstellungen_email": false
+  }
+}</code></pre>
+      </div>
+
+      <!-- 10 Workshop Create -->
+      <div class="card" id="workshop-create">
+        <h2>10. Workshop profile create</h2>
+        <div class="endpoint"><span class="method POST">POST</span> <code>/workshop/create</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <h3>Request</h3>
+        <pre><code class="json">{
+  "workshop_name": "Tech Garage GmbH",
+  "contact_email": "info@techgarage.de",
+  "has_vat_id": true,
+  "vat_id": "DE123456789",
+  "iban": "DE89370400440532013000",
+  "bic": "COBADEFFXXX",
+  "account_holder": "Tech Garage GmbH",
+  "packages_selected": "Premium",
+  "terms_accepted": true,
+  "privacy_accepted": true,
+  "address": {
+    "street": "Main Street",
+    "number": "12A",
+    "zip_code": "10115",
+    "city": "Berlin",
+    "country": "Germany",
+    "longitude": 0.0,
+    "latitude": 0.0
+  },
+  "contact": {
+    "salutation": "Mr",
+    "first_name": "Jupiter",
+    "last_name": "Barua",
+    "international_prefix": "+49",
+    "primary_phone_number": "3023456789",
+    "phone_numbers": [
+      { "international_prefix": "+49", "phone_number": "301234567" },
+      { "international_prefix": "+49", "phone_number": "301234568" }
+    ]
+  }
+}</code></pre>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "workshop_id": "952896f4-66a5-46a9-a379-5524775d55a0",
+  "workshop_name": "Tech Garage GmbH",
+  "logo_url": null,
+  "contact_email": "info@techgarage.de",
+  "address_id": "764b2d5c-1362-47e3-b1ad-5e6ae7b54025",
+  "contact_id": "99907c72-b102-488c-81aa-2340174a0181",
+  "has_vat_id": true,
+  "vat_id": "DE123456789",
+  "iban": "DE89370400440532013000",
+  "bic": "COBADEFFXXX",
+  "account_holder": "Tech Garage GmbH",
+  "has_alt_billing": null,
+  "alt_billing": null,
+  "packages_selected": "Premium",
+  "imprint_text": null,
+  "services_offered": null,
+  "terms_accepted": true,
+  "privacy_accepted": true,
+  "created_at": "2025-11-11T16:07:33.929052Z",
+  "updated_at": "2025-11-11T16:07:33.929052Z"
+}</code></pre>
+      </div>
+
+      <!-- 11 Workshop Update -->
+      <div class="card" id="workshop-update">
+        <h2>11. Workshop profile update</h2>
+        <div class="endpoint"><span class="method PATCH">PATCH</span> <code>/workshop/{workshop_id}</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <p>Path parameter: <code>workshop_id</code> </p>
+        <h3>Request</h3>
+        <pre><code class="json">{
+  "contact": {
+    "contact_id": "5e00363a-bc80-41f5-9458-46d9d8e23ed5",
+    "salutation": "Mr",
+    "first_name": "Jupiter",
+    "last_name": "Barua",
+    "international_prefix": "+49",
+    "primary_phone_number" : "30234567890",
+    "phone_numbers": [
+      { "international_prefix": "+49", "phone_number" : "0234567890" }
+    ]
+  }
+}</code></pre>
+        <h3>Response 200</h3>
+        <pre><code class="json">"Workshop updated successfully"</code></pre>
+      </div>
+
+      <!-- 12 Workshop Display -->
+      <div class="card" id="workshop-display">
+        <h2>12. Workshop profile display</h2>
+        <div class="endpoint"><span class="method GET">GET</span> <code>/workshop/user_id/{user_id}</code></div>
+        <div class="auth">Requires: Authorization header</div>
+        <p>Path parameter: <code>user_id</code> </p>
+        <h3>Response 200</h3>
+        <pre><code class="json">{
+  "workshop_id": "952896f4-66a5-46a9-a379-5524775d55a0",
+  "workshop_name": "Tech Garage GmbH",
+  "logo_url": null,
+  "contact_email": "info@techgarage.de",
+  "has_vat_id": true,
+  "vat_id": "DE123456789",
+  "packages_selected": "Premium",
+  "imprint_text": null,
+  "services_offered": null,
+  "created_at": "2025-11-11T16:07:33.929052Z",
+  "updated_at": "2025-11-11T16:07:33.929052Z",
+  "contact": {
+    "contact_id": "99907c72-b102-488c-81aa-2340174a0181",
+    "salutation": "Mr",
+    "first_name": "Jupiter",
+    "last_name": "Barua",
+    "phone_numbers": [
+      { "international_prefix": "+49", "phone_number": "3023456789", "is_primary_contact": true },
+      { "international_prefix": "+49", "phone_number": "301234567", "is_primary_contact": false },
+      { "international_prefix": "+49", "phone_number": "301234568", "is_primary_contact": false }
+    ]
+  },
+  "address": {
+    "address_id": "764b2d5c-1362-47e3-b1ad-5e6ae7b54025",
+    "street": "Main Street",
+    "number": "12A",
+    "additional_address": null,
+    "zip_code": "10115",
+    "city": "Berlin",
+    "country": "Germany"
+  }
+}</code></pre>
+      </div>
+
+      <div class="card">
+        <p class="muted">© Leasyback — API v1.0 • Generated document</p>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
