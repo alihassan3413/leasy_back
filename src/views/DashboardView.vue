@@ -65,7 +65,7 @@ onMounted(() => {
           style="background-color: #ef8450"
         >
           <Icon icon="ic:baseline-plus" class="w-5 h-5" />
-          <span>Create new Entry</span>
+          <span>Neues Fahrzeug anlegen</span>
         </button>
       </div>
     </div>
