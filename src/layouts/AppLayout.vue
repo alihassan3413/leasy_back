@@ -20,22 +20,22 @@ interface NavItem {
 const navByRole: Record<UserRole, NavItem[]> = {
   B2C: [
     {
-      label: "My Dashboard",
+      label: "Mein Dashboard",
       icon: "mdi:view-dashboard-outline",
       name: "dashboard-b2c",
     },
     { label: "Zahlungsverlauf", icon: "fa6-solid:list-check", name: "payment" },
-    { label: "My Account", icon: "mdi:account-outline", name: "b2c-account" },
+    { label: "Mein Konto", icon: "mdi:account-outline", name: "b2c-account" },
     { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
   ],
   B2B: [
     {
-      label: "My Dashboard",
+      label: "Mein Dashboard",
       icon: "mdi:view-dashboard-outline",
       name: "dashboard-b2b",
     },
     { label: "Zahlungsverlauf", icon: "fa6-solid:list-check", name: "payment" },
-    { label: "My Account", icon: "mdi:account-outline", name: "b2b-account" },
+    { label: "Mein Konto", icon: "mdi:account-outline", name: "b2b-account" },
     { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
   ],
   WORKSHOP: [

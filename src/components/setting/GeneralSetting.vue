@@ -14,7 +14,7 @@ const timezoneOptions = [
 
 const languageOptions = [
   { label: "Deutsch", value: "de" },
-  { label: "English", value: "en" },
+  { label: "Englisch", value: "en" },
 ];
 
 const selectedTimezone = ref("UTC+1");

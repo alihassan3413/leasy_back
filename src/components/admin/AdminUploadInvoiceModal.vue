@@ -173,7 +173,7 @@ watch(
           <div class="flex flex-col gap-3 px-6 pb-6">
             <!-- Upload invoice section -->
             <div class="flex flex-col gap-2">
-              <span class="text-sm font-semibold text-black">Upload Rechnung</span>
+              <span class="text-sm font-semibold text-black">Rechnung hochladen</span>
 
               <!-- Drop zone -->
               <div
@@ -194,10 +194,10 @@ watch(
                 <template v-else>
                   <Icon icon="mdi:upload-outline" class="size-8 mb-2 text-gray-500" />
                   <p class="text-center text-sm text-gray-600">
-                    Click or Drag & Drop to start uploading
+                    Zum Hochladen klicken oder Datei hierher ziehen
                   </p>
                   <p class="mt-1 text-xs text-gray-400">
-                    .pdf, .jpg or .png
+                    .pdf, .jpg oder .png
                   </p>
                 </template>
               </div>

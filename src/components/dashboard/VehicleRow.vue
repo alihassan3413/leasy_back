@@ -129,7 +129,7 @@ function handleAction(action: string) {
               :class="{ 'bg-gray-100': activeAction === 'Start Process' }"
             >
               <Icon icon="solar:play-bold" class="w-6 h-6 text-gray-600" />
-              <span class="text-gray-800 font-medium">Start Process</span>
+              <span class="text-gray-800 font-medium">Vorgang starten</span>
             </DropdownMenuItem>
             <!-- <DropdownMenuItem
               @click="handleAction('Assign Someone')"
