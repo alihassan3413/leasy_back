@@ -5,6 +5,7 @@ import { Icon } from "@iconify/vue";
 import { useB2BStore } from "@/stores/b2b.store";
 import { useAuthStore } from "@/stores/auth.store";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
+import FormAddressAutocompleteField from "@/components/ui/form/FormAddressAutocompleteField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import { companySchema } from "@/validations/b2b.validation";
 import type { B2BProfileUpdatePayload } from "@/types";
@@ -47,8 +48,12 @@ const deleteLogo = async () => {
   }
 };
 
-const { handleSubmit, resetForm, setFieldValue, isSubmitting } = useForm({
+const { handleSubmit, resetForm, setFieldValue, values, isSubmitting } = useForm({
   validationSchema: companySchema,
+  // Leaving edit mode unmounts the address field components; without this,
+  // vee-validate prunes their values from `values`, so re-entering edit (and
+  // the edit-mode map, which derives from `values`) would show empty fields.
+  keepValuesOnUnmount: true,
   initialValues: {
     firmenname: "",
     ustIdNr: "",
@@ -136,6 +141,18 @@ const onAddressFromMap = (resolved: ResolvedAddress) => {
   if (resolved.zip_code) setFieldValue("address.plz", resolved.zip_code);
   if (resolved.city) setFieldValue("address.ort", resolved.city);
 };
+
+// Full address line used to geocode the map position from the address text
+// (the backend doesn't reliably persist coordinates).
+const addressQuery = computed(() => {
+  const a = values.address;
+  // Require street + city to geocode unambiguously; a lone street name resolves
+  // to a famous default (e.g. "Leopoldstraße" → München). Empty = don't geocode.
+  if (!a?.strasse || !a?.ort) return "";
+  const streetLine = [a.strasse, a.nr].filter(Boolean).join(" ");
+  const cityLine = [a.plz, a.ort].filter(Boolean).join(" ");
+  return [streetLine, cityLine, "Deutschland"].filter(Boolean).join(", ");
+});
 
 const onSubmit = handleSubmit(async (formValues) => {
   try {
@@ -387,7 +404,8 @@ const formatAddressLine2 = () => {
 
         <div class="flex flex-col gap-6 xl:flex-row">
           <div class="grid min-w-0 flex-1 grid-cols-[2fr_1fr] gap-x-[30px] gap-y-5">
-            <FormTextField name="address.strasse" label="Straße" placeholder="Straße" />
+            <FormAddressAutocompleteField name="address.strasse" label="Straße"
+              placeholder="Straße eingeben…" @resolved="onAddressFromMap" />
             <FormTextField name="address.nr" label="Nr." placeholder="Nr." />
             <FormTextField
               name="address.zusaetzlicheAnschrift"
@@ -410,6 +428,7 @@ const formatAddressLine2 = () => {
             <AppMapPicker
               :latitude="null"
               :longitude="null"
+              :address="addressQuery"
               :interactive="true"
               @resolved="onAddressFromMap"
             />
