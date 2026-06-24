@@ -300,6 +300,18 @@ export interface AppError {
 // VEHICLE
 // ─────────────────────────────────────────────
 
+export interface ReportDocument {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  document_title: string;
+  document_type: string;
+  published: boolean;
+  s3_bucket: string;
+  s3_key: string;
+  s3_url?: string;
+}
+
 export interface VehicleStatusResponse {
   vehicle_id: string;
   license_plate: string;
@@ -356,6 +368,7 @@ export interface VehicleStatusResponse {
       created_at: string;
       bewertung_id?: string;
     }>;
+    report_documents: ReportDocument[];
   }>;
 }
 

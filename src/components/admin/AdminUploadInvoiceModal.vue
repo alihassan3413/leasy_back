@@ -156,17 +156,17 @@ async function deleteDocument(documentId: string) {
 }
 
 // Auto-set title based on document type
-watch(documentType, (newType) => {
-  if (newType === "gutachten") {
-    documentTitle.value = "Gutachten";
-  } else if (newType === "Leasingvertrag") {
-    documentTitle.value = "Leasingvertrag";
-  } else if (newType === "vorschaden") {
-    documentTitle.value = "Vorschaden";
-  } else {
-    documentTitle.value = "Rechnung";
-  }
-});
+// watch(documentType, (newType) => {
+//   if (newType === "gutachten") {
+//     documentTitle.value = "Gutachten";
+//   } else if (newType === "Leasingvertrag") {
+//     documentTitle.value = "Leasingvertrag";
+//   } else if (newType === "vorschaden") {
+//     documentTitle.value = "Vorschaden";
+//   } else {
+//     documentTitle.value = "Rechnung";
+//   }
+// });
 
 watch(
   () => props.open,
@@ -202,7 +202,7 @@ watch(
         >
           <div class="px-6 pt-6 mb-6">
             <h2 class="text-[20px] font-bold leading-normal text-black">
-              Dokument hochladen
+              Rechnung hochladen
             </h2>
             <p
               class="mt-1 mx-2 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]"

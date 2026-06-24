@@ -14,6 +14,7 @@ const props = defineProps<{ vehicle: Vehicle }>();
 const editVehicleOpen = ref(false);
 const uploadDocsOpen = ref(false);
 const documents = ref<any[]>([]);
+const viewDocUrl = ref<string | null>(null);
 
 // Mock data for offers if backend doesn't provide any
 const mockOffers: Offer[] = [
@@ -53,70 +54,110 @@ const mockOffers: Offer[] = [
 const timelineData = computed(() => {
   // Generate timeline from orders
   if (props.vehicle.orders && props.vehicle.orders.length > 0) {
-    const timeline: {
+    const firstOrder = props.vehicle.orders[0];
+
+    // Keep status as separate (will be added first without date
+    const statusEntry = {
+      datetime: "",
+      label: `STATUS: ${firstOrder.order_status.replace("_", " ").toUpperCase()}`,
+      completed: false,
+    };
+
+    // Collect all timeline items with actual date objects
+    const itemsWithDates: Array<{
+      date: Date;
       datetime: string;
       label: string;
       sublabel?: string;
       completed: boolean;
-    }[] = [];
-    const firstOrder = props.vehicle.orders[0];
+      docUrl?: string;
+      isReport?: boolean;
+    }> = [];
 
-    // Define the steps
-    const steps = [
-      {
-        label: "Auftrag erstellt",
-        datetime:
-          new Date(firstOrder.created_at).toLocaleDateString("de-DE", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          }) +
-          "\n" +
-          new Date(firstOrder.created_at).toLocaleTimeString("de-DE", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }) +
-          " Uhr",
-        completed: true,
-      },
-      {
-        label: firstOrder.leasyback_partner,
-        sublabel: `${firstOrder.request_payload.besichtigungsort.strasse}, ${firstOrder.request_payload.besichtigungsort.plz} ${firstOrder.request_payload.besichtigungsort.ort}`,
-        datetime:
-          new Date(
-            firstOrder.request_payload.besichtigungsort.termin,
-          ).toLocaleDateString("de-DE", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          }) +
-          "\n" +
-          new Date(
-            firstOrder.request_payload.besichtigungsort.termin,
-          ).toLocaleTimeString("de-DE", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }) +
-          " Uhr",
-        completed: firstOrder.order_status !== "order_placed",
-      },
-    ];
-
-    // Add current status as first entry
-    timeline.push({
-      datetime: "",
-      label: `STATUS: ${firstOrder.order_status.replace("_", " ").toUpperCase()}`,
-      completed: false,
+    // Add Auftrag erstellt
+    itemsWithDates.push({
+      date: new Date(firstOrder.created_at),
+      label: "Auftrag erstellt",
+      datetime:
+        new Date(firstOrder.created_at).toLocaleDateString("de-DE", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }) +
+        "\n" +
+        new Date(firstOrder.created_at).toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }) +
+        " Uhr",
+      completed: true,
     });
 
-    // Add the steps
-    steps.forEach((step) => {
-      timeline.push({
-        datetime: step.datetime,
-        label: step.label,
-        sublabel: step.sublabel,
-        completed: step.completed,
-      });
+    // Add Partner step
+    itemsWithDates.push({
+      date: new Date(firstOrder.request_payload.besichtigungsort.termin),
+      label: firstOrder.leasyback_partner,
+      sublabel: `${firstOrder.request_payload.besichtigungsort.strasse}, ${firstOrder.request_payload.besichtigungsort.plz} ${firstOrder.request_payload.besichtigungsort.ort}`,
+      datetime:
+        new Date(
+          firstOrder.request_payload.besichtigungsort.termin,
+        ).toLocaleDateString("de-DE", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }) +
+        "\n" +
+        new Date(
+          firstOrder.request_payload.besichtigungsort.termin,
+        ).toLocaleTimeString("de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }) +
+        " Uhr",
+      completed: firstOrder.order_status !== "order_placed",
+    });
+
+    // Add report documents
+    props.vehicle.orders.forEach((order) => {
+      if (order.report_documents) {
+        order.report_documents.forEach((doc) => {
+          if (doc.document_title.toLowerCase() === "gutachten") {
+            const docUrl =
+              doc.s3_url ||
+              `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`;
+            itemsWithDates.push({
+              date: new Date(doc.created_at),
+              datetime:
+                new Date(doc.created_at).toLocaleDateString("de-DE", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                }) +
+                "\n" +
+                new Date(doc.created_at).toLocaleTimeString("de-DE", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }) +
+                " Uhr",
+              label: "Report hochgeladen",
+              sublabel: doc.document_type,
+              completed: true,
+              docUrl: docUrl,
+              isReport: true,
+            });
+          }
+        });
+      }
+    });
+
+    // Sort items chronologically (oldest first - normal timeline order)
+    itemsWithDates.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    // Build final timeline with status first, then sorted items
+    const timeline = [statusEntry];
+    itemsWithDates.forEach((item) => {
+      const { date, ...timelineItem } = item;
+      timeline.push(timelineItem);
     });
 
     return timeline;
@@ -132,6 +173,21 @@ const timelineData = computed(() => {
   ];
 });
 
+function openDocument(url: string) {
+  viewDocUrl.value = url;
+}
+
+function downloadDocument(url: string, event: Event) {
+  event.stopPropagation();
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.download = "report.pdf";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 const offersData = computed(() => {
   if (props.vehicle.offers && props.vehicle.offers.length > 0) {
     return props.vehicle.offers;
@@ -145,10 +201,40 @@ const acceptedOffer = computed(() => {
 
 async function loadDocuments() {
   try {
-    if (!props.vehicle?.vehicle_id) return;
-    documents.value = await vehicleApi.getVehicleDocuments(
-      props.vehicle.vehicle_id,
-    );
+    const allDocuments: any[] = [];
+
+    // First add documents from API
+    if (props.vehicle?.vehicle_id) {
+      try {
+        const apiDocs = await vehicleApi.getVehicleDocuments(
+          props.vehicle.vehicle_id,
+        );
+        allDocuments.push(...apiDocs);
+      } catch (err) {
+        console.error("Failed to load API documents:", err);
+      }
+    }
+
+    // Then add report documents from orders
+    if (props.vehicle?.orders) {
+      props.vehicle.orders.forEach((order) => {
+        if (order.report_documents) {
+          order.report_documents.forEach((doc) => {
+            allDocuments.push({
+              id: doc.id,
+              document_type: doc.document_type,
+              file_name: doc.document_title,
+              created_at: doc.created_at,
+              url:
+                doc.s3_url ||
+                `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`,
+            });
+          });
+        }
+      });
+    }
+
+    documents.value = allDocuments;
   } catch (err) {
     console.error("Failed to load vehicle documents:", err);
     documents.value = [];
@@ -202,10 +288,14 @@ watch(
         <!-- Column 1: Timeline + Vehicle Docs + Return Docs -->
         <div class="flex flex-col gap-4 2xl:flex-row w-[320px] 2xl:w-full">
           <!-- Timeline Card -->
-          <div class="flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[280px] max-w-[280px]"
-            style="border-color: #ececec">
+          <div
+            class="flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[280px] max-w-[280px]"
+            style="border-color: #ececec"
+          >
             <div class="px-6 py-5 flex items-center justify-between">
-              <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
+              <p
+                class="text-[16px] font-bold text-[#000000] leading-tight uppercase"
+              >
                 {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
               </p>
               <button class="text-[#01b990] hover:opacity-70">
@@ -215,18 +305,31 @@ watch(
 
             <!-- Timeline rows -->
             <div class="flex-1 px-6 pb-5">
-              <div v-for="(entry, i) in timelineData.slice(1)" :key="i" class="relative flex items-start pb-6">
+              <div
+                v-for="(entry, i) in timelineData.slice(1)"
+                :key="i"
+                class="relative flex items-start pb-6"
+              >
                 <!-- Vertical line -->
-                <div v-if="i < timelineData.slice(1).length - 1" class="absolute left-2 top-5 w-0.5 h-full" :style="entry.completed
-                  ? 'background:#01B990'
-                  : 'background:#B7C2C2'
-                  " />
+                <div
+                  v-if="i < timelineData.slice(1).length - 1"
+                  class="absolute left-2 top-5 w-0.5 h-full"
+                  :style="
+                    entry.completed
+                      ? 'background:#01B990'
+                      : 'background:#B7C2C2'
+                  "
+                />
 
                 <!-- Dot -->
-                <div class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1" :style="entry.completed
-                  ? 'background:#01B990'
-                  : 'background:#B7C2C2'
-                  " />
+                <div
+                  class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
+                  :style="
+                    entry.completed
+                      ? 'background:#01B990'
+                      : 'background:#B7C2C2'
+                  "
+                />
 
                 <!-- Content -->
                 <div class="min-w-0 flex-1 pl-5">
@@ -236,21 +339,67 @@ watch(
                   </p>
 
                   <!-- Label -->
-                  <template v-if="entry.label === 'DEKRA' || entry.label === 'TUVSUD'">
-                    <p class="text-[16px] font-bold mb-1" style="color: #01b990">
+                  <template
+                    v-if="
+                      entry.label.toLowerCase() === 'dekra' ||
+                      entry.label.toLowerCase() === 'tuvsud'
+                    "
+                  >
+                    <p
+                      class="text-[16px] font-bold mb-1"
+                      style="color: #01b990"
+                    >
                       {{ entry.label }}
                     </p>
-                    <p v-if="entry.sublabel" class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal">
+                    <p
+                      v-if="entry.sublabel"
+                      class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
+                    >
                       {{ entry.sublabel }}
                     </p>
                   </template>
                   <template v-else>
-                    <p class="text-[14px] text-[#2e3e3f] font-normal">
-                      {{ entry.label }}
-                    </p>
-                    <p v-if="entry.sublabel" class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal">
-                      {{ entry.sublabel }}
-                    </p>
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-[14px] text-[#2e3e3f] font-normal">
+                          {{ entry.label }}
+                        </p>
+                        <p
+                          v-if="entry.sublabel"
+                          class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
+                        >
+                          {{ entry.sublabel }}
+                        </p>
+                      </div>
+                      <div
+                        v-if="entry.isReport && entry.docUrl"
+                        class="flex items-center gap-2"
+                      >
+                        <button
+                          @click="
+                            entry.docUrl &&
+                            downloadDocument(entry.docUrl, $event)
+                          "
+                          class="text-[#01b990] hover:opacity-70"
+                          title="Download"
+                        >
+                          <Icon
+                            icon="material-symbols:download"
+                            class="size-[18.5px] shrink-0"
+                          />
+                        </button>
+                        <button
+                          @click="entry.docUrl && openDocument(entry.docUrl)"
+                          class="text-[#01b990] hover:opacity-70"
+                          title="Open"
+                        >
+                          <Icon
+                            icon="mdi:open-in-new"
+                            class="size-[18.5px] shrink-0"
+                          />
+                        </button>
+                      </div>
+                    </div>
                   </template>
                 </div>
               </div>
@@ -259,9 +408,19 @@ watch(
 
           <!-- Vehicle Docs Card -->
           <div class="flex flex-col gap-4 2xl:min-w-[350px] max-w-[350px]">
-            <div class="relative flex flex-col rounded-[16px] border bg-white 2xl:h-full" style="border-color: #ececec">
-              <button @click="uploadDocsOpen = true" class="absolute right-5 top-5 transition-opacity hover:opacity-60">
-                <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
+            <div
+              class="relative flex flex-col rounded-[16px] border bg-white 2xl:h-full"
+              style="border-color: #ececec"
+            >
+              <button
+                @click="uploadDocsOpen = true"
+                class="absolute right-5 top-5 transition-opacity hover:opacity-60"
+              >
+                <Icon
+                  icon="mdi:pencil"
+                  class="size-[18.5px] shrink-0"
+                  style="color: #01b990"
+                />
               </button>
               <div class="p-6">
                 <p class="text-[16px] font-semibold uppercase text-[#000000]">
@@ -271,22 +430,44 @@ watch(
               </div>
 
               <div class="flex flex-col gap-4 p-6 pt-0">
-                <div v-for="(doc, i) in documents" :key="i" class="flex items-center justify-between gap-3">
-                  <span class="text-[14px] font-normal text-[#475569] flex-1 truncate"
-                    :title="doc.file_name || doc.document_type || 'Dokument'">
+                <div
+                  v-for="(doc, i) in documents"
+                  :key="i"
+                  class="flex items-center justify-between gap-3"
+                >
+                  <span
+                    class="text-[14px] font-normal text-[#475569] flex-1 truncate"
+                    :title="doc.file_name || doc.document_type || 'Dokument'"
+                  >
                     {{ doc.file_name || doc.document_type || "Dokument" }}
                   </span>
                   <div class="flex items-center gap-2">
-                    <a v-if="doc.url" :href="doc.url" target="_blank"
-                      class="text-[#01b990] hover:opacity-70 flex-shrink-0">
-                      <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
+                    <a
+                      v-if="doc.url"
+                      :href="doc.url"
+                      target="_blank"
+                      class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                    >
+                      <Icon
+                        icon="material-symbols:download"
+                        class="size-[18.5px] shrink-0"
+                      />
                     </a>
-                    <button @click="deleteDocument(doc.id)" class="text-[#EF4444] hover:opacity-70 flex-shrink-0">
-                      <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
+                    <button
+                      @click="deleteDocument(doc.id)"
+                      class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+                    >
+                      <Icon
+                        icon="mdi:delete-outline"
+                        class="size-[18.5px] shrink-0"
+                      />
                     </button>
                   </div>
                 </div>
-                <div v-if="documents.length === 0" class="text-[14px] text-[#b7c2c2]">
+                <div
+                  v-if="documents.length === 0"
+                  class="text-[14px] text-[#b7c2c2]"
+                >
                   Keine Dokumente gefunden
                 </div>
               </div>
@@ -296,7 +477,10 @@ watch(
         <!-- Column 2: Angebote (Offers) -->
         <div class="flex flex-col gap-4" style="width: 400px">
           <div class="relative">
-            <div class="flex flex-col rounded-[16px] border bg-white" style="border-color: #ececec; opacity: 0.5">
+            <div
+              class="flex flex-col rounded-[16px] border bg-white"
+              style="border-color: #ececec; opacity: 0.5"
+            >
               <div class="px-6 py-6">
                 <p class="text-[16px] font-bold" style="color: #2e3e3f">
                   Angebote
@@ -305,36 +489,66 @@ watch(
 
               <!-- Offer rows -->
               <div class="flex flex-col gap-5 px-6">
-                <div v-for="offer in offersData" :key="offer.id"
-                  class="flex items-center gap-4 rounded-[50px] border py-2 px-4" :style="offer.accepted
-                    ? 'border-color: #EF8450; background: rgba(239, 132, 80, 0.08)'
-                    : 'border-color: #ECECEC; background: white'
-                    ">
+                <div
+                  v-for="offer in offersData"
+                  :key="offer.id"
+                  class="flex items-center gap-4 rounded-[50px] border py-2 px-4"
+                  :style="
+                    offer.accepted
+                      ? 'border-color: #EF8450; background: rgba(239, 132, 80, 0.08)'
+                      : 'border-color: #ECECEC; background: white'
+                  "
+                >
                   <!-- Radio circle -->
-                  <div class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1" :style="offer.accepted
-                    ? 'border-color: #EF8450; background: #EF8450'
-                    : 'border-color: #B7C2C2; background: white'
-                    ">
-                    <div v-if="offer.accepted" class="w-4.5 h-4.5 rounded-full bg-white"></div>
+                  <div
+                    class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1"
+                    :style="
+                      offer.accepted
+                        ? 'border-color: #EF8450; background: #EF8450'
+                        : 'border-color: #B7C2C2; background: white'
+                    "
+                  >
+                    <div
+                      v-if="offer.accepted"
+                      class="w-4.5 h-4.5 rounded-full bg-white"
+                    ></div>
                   </div>
 
                   <!-- Content -->
-                  <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
+                  <div
+                    class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden"
+                  >
                     <div class="flex justify-between items-start gap-3">
-                      <p class="text-[14px] font-bold flex-1 min-w-0 truncate" :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
-                        " :title="`${offer.id} - ${offer.name}`">
+                      <p
+                        class="text-[14px] font-bold flex-1 min-w-0 truncate"
+                        :style="
+                          offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
+                        "
+                        :title="`${offer.id} - ${offer.name}`"
+                      >
                         {{ offer.id }} - {{ offer.name }}
                       </p>
-                      <p class="text-[16px] font-normal flex-shrink-0" :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
-                        ">
+                      <p
+                        class="text-[16px] font-normal flex-shrink-0"
+                        :style="
+                          offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
+                        "
+                      >
                         {{ offer.cost.toLocaleString("de-DE") }} €
                       </p>
                     </div>
                     <div class="flex justify-between items-center gap-3">
-                      <p class="text-[12px] flex-1 truncate" style="color: #b7c2c2">
+                      <p
+                        class="text-[12px] flex-1 truncate"
+                        style="color: #b7c2c2"
+                      >
                         {{ offer.distance || "227km Entfernung" }}
                       </p>
-                      <p v-if="offer.saving > 0" class="text-[16px] font-normal flex-shrink-0" style="color: #ef8450">
+                      <p
+                        v-if="offer.saving > 0"
+                        class="text-[16px] font-normal flex-shrink-0"
+                        style="color: #ef8450"
+                      >
                         Ersparnis: {{ offer.saving }} €
                       </p>
                     </div>
@@ -344,15 +558,20 @@ watch(
 
               <!-- Accept button -->
               <div class="mt-6 px-6">
-                <button class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
-                  style="background: #e0e0e0; color: #9e9e9e">
+                <button
+                  class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
+                  style="background: #e0e0e0; color: #9e9e9e"
+                >
                   Accept offer (Payment required)
                 </button>
               </div>
 
               <!-- Accepted offer box -->
               <div v-if="acceptedOffer" class="px-6 pb-6 pt-5">
-                <div class="flex items-center justify-between rounded-[50px] px-7 py-2.5" style="background: #ef8450">
+                <div
+                  class="flex items-center justify-between rounded-[50px] px-7 py-2.5"
+                  style="background: #ef8450"
+                >
                   <span class="text-[14px] font-normal text-white">
                     Accepted Offer: {{ acceptedOffer.id }}
                     {{ acceptedOffer.name }}
@@ -364,7 +583,9 @@ watch(
               </div>
             </div>
             <!-- Coming Soon Overlay -->
-            <div class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <div
+              class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
+            >
               <div class="bg-white/80 px-6 py-3 rounded-full shadow-lg">
                 <p class="text-[18px] font-bold" style="color: #ef8450">
                   Coming Soon
@@ -377,25 +598,43 @@ watch(
         <!-- Column 3: Assigned To + Vehicle Specs -->
         <div class="flex flex-col 2xl:flex-row gap-4 w-[325px] 2xl:w-full">
           <!-- Assigned To Card -->
-          <div class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
-            style="border-color: #ececec">
-            <button @click="uploadDocsOpen = true" class="absolute right-5 top-5 transition-opacity hover:opacity-60">
-              <Icon icon="material-symbols-light:edit" class="size-6 shrink-0" style="color: #01b990" />
+          <div
+            class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
+            style="border-color: #ececec"
+          >
+            <button
+              @click="uploadDocsOpen = true"
+              class="absolute right-5 top-5 transition-opacity hover:opacity-60"
+            >
+              <Icon
+                icon="material-symbols-light:edit"
+                class="size-6 shrink-0"
+                style="color: #01b990"
+              />
             </button>
             <div class="pb-6">
-              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
+              <p
+                class="text-[16px] font-normal uppercase"
+                style="color: #2e3e3f"
+              >
                 Zugewiesen an
               </p>
             </div>
 
             <!-- Avatar + Name row -->
-            <div class="flex items-start gap-6 pb-6" v-if="vehicle.orders.length > 0">
+            <div
+              class="flex items-start gap-6 pb-6"
+              v-if="vehicle.orders.length > 0"
+            >
               <Avatar class="size-[64px] shrink-0">
-                <AvatarFallback class="text-xl font-bold" style="background-color: #d9d9d9; color: #2e3e3f">
+                <AvatarFallback
+                  class="text-xl font-bold"
+                  style="background-color: #d9d9d9; color: #2e3e3f"
+                >
                   {{
                     vehicle.orders[0].request_payload.ansprechpartner.name
                       ? vehicle.orders[0].request_payload.ansprechpartner
-                        .name[0]
+                          .name[0]
                       : "M"
                   }}
                 </AvatarFallback>
@@ -411,7 +650,10 @@ watch(
             </div>
             <div class="flex items-start gap-6 pb-6" v-else>
               <Avatar class="size-[64px] shrink-0">
-                <AvatarFallback class="text-xl font-bold" style="background-color: #d9d9d9; color: #2e3e3f">
+                <AvatarFallback
+                  class="text-xl font-bold"
+                  style="background-color: #d9d9d9; color: #2e3e3f"
+                >
                   M
                 </AvatarFallback>
               </Avatar>
@@ -427,10 +669,16 @@ watch(
 
             <!-- Last Activity -->
             <div class="pb-5">
-              <p class="text-[10px] font-medium uppercase" style="color: #8f9ba7; letter-spacing: 0.5px">
+              <p
+                class="text-[10px] font-medium uppercase"
+                style="color: #8f9ba7; letter-spacing: 0.5px"
+              >
                 Letzte Aktivität
               </p>
-              <div class="flex items-center justify-between pt-2" v-if="vehicle.orders.length > 0">
+              <div
+                class="flex items-center justify-between pt-2"
+                v-if="vehicle.orders.length > 0"
+              >
                 <p class="text-[14px] font-normal" style="color: #2e3e3f">
                   {{
                     new Date(vehicle.orders[0].created_at).toLocaleDateString(
@@ -461,7 +709,11 @@ watch(
             <!-- Contact Fields -->
             <div class="flex flex-col gap-4" v-if="vehicle.orders.length > 0">
               <div class="flex items-center gap-4">
-                <Icon icon="mdi:phone-outline" class="size-[18px] shrink-0" style="color: #5a6b7a" />
+                <Icon
+                  icon="mdi:phone-outline"
+                  class="size-[18px] shrink-0"
+                  style="color: #5a6b7a"
+                />
                 <span class="text-[14px] font-normal" style="color: #2e3e3f">
                   {{
                     vehicle.orders[0].request_payload.ansprechpartner.telefon
@@ -469,7 +721,11 @@ watch(
                 </span>
               </div>
               <div class="flex items-center gap-4">
-                <Icon icon="mdi:map-marker-outline" class="size-[18px] shrink-0" style="color: #5a6b7a" />
+                <Icon
+                  icon="mdi:map-marker-outline"
+                  class="size-[18px] shrink-0"
+                  style="color: #5a6b7a"
+                />
                 <span class="text-[14px] font-normal" style="color: #2e3e3f">
                   {{
                     vehicle.orders[0].request_payload.besichtigungsort.strasse
@@ -481,13 +737,21 @@ watch(
             </div>
             <div class="flex flex-col gap-4" v-else>
               <div class="flex items-center gap-4">
-                <Icon icon="mdi:phone-outline" class="size-[18px] shrink-0" style="color: #5a6b7a" />
+                <Icon
+                  icon="mdi:phone-outline"
+                  class="size-[18px] shrink-0"
+                  style="color: #5a6b7a"
+                />
                 <span class="text-[14px] font-normal" style="color: #2e3e3f">
                   17655874354
                 </span>
               </div>
               <div class="flex items-center gap-4">
-                <Icon icon="mdi:map-marker-outline" class="size-[18px] shrink-0" style="color: #5a6b7a" />
+                <Icon
+                  icon="mdi:map-marker-outline"
+                  class="size-[18px] shrink-0"
+                  style="color: #5a6b7a"
+                />
                 <span class="text-[14px] font-normal" style="color: #2e3e3f">
                   Radestraße 12, 35037 Marburg
                 </span>
@@ -496,10 +760,19 @@ watch(
           </div>
 
           <!-- Vehicle Specs Card -->
-          <div class="relative flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[325px]"
-            style="border-color: #ececec">
-            <button @click="editVehicleOpen = true" class="absolute right-6 top-6 transition-opacity hover:opacity-60">
-              <Icon icon="mdi:pencil" class="size-5 shrink-0" style="color: #01b990" />
+          <div
+            class="relative flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[325px]"
+            style="border-color: #ececec"
+          >
+            <button
+              @click="editVehicleOpen = true"
+              class="absolute right-6 top-6 transition-opacity hover:opacity-60"
+            >
+              <Icon
+                icon="mdi:pencil"
+                class="size-5 shrink-0"
+                style="color: #01b990"
+              />
             </button>
             <div class="px-6 pt-6">
               <p class="text-[18px] font-bold" style="color: #000">
@@ -566,7 +839,10 @@ watch(
   <!-- Mobile: Stacked layout -->
   <div class="md:hidden bg-[#EFEFEF] p-4 flex flex-col gap-4">
     <!-- Timeline Card -->
-    <div class="flex flex-col overflow-hidden rounded-3xl border bg-white" style="border-color: #ececec">
+    <div
+      class="flex flex-col overflow-hidden rounded-3xl border bg-white"
+      style="border-color: #ececec"
+    >
       <div class="px-4 py-4 flex items-center justify-between">
         <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
           {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
@@ -578,18 +854,27 @@ watch(
 
       <!-- Timeline rows -->
       <div class="flex-1 px-4 pb-4">
-        <div v-for="(entry, i) in timelineData.slice(1)" :key="i" class="relative flex items-start pb-6">
+        <div
+          v-for="(entry, i) in timelineData.slice(1)"
+          :key="i"
+          class="relative flex items-start pb-6"
+        >
           <!-- Vertical line -->
-          <div v-if="i < timelineData.slice(1).length - 1" class="absolute left-2 top-5 w-0.5 h-full" :style="entry.completed
-            ? 'background:#01B990'
-            : 'background:#B7C2C2'
-            " />
+          <div
+            v-if="i < timelineData.slice(1).length - 1"
+            class="absolute left-2 top-5 w-0.5 h-full"
+            :style="
+              entry.completed ? 'background:#01B990' : 'background:#B7C2C2'
+            "
+          />
 
           <!-- Dot -->
-          <div class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1" :style="entry.completed
-            ? 'background:#01B990'
-            : 'background:#B7C2C2'
-            " />
+          <div
+            class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
+            :style="
+              entry.completed ? 'background:#01B990' : 'background:#B7C2C2'
+            "
+          />
 
           <!-- Content -->
           <div class="min-w-0 flex-1 pl-5">
@@ -599,21 +884,63 @@ watch(
             </p>
 
             <!-- Label -->
-            <template v-if="entry.label === 'DEKRA' || entry.label === 'TUVSUD'">
+            <template
+              v-if="
+                entry.label.toLowerCase() === 'dekra' ||
+                entry.label.toLowerCase() === 'tuvsud'
+              "
+            >
               <p class="text-[16px] font-bold mb-1" style="color: #01b990">
                 {{ entry.label }}
               </p>
-              <p v-if="entry.sublabel" class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal">
+              <p
+                v-if="entry.sublabel"
+                class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
+              >
                 {{ entry.sublabel }}
               </p>
             </template>
             <template v-else>
-              <p class="text-[14px] text-[#2e3e3f] font-normal">
-                {{ entry.label }}
-              </p>
-              <p v-if="entry.sublabel" class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal">
-                {{ entry.sublabel }}
-              </p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-[14px] text-[#2e3e3f] font-normal">
+                    {{ entry.label }}
+                  </p>
+                  <p
+                    v-if="entry.sublabel"
+                    class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
+                  >
+                    {{ entry.sublabel }}
+                  </p>
+                </div>
+                <div
+                  v-if="entry.isReport && entry.docUrl"
+                  class="flex items-center gap-2"
+                >
+                  <button
+                    @click="
+                      entry.docUrl && downloadDocument(entry.docUrl, $event)
+                    "
+                    class="text-[#01b990] hover:opacity-70"
+                    title="Download"
+                  >
+                    <Icon
+                      icon="material-symbols:download"
+                      class="size-[18.5px] shrink-0"
+                    />
+                  </button>
+                  <button
+                    @click="entry.docUrl && openDocument(entry.docUrl)"
+                    class="text-[#01b990] hover:opacity-70"
+                    title="Open"
+                  >
+                    <Icon
+                      icon="mdi:open-in-new"
+                      class="size-[18.5px] shrink-0"
+                    />
+                  </button>
+                </div>
+              </div>
             </template>
           </div>
         </div>
@@ -621,9 +948,19 @@ watch(
     </div>
 
     <!-- Vehicle Docs Card -->
-    <div class="relative flex flex-col rounded-[16px] border bg-white" style="border-color: #ececec">
-      <button @click="uploadDocsOpen = true" class="absolute right-4 top-4 transition-opacity hover:opacity-60">
-        <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
+    <div
+      class="relative flex flex-col rounded-[16px] border bg-white"
+      style="border-color: #ececec"
+    >
+      <button
+        @click="uploadDocsOpen = true"
+        class="absolute right-4 top-4 transition-opacity hover:opacity-60"
+      >
+        <Icon
+          icon="mdi:pencil"
+          class="size-[18.5px] shrink-0"
+          style="color: #01b990"
+        />
       </button>
       <div class="p-4">
         <p class="text-[16px] font-semibold uppercase text-[#000000]">
@@ -633,17 +970,33 @@ watch(
       </div>
 
       <div class="flex flex-col gap-3 p-4 pt-0">
-        <div v-for="(doc, i) in documents" :key="i" class="flex items-center justify-between gap-3">
-          <span class="text-[14px] font-normal text-[#475569] flex-1 truncate"
-            :title="doc.file_name || doc.document_type || 'Dokument'">
+        <div
+          v-for="(doc, i) in documents"
+          :key="i"
+          class="flex items-center justify-between gap-3"
+        >
+          <span
+            class="text-[14px] font-normal text-[#475569] flex-1 truncate"
+            :title="doc.file_name || doc.document_type || 'Dokument'"
+          >
             {{ doc.file_name || doc.document_type || "Dokument" }}
           </span>
           <div class="flex items-center gap-2">
-            <a v-if="doc.url" :href="doc.url" target="_blank"
-              class="text-[#01b990] hover:opacity-70 flex-shrink-0">
-              <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
+            <a
+              v-if="doc.url"
+              :href="doc.url"
+              target="_blank"
+              class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+            >
+              <Icon
+                icon="material-symbols:download"
+                class="size-[18.5px] shrink-0"
+              />
             </a>
-            <button @click="deleteDocument(doc.id)" class="text-[#EF4444] hover:opacity-70 flex-shrink-0">
+            <button
+              @click="deleteDocument(doc.id)"
+              class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+            >
               <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
             </button>
           </div>
@@ -656,37 +1009,55 @@ watch(
 
     <!-- Angebote (Offers) -->
     <div class="relative">
-      <div class="flex flex-col rounded-[16px] border bg-white" style="border-color: #ececec; opacity: 0.5">
+      <div
+        class="flex flex-col rounded-[16px] border bg-white"
+        style="border-color: #ececec; opacity: 0.5"
+      >
         <div class="px-4 py-4">
-          <p class="text-[16px] font-bold" style="color: #2e3e3f">
-            Angebote
-          </p>
+          <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
         </div>
 
         <!-- Offer rows -->
         <div class="flex flex-col gap-3 px-4">
-          <div v-for="offer in offersData" :key="offer.id"
-            class="flex items-center gap-3 rounded-[20px] border py-3 px-3" :style="offer.accepted
-              ? 'border-color: #EF8450; background: rgba(239, 132, 80, 0.08)'
-              : 'border-color: #ECECEC; background: white'
-              ">
+          <div
+            v-for="offer in offersData"
+            :key="offer.id"
+            class="flex items-center gap-3 rounded-[20px] border py-3 px-3"
+            :style="
+              offer.accepted
+                ? 'border-color: #EF8450; background: rgba(239, 132, 80, 0.08)'
+                : 'border-color: #ECECEC; background: white'
+            "
+          >
             <!-- Radio circle -->
-            <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1" :style="offer.accepted
-              ? 'border-color: #EF8450; background: #EF8450'
-              : 'border-color: #B7C2C2; background: white'
-              ">
-              <div v-if="offer.accepted" class="w-3.5 h-3.5 rounded-full bg-white"></div>
+            <div
+              class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1"
+              :style="
+                offer.accepted
+                  ? 'border-color: #EF8450; background: #EF8450'
+                  : 'border-color: #B7C2C2; background: white'
+              "
+            >
+              <div
+                v-if="offer.accepted"
+                class="w-3.5 h-3.5 rounded-full bg-white"
+              ></div>
             </div>
 
             <!-- Content -->
             <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
               <div class="flex justify-between items-start gap-2">
-                <p class="text-[13px] font-bold flex-1 min-w-0 truncate" :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
-                  " :title="`${offer.id} - ${offer.name}`">
+                <p
+                  class="text-[13px] font-bold flex-1 min-w-0 truncate"
+                  :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
+                  :title="`${offer.id} - ${offer.name}`"
+                >
                   {{ offer.id }} - {{ offer.name }}
                 </p>
-                <p class="text-[14px] font-normal flex-shrink-0" :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
-                  ">
+                <p
+                  class="text-[14px] font-normal flex-shrink-0"
+                  :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
+                >
                   {{ offer.cost.toLocaleString("de-DE") }} €
                 </p>
               </div>
@@ -694,7 +1065,11 @@ watch(
                 <p class="text-[11px] flex-1 truncate" style="color: #b7c2c2">
                   {{ offer.distance || "227km Entfernung" }}
                 </p>
-                <p v-if="offer.saving > 0" class="text-[14px] font-normal flex-shrink-0" style="color: #ef8450">
+                <p
+                  v-if="offer.saving > 0"
+                  class="text-[14px] font-normal flex-shrink-0"
+                  style="color: #ef8450"
+                >
                   Ersparnis: {{ offer.saving }} €
                 </p>
               </div>
@@ -704,7 +1079,10 @@ watch(
 
         <!-- Accepted offer box -->
         <div v-if="acceptedOffer" class="px-4 pb-4 pt-4">
-          <div class="flex items-center justify-between rounded-[20px] px-4 py-3" style="background: #ef8450">
+          <div
+            class="flex items-center justify-between rounded-[20px] px-4 py-3"
+            style="background: #ef8450"
+          >
             <span class="text-[13px] font-normal text-white flex-1 truncate">
               Accepted Offer: {{ acceptedOffer.id }} {{ acceptedOffer.name }}
             </span>
@@ -715,7 +1093,9 @@ watch(
         </div>
       </div>
       <!-- Coming Soon Overlay -->
-      <div class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+      <div
+        class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
+      >
         <div class="bg-white/80 px-4 py-2 rounded-full shadow-lg">
           <p class="text-[16px] font-bold" style="color: #ef8450">
             Coming Soon
@@ -725,9 +1105,19 @@ watch(
     </div>
 
     <!-- Assigned To Card -->
-    <div class="relative flex flex-col rounded-[24px] border bg-white p-6" style="border-color: #ececec">
-      <button @click="uploadDocsOpen = true" class="absolute right-4 top-4 transition-opacity hover:opacity-60">
-        <Icon icon="material-symbols-light:edit" class="size-5 shrink-0" style="color: #01b990" />
+    <div
+      class="relative flex flex-col rounded-[24px] border bg-white p-6"
+      style="border-color: #ececec"
+    >
+      <button
+        @click="uploadDocsOpen = true"
+        class="absolute right-4 top-4 transition-opacity hover:opacity-60"
+      >
+        <Icon
+          icon="material-symbols-light:edit"
+          class="size-5 shrink-0"
+          style="color: #01b990"
+        />
       </button>
       <div class="pb-4">
         <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
@@ -738,11 +1128,13 @@ watch(
       <!-- Avatar + Name row -->
       <div class="flex items-start gap-4 pb-4" v-if="vehicle.orders.length > 0">
         <Avatar class="size-[50px] shrink-0">
-          <AvatarFallback class="text-lg font-bold" style="background-color: #d9d9d9; color: #2e3e3f">
+          <AvatarFallback
+            class="text-lg font-bold"
+            style="background-color: #d9d9d9; color: #2e3e3f"
+          >
             {{
               vehicle.orders[0].request_payload.ansprechpartner.name
-                ? vehicle.orders[0].request_payload.ansprechpartner
-                  .name[0]
+                ? vehicle.orders[0].request_payload.ansprechpartner.name[0]
                 : "M"
             }}
           </AvatarFallback>
@@ -758,7 +1150,10 @@ watch(
       </div>
       <div class="flex items-start gap-4 pb-4" v-else>
         <Avatar class="size-[50px] shrink-0">
-          <AvatarFallback class="text-lg font-bold" style="background-color: #d9d9d9; color: #2e3e3f">
+          <AvatarFallback
+            class="text-lg font-bold"
+            style="background-color: #d9d9d9; color: #2e3e3f"
+          >
             M
           </AvatarFallback>
         </Avatar>
@@ -774,7 +1169,10 @@ watch(
 
       <!-- Last Activity -->
       <div class="pb-4">
-        <p class="text-[10px] font-medium uppercase" style="color: #8f9ba7; letter-spacing: 0.5px">
+        <p
+          class="text-[10px] font-medium uppercase"
+          style="color: #8f9ba7; letter-spacing: 0.5px"
+        >
           Letzte Aktivität
         </p>
         <div class="flex flex-col gap-1 pt-2" v-if="vehicle.orders.length > 0">
@@ -808,19 +1206,23 @@ watch(
       <!-- Contact Fields -->
       <div class="flex flex-col gap-3" v-if="vehicle.orders.length > 0">
         <div class="flex items-center gap-3">
-          <Icon icon="mdi:phone-outline" class="size-[16px] shrink-0" style="color: #5a6b7a" />
+          <Icon
+            icon="mdi:phone-outline"
+            class="size-[16px] shrink-0"
+            style="color: #5a6b7a"
+          />
           <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            {{
-              vehicle.orders[0].request_payload.ansprechpartner.telefon
-            }}
+            {{ vehicle.orders[0].request_payload.ansprechpartner.telefon }}
           </span>
         </div>
         <div class="flex items-start gap-3">
-          <Icon icon="mdi:map-marker-outline" class="size-[16px] shrink-0 mt-0.5" style="color: #5a6b7a" />
+          <Icon
+            icon="mdi:map-marker-outline"
+            class="size-[16px] shrink-0 mt-0.5"
+            style="color: #5a6b7a"
+          />
           <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            {{
-              vehicle.orders[0].request_payload.besichtigungsort.strasse
-            }},
+            {{ vehicle.orders[0].request_payload.besichtigungsort.strasse }},
             {{ vehicle.orders[0].request_payload.besichtigungsort.plz }}
             {{ vehicle.orders[0].request_payload.besichtigungsort.ort }}
           </span>
@@ -828,13 +1230,21 @@ watch(
       </div>
       <div class="flex flex-col gap-3" v-else>
         <div class="flex items-center gap-3">
-          <Icon icon="mdi:phone-outline" class="size-[16px] shrink-0" style="color: #5a6b7a" />
+          <Icon
+            icon="mdi:phone-outline"
+            class="size-[16px] shrink-0"
+            style="color: #5a6b7a"
+          />
           <span class="text-[13px] font-normal" style="color: #2e3e3f">
             17655874354
           </span>
         </div>
         <div class="flex items-start gap-3">
-          <Icon icon="mdi:map-marker-outline" class="size-[16px] shrink-0 mt-0.5" style="color: #5a6b7a" />
+          <Icon
+            icon="mdi:map-marker-outline"
+            class="size-[16px] shrink-0 mt-0.5"
+            style="color: #5a6b7a"
+          />
           <span class="text-[13px] font-normal" style="color: #2e3e3f">
             Radestraße 12, 35037 Marburg
           </span>
@@ -843,14 +1253,22 @@ watch(
     </div>
 
     <!-- Vehicle Specs Card -->
-    <div class="relative flex flex-col overflow-hidden rounded-3xl border bg-white" style="border-color: #ececec">
-      <button @click="editVehicleOpen = true" class="absolute right-4 top-4 transition-opacity hover:opacity-60">
-        <Icon icon="mdi:pencil" class="size-4 shrink-0" style="color: #01b990" />
+    <div
+      class="relative flex flex-col overflow-hidden rounded-3xl border bg-white"
+      style="border-color: #ececec"
+    >
+      <button
+        @click="editVehicleOpen = true"
+        class="absolute right-4 top-4 transition-opacity hover:opacity-60"
+      >
+        <Icon
+          icon="mdi:pencil"
+          class="size-4 shrink-0"
+          style="color: #01b990"
+        />
       </button>
       <div class="px-4 pt-4">
-        <p class="text-[16px] font-bold" style="color: #000">
-          VEHICLE SPECS
-        </p>
+        <p class="text-[16px] font-bold" style="color: #000">VEHICLE SPECS</p>
       </div>
 
       <div class="flex flex-col gap-0 px-4 pt-3 pb-4">
@@ -895,11 +1313,7 @@ watch(
             Rückgabetermin
           </span>
           <span class="text-[14px] font-semibold" style="color: #000">
-            {{
-              new Date(vehicle.leasing_end_date).toLocaleDateString(
-                "de-DE",
-              )
-            }}
+            {{ new Date(vehicle.leasing_end_date).toLocaleDateString("de-DE") }}
           </span>
         </div>
       </div>
@@ -908,6 +1322,57 @@ watch(
 
   <!-- Modals -->
   <AddVehicleModal v-model:open="editVehicleOpen" :vehicle="props.vehicle" />
-  <UploadDocumentModal v-model:open="uploadDocsOpen" :vehicleId="props.vehicle.vehicle_id" @uploaded="loadDocuments"
-    @changed="loadDocuments" />
+  <UploadDocumentModal
+    v-model:open="uploadDocsOpen"
+    :vehicleId="props.vehicle.vehicle_id"
+    @uploaded="loadDocuments"
+    @changed="loadDocuments"
+  />
+
+  <!-- Document Viewer Popup -->
+  <div
+    v-if="viewDocUrl"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+    @click="viewDocUrl = null"
+  >
+    <div
+      class="relative bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden"
+      @click.stop
+    >
+      <div
+        class="flex items-center justify-between p-4 border-b border-gray-200"
+      >
+        <h3 class="text-lg font-semibold text-gray-800">Dokument anzeigen</h3>
+        <button
+          @click="viewDocUrl = null"
+          class="text-gray-500 hover:text-gray-700"
+        >
+          <Icon icon="mdi:close" class="size-6" />
+        </button>
+      </div>
+      <div class="p-4">
+        <iframe
+          :src="viewDocUrl"
+          class="w-full h-[70vh] rounded-lg border border-gray-200"
+          title="Document Viewer"
+        ></iframe>
+      </div>
+      <div class="flex justify-end gap-3 p-4 border-t border-gray-200">
+        <a
+          :href="viewDocUrl"
+          target="_blank"
+          class="px-4 py-2 rounded-full text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50"
+        >
+          In neuem Tab öffnen
+        </a>
+        <button
+          @click="viewDocUrl && downloadDocument(viewDocUrl, $event)"
+          class="px-4 py-2 rounded-full text-sm font-medium text-white"
+          style="background-color: #01b990"
+        >
+          Herunterladen
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
