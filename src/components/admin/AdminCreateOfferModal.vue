@@ -3,6 +3,7 @@ import { ref, watch, computed } from "vue";
 import { Icon } from "@iconify/vue";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { AdminVehicle } from "@/types";
+import { adminOffersApi } from "@/api";
 
 const props = defineProps<{
     open: boolean;
@@ -103,19 +104,24 @@ function close() {
 }
 
 async function handleSubmit() {
-    console.log("Submitting offer with:", {
-        vehicle: props.vehicle,
-        repairCosts: repairCosts.value,
-        depreciationValue: depreciationValue.value,
-        workshopQuote: workshopQuote.value,
-        missingPartsCost: missingPartsCost.value,
-        finalTotal: finalTotal.value,
-        notes: notes.value,
-    });
-    // TODO: Replace with actual API call once endpoint exists
+    if (!props.vehicle?.current_auftragsnummer) {
+        console.error("No auftragsnummer available");
+        return;
+    }
+    
     try {
         isLoading.value = true;
-        // await offerApi.createOffer(...)
+        await adminOffersApi.createDraft(props.vehicle.current_auftragsnummer, {
+            repair_cost_net: repairCosts.value.net,
+            repair_cost_gross: repairCosts.value.gross,
+            depreciation_value_net: depreciationValue.value.net,
+            depreciation_value_gross: depreciationValue.value.gross,
+            workshop_repair_quote_net: workshopQuote.value.net,
+            workshop_repair_quote_gross: workshopQuote.value.gross,
+            missing_parts_cost_net: missingPartsCost.value.net,
+            missing_parts_cost_gross: missingPartsCost.value.gross,
+            additional_notes: notes.value,
+        });
         emit("success");
         close();
     } catch (err) {
