@@ -14,9 +14,9 @@ const props = defineProps<{
   auftragsnummer?: string;
 }>();
 const emit = defineEmits<{
-  "update:open": [value: boolean];
-  uploaded: [doc: VehicleDocument];
-  changed: [];
+  "update:open": (value: boolean) => void;
+  uploaded: (doc: VehicleDocument) => void;
+  changed: () => void;
 }>();
 
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -89,11 +89,21 @@ async function uploadDocument() {
   uploadError.value = "";
 
   try {
+    // Ensure correct title based on document type
+    let title = "Gutachten";
+    // if (documentType.value === "gutachten") {
+    //   title = "Gutachten";
+    // } else if (documentType.value === "Leasingvertrag") {
+    //   title = "Leasingvertrag";
+    // } else if (documentType.value === "vorschaden") {
+    //   title = "Vorschaden";
+    // }
+
     const newDoc = await adminVehiclesApi.uploadReport(
       props.auftragsnummer,
       props.vehicleId,
       documentType.value,
-      documentTitle.value || selectedFile.value.name,
+      title ,
       selectedFile.value,
       false,
     );
@@ -156,17 +166,17 @@ async function deleteDocument(documentId: string) {
 }
 
 // Auto-set title based on document type
-watch(documentType, (newType) => {
-  if (newType === "gutachten") {
-    documentTitle.value = "Gutachten";
-  } else if (newType === "Leasingvertrag") {
-    documentTitle.value = "Leasingvertrag";
-  } else if (newType === "vorschaden") {
-    documentTitle.value = "Vorschaden";
-  } else {
-    documentTitle.value = "";
-  }
-});
+// watch(documentType, (newType) => {
+//   if (newType === "gutachten") {
+//     documentTitle.value = "Gutachten";
+//   } else if (newType === "Leasingvertrag") {
+//     documentTitle.value = "Leasingvertrag";
+//   } else if (newType === "vorschaden") {
+//     documentTitle.value = "Vorschaden";
+//   } else {
+//     documentTitle.value = "";
+//   }
+// });
 
 watch(
   () => props.open,
@@ -202,7 +212,7 @@ watch(
         >
           <div class="px-6 pt-6 mb-6">
             <h2 class="text-[20px] font-bold leading-normal text-black">
-              Dokument hochladen
+              Report hochladen
             </h2>
             <p
               class="mt-1 mx-2 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]"
