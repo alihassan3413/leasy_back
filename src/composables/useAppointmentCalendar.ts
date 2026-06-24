@@ -8,10 +8,11 @@ type CalendarDay = {
 
 export function useAppointmentCalendar(
   selectedDate: Ref<string | undefined>,
-  options: { minDaysAhead?: number } = {},
+  options: { minDaysAhead?: number; allowPast?: boolean } = {},
 ) {
   const today = new Date()
   const minDaysAhead = options.minDaysAhead ?? 0
+  const allowPast = options.allowPast ?? false
 
   const calendarYear = ref(today.getFullYear())
   const calendarMonth = ref(today.getMonth())
@@ -129,6 +130,8 @@ export function useAppointmentCalendar(
   }
 
   function isSelectableDay(calendarDay: CalendarDay): boolean {
+    if (allowPast) return true
+
     const date = new Date(
       calendarYear.value,
       calendarMonth.value + calendarDay.monthOffset,

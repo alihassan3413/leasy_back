@@ -126,7 +126,7 @@ function handleAction(action: string) {
               <Icon icon="solar:play-bold" class="w-6 h-6 text-gray-600" />
               <span class="text-gray-800 font-medium">Start Process</span>
             </DropdownMenuItem>
-            <DropdownMenuItem
+            <!-- <DropdownMenuItem
               @click="handleAction('Assign Someone')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
               :class="{ 'bg-gray-100': activeAction === 'Assign Someone' }"
@@ -136,15 +136,15 @@ function handleAction(action: string) {
                 class="w-6 h-6 text-gray-600"
               />
               <span class="text-gray-800 font-medium">Assign Someone</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
+            </DropdownMenuItem> -->
+            <!-- <DropdownMenuItem
               @click="handleAction('Archive')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
               :class="{ 'bg-gray-100': activeAction === 'Archive' }"
             >
               <Icon icon="mdi:archive-outline" class="w-6 h-6 text-gray-600" />
               <span class="text-gray-800 font-medium">Archive</span>
-            </DropdownMenuItem>
+            </DropdownMenuItem> -->
           </DropdownMenuContent>
         </DropdownMenu>
 
