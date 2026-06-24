@@ -1,4 +1,4 @@
-import { post, get } from "../client/request";
+import { post, get, patch, del } from "../client/request";
 import type { OffersListResponse } from "@/types";
 
 interface CreateOfferDraftPayload {
@@ -28,5 +28,15 @@ export const adminOffersApi = {
     return get<OffersListResponse>(
       `/admin/offers/list/${encodeURIComponent(auftragsnummer)}`,
     );
+  },
+
+  publishOffer(offerId: string, published: boolean = true): Promise<unknown> {
+    return post(`/admin/offers/publish/${encodeURIComponent(offerId)}`, {
+      published,
+    });
+  },
+
+  deleteOffer(offerId: string): Promise<unknown> {
+    return del(`/admin/offers/${encodeURIComponent(offerId)}`);
   },
 };

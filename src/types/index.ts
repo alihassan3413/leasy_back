@@ -766,3 +766,37 @@ export interface CreateOrderPayload {
 export interface CreateOrderResponse {
   [key: string]: unknown;
 }
+
+export interface Offer {
+  additional_notes: string | null;
+  auftragsnummer: string;
+  cancellation_reason: string | null;
+  cancelled_at: string | null;
+  cancelled_by_user_id: string | null;
+  closed_at: string | null;
+  created_at: string;
+  created_by_user_id: string;
+  depreciation_value_gross: string;
+  depreciation_value_net: string;
+  final_total_gross: string;
+  final_total_net: string;
+  missing_parts_cost_gross: string;
+  missing_parts_cost_net: string;
+  offer_id: string;
+  offer_sequence: number;
+  offer_status: "draft" | "published" | "selected" | "cancelled" | "closed";
+  order_id: string;
+  published_at: string | null;
+  published_by_user_id: string | null;
+  repair_cost_gross: string;
+  repair_cost_net: string;
+  selected_at: string | null;
+  selected_by_user_id: string | null;
+  workshop_repair_quote_gross: string;
+  workshop_repair_quote_net: string;
+}
+
+export interface OffersListResponse {
+  auftragsnummer: string;
+  offers: Offer[];
+}

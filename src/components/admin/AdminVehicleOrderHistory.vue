@@ -30,10 +30,20 @@ onMounted(() => {
     "expandedVehicleDetails:",
     props.expandedVehicleDetails[props.vehicle.vehicle_id],
   );
+
+  // Fetch offers after component is mounted
+  if (firstOrder.value?.auftragsnummer) {
+    fetchOffers(firstOrder.value.auftragsnummer);
+  }
 });
 
 const editVehicleOpen = ref(false);
 const uploadDocsOpen = ref(false);
+
+// State for real offers
+const realOffers = ref<Offer[]>([]);
+const offersLoading = ref(false);
+const openOfferMenu = ref<string | null>(null);
 
 // Mock data for offers if backend doesn't provide any
 const mockOffers: any[] = [
@@ -46,6 +56,7 @@ const mockOffers: any[] = [
     distance: "227km distance",
     recommended: false,
     accepted: false,
+    originalOffer: null,
   },
   {
     id: "02",
@@ -56,6 +67,7 @@ const mockOffers: any[] = [
     distance: "406km distance",
     recommended: false,
     accepted: false,
+    originalOffer: null,
   },
   {
     id: "03",
@@ -66,8 +78,48 @@ const mockOffers: any[] = [
     distance: "405km distance",
     recommended: true,
     accepted: true,
+    originalOffer: null,
   },
 ];
+
+// Fetch offers when we have an order with auftragsnummer
+async function fetchOffers(auftragsnummer: string) {
+  if (!auftragsnummer) return;
+  try {
+    offersLoading.value = true;
+    const response = await adminOffersApi.list(auftragsnummer);
+    realOffers.value = response.offers || [];
+  } catch (err) {
+    console.error("Failed to fetch offers:", err);
+    realOffers.value = [];
+  } finally {
+    offersLoading.value = false;
+  }
+}
+
+async function publishOffer(offerId: string) {
+  try {
+    await adminOffersApi.publishOffer(offerId, true);
+    if (firstOrder.value?.auftragsnummer) {
+      await fetchOffers(firstOrder.value.auftragsnummer);
+    }
+  } catch (err) {
+    console.error("Failed to publish offer:", err);
+  }
+}
+
+async function deleteOffer(offerId: string) {
+  try {
+    await adminOffersApi.deleteOffer(offerId);
+    if (firstOrder.value?.auftragsnummer) {
+      await fetchOffers(firstOrder.value.auftragsnummer);
+    }
+  } catch (err) {
+    console.error("Failed to delete offer:", err);
+  }
+}
+
+// TODO: Add updateOffer function when we know the API
 
 // Get the first order (prioritize vehicle.orders > use current_* fields)
 const firstOrder = computed(() => {
@@ -195,6 +247,19 @@ const timelineData = computed(() => {
 });
 
 const offersData = computed(() => {
+  if (realOffers.value.length > 0) {
+    return realOffers.value.map((offer) => ({
+      id: offer.offer_sequence.toString(),
+      name: `Angebot ${offer.offer_sequence}`,
+      cost: parseFloat(offer.final_total_gross),
+      saving: 0,
+      address: "",
+      distance: "",
+      recommended: false,
+      accepted: offer.offer_status === "selected",
+      originalOffer: offer,
+    }));
+  }
   return mockOffers;
 });
 
@@ -283,7 +348,7 @@ async function publishDocument(documentId: string) {
 
 <template>
   <TableRow class="border-0 hover:bg-transparent">
-    <TableCell colspan="8" class="max-w-0 p-0 overflow-x-auto">
+    <TableCell colspan="8" class="max-w-0 p-0 overflow-visible">
       <!-- Main container with 3 columns -->
       <div class="flex gap-4 bg-[#EFEFEF] p-4" style="min-width: max-content">
         <!-- Column 1: Timeline + Vehicle Docs + Return Docs -->
@@ -463,8 +528,8 @@ async function publishDocument(documentId: string) {
         <div class="flex flex-col gap-4" style="width: 400px">
           <div class="relative">
             <div
-              class="flex flex-col rounded-[16px] border bg-white"
-              style="border-color: #ececec; opacity: 0.5"
+              class="flex flex-col rounded-[16px] border bg-white overflow-visible"
+              style="border-color: #ececec"
             >
               <div class="px-6 py-6">
                 <p class="text-[16px] font-bold" style="color: #2e3e3f">
@@ -473,11 +538,11 @@ async function publishDocument(documentId: string) {
               </div>
 
               <!-- Offer rows -->
-              <div class="flex flex-col gap-5 px-6">
+              <div class="flex flex-col gap-5 px-6 overflow-visible">
                 <div
                   v-for="offer in offersData"
                   :key="offer.id"
-                  class="flex items-center gap-4 rounded-[50px] border py-2 px-4"
+                  class="flex items-center gap-4 rounded-[50px] border py-2 px-4 relative"
                   :style="
                     offer.accepted
                       ? 'border-color: #EF8450; background: rgba(239, 132, 80, 0.08)'
@@ -538,6 +603,63 @@ async function publishDocument(documentId: string) {
                       </p>
                     </div>
                   </div>
+
+                  <!-- 3-dot menu -->
+                  <div class="relative">
+                    <button
+                      @click.stop="
+                        openOfferMenu =
+                          openOfferMenu === offer.id ? null : offer.id
+                      "
+                      class="text-[#B7C2C2] hover:text-[#2e3e3f] transition-colors"
+                    >
+                      <Icon icon="mdi:dots-vertical" class="size-5" />
+                    </button>
+                    <div
+                      v-if="openOfferMenu === offer.id"
+                      class="absolute right-0 top-full mt-1 z-50 bg-white rounded-[12px] border border-[#ececec] shadow-lg min-w-[180px] py-2"
+                    >
+                      <!-- Publish -->
+                      <button
+                        v-if="offer.originalOffer"
+                        @click.stop="
+                          publishOffer(offer.originalOffer.offer_id);
+                          openOfferMenu = null;
+                        "
+                        class="w-full text-left px-4 py-2 text-sm text-[#01b990] hover:bg-[#f6f9f8] transition-colors"
+                      >
+                        <span class="flex items-center gap-2">
+                          <Icon icon="mdi:eye-outline" class="size-4" />
+                          Publish
+                        </span>
+                      </button>
+                      <!-- Update -->
+                      <!-- <button
+                        class="w-full text-left px-4 py-2 text-sm text-[#2e3e3f] hover:bg-[#f6f9f8] transition-colors"
+                        @click.stop="openOfferMenu = null"
+                      >
+                        <span class="flex items-center gap-2">
+                          <Icon icon="mdi:pencil" class="size-4" />
+                          Update
+                        </span>
+                      </button> -->
+                      <!-- Delete -->
+                      <div class="h-px bg-[#ececec] my-1"></div>
+                      <button
+                        v-if="offer.originalOffer"
+                        @click.stop="
+                          deleteOffer(offer.originalOffer.offer_id);
+                          openOfferMenu = null;
+                        "
+                        class="w-full text-left px-4 py-2 text-sm text-[#EF4444] hover:bg-[#f6f9f8] transition-colors"
+                      >
+                        <span class="flex items-center gap-2">
+                          <Icon icon="mdi:delete-outline" class="size-4" />
+                          Delete
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -565,16 +687,6 @@ async function publishDocument(documentId: string) {
                     {{ acceptedOffer.cost.toLocaleString("de-DE") }} €
                   </span>
                 </div>
-              </div>
-            </div>
-            <!-- Coming Soon Overlay -->
-            <div
-              class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
-            >
-              <div class="bg-white/80 px-6 py-3 rounded-full shadow-lg">
-                <p class="text-[18px] font-bold" style="color: #ef8450">
-                  Coming Soon
-                </p>
               </div>
             </div>
           </div>
