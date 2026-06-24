@@ -1,4 +1,4 @@
-import { get, post } from "../client/request";
+import { get, post, patch } from "../client/request";
 import type { AdminVehicleListResponse, VehicleDocument } from "@/types";
 
 export const adminVehiclesApi = {
@@ -62,5 +62,17 @@ export const adminVehiclesApi = {
       created_at: resp?.created_at ?? resp?.uploaded_at ?? resp?.createdAt,
       url: resp?.signed_url ?? resp?.url ?? resp?.signedUrl,
     };
+  },
+
+  publishReport(
+    documentId: string,
+    published: boolean = true,
+  ): Promise<unknown> {
+    return patch(
+      `/admin/vehicle/report/publish/${encodeURIComponent(documentId)}`,
+      {
+        published,
+      },
+    );
   },
 };

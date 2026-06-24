@@ -390,6 +390,8 @@ export interface VehicleDocument {
   file_name?: string;
   created_at?: string;
   url?: string;
+  published?: boolean;
+  is_report?: boolean;
 }
 
 export interface Vehicle {

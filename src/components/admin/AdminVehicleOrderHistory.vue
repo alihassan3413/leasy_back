@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import type { AdminVehicle } from "@/types";
+import type { AdminVehicle, Offer, OffersListResponse } from "@/types";
 import AddVehicleModal from "@/components/dashboard/modals/AddVehicleModal.vue";
 import UploadDocumentModal from "@/components/dashboard/modals/UploadDocumentModal.vue";
-import { vehicleApi } from "@/api";
+import { vehicleApi, adminVehiclesApi, adminOffersApi } from "@/api";
 
 const props = defineProps<{
   vehicle: AdminVehicle;
@@ -270,6 +270,15 @@ async function deleteDocument(documentId: string) {
     console.error("Failed to delete vehicle document:", err);
   }
 }
+
+async function publishDocument(documentId: string) {
+  try {
+    await adminVehiclesApi.publishReport(documentId, true);
+    emit("refreshDocs");
+  } catch (err) {
+    console.error("Failed to publish document:", err);
+  }
+}
 </script>
 
 <template>
@@ -392,12 +401,20 @@ async function deleteDocument(documentId: string) {
                   :key="i"
                   class="flex items-center justify-between gap-3"
                 >
-                  <span
-                    class="text-[14px] font-normal text-[#475569] flex-1 truncate"
-                    :title="doc.file_name || doc.document_type || 'Dokument'"
-                  >
-                    {{ doc.file_name || doc.document_type || "Dokument" }}
-                  </span>
+                  <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <span
+                      class="text-[14px] font-normal text-[#475569] truncate"
+                      :title="doc.file_name || doc.document_type || 'Dokument'"
+                    >
+                      {{ doc.file_name || doc.document_type || "Dokument" }}
+                    </span>
+                    <span
+                      v-if="doc.is_report && doc.published"
+                      class="text-[10px] font-bold text-[#01b990] uppercase"
+                    >
+                      Published
+                    </span>
+                  </div>
                   <div class="flex items-center gap-2">
                     <a
                       v-if="doc.url"
@@ -410,6 +427,17 @@ async function deleteDocument(documentId: string) {
                         class="size-[18.5px] shrink-0"
                       />
                     </a>
+                    <button
+                      v-if="doc.is_report && !doc.published"
+                      @click="publishDocument(doc.id)"
+                      class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                      title="Publish"
+                    >
+                      <Icon
+                        icon="mdi:eye-outline"
+                        class="size-[18.5px] shrink-0"
+                      />
+                    </button>
                     <button
                       @click="deleteDocument(doc.id)"
                       class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
