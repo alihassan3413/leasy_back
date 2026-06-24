@@ -1,0 +1,1565 @@
+{
+  "info": {
+    "_postman_id": "leasyback-api-collection",
+    "name": "Leasyback API",
+    "description": "Complete API collection for Leasyback platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "https://app.leasyback.com"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login to the system and get access token"
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"user_type\": \"Privatkunde\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            },
+            "description": "Request password reset email"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token_here\",\n  \"password\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password"]
+            },
+            "description": "Reset password using token"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"refresh_token_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Refresh access token"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"refresh_token_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout from the system"
+          }
+        }
+      ]
+    },
+    {
+      "name": "B2C User Profile",
+      "item": [
+        {
+          "name": "Get B2C Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/userprofile/user-profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["userprofile", "user-profile"]
+            },
+            "description": "Get B2C user profile details"
+          }
+        },
+        {
+          "name": "Create B2C Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": {\n    \"street\": \"Main Street\",\n    \"number\": \"123\",\n    \"additional_address\": \"Apt 4B\",\n    \"zip_code\": \"10115\",\n    \"city\": \"Berlin\",\n    \"country\": \"Deutschland\",\n    \"latitude\": 52.5200,\n    \"longitude\": 13.4050\n  },\n  \"contact\": {\n    \"salutation\": \"Herr\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\"\n  },\n  \"phones\": [\n    {\n      \"international_prefix\": \"+49\",\n      \"phone_number\": \"1234567890\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/userprofile/address-contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["userprofile", "address-contact"]
+            },
+            "description": "Create a new B2C user profile"
+          }
+        },
+        {
+          "name": "Update B2C Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address_id\": \"address_id_here\",\n  \"contact_id\": \"contact_id_here\",\n  \"address\": {\n    \"street\": \"Main Street\",\n    \"number\": \"123\",\n    \"additional_address\": \"Apt 4B\",\n    \"zip_code\": \"10115\",\n    \"city\": \"Berlin\",\n    \"country\": \"Deutschland\"\n  },\n  \"contact\": {\n    \"salutation\": \"Herr\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\"\n  },\n  \"phones\": [\n    {\n      \"international_prefix\": \"+49\",\n      \"phone_number\": \"1234567890\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/userprofile/address-contact",
+              "host": ["{{baseUrl}}"],
+              "path": ["userprofile", "address-contact"]
+            },
+            "description": "Update existing B2C user profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "B2B Company Profile",
+      "item": [
+        {
+          "name": "Create B2B Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_name\": \"Example GmbH\",\n  \"vat_id\": \"DE123456789\",\n  \"contact_email\": \"contact@example.com\",\n  \"address\": {\n    \"street\": \"Business Ave\",\n    \"number\": \"456\",\n    \"zip_code\": \"80331\",\n    \"city\": \"Munich\",\n    \"country\": \"Deutschland\"\n  },\n  \"contact\": {\n    \"salutation\": \"Herr\",\n    \"first_name\": \"Max\",\n    \"last_name\": \"Mustermann\",\n    \"international_prefix\": \"+49\",\n    \"primary_phone_number\": \"9876543210\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/b2b/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["b2b", "create"]
+            },
+            "description": "Create a new B2B company profile"
+          }
+        },
+        {
+          "name": "Get B2B Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/b2b/user_id/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["b2b", "user_id", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Get B2B profile by user ID"
+          }
+        },
+        {
+          "name": "Update B2B Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_name\": \"Example GmbH\",\n  \"vat_id\": \"DE123456789\",\n  \"contact_email\": \"contact@example.com\",\n  \"address\": {\n    \"street\": \"Business Ave\",\n    \"number\": \"456\",\n    \"zip_code\": \"80331\",\n    \"city\": \"Munich\",\n    \"country\": \"Deutschland\"\n  },\n  \"contact\": {\n    \"salutation\": \"Herr\",\n    \"first_name\": \"Max\",\n    \"last_name\": \"Mustermann\",\n    \"international_prefix\": \"+49\",\n    \"primary_phone_number\": \"9876543210\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/b2b/:b2bId",
+              "host": ["{{baseUrl}}"],
+              "path": ["b2b", ":b2bId"],
+              "variable": [
+                {
+                  "key": "b2bId",
+                  "value": "b2b_id_here"
+                }
+              ]
+            },
+            "description": "Update B2B company profile"
+          }
+        },
+        {
+          "name": "Upload Logo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/image/logos/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["image", "logos", "upload"]
+            },
+            "description": "Upload company logo"
+          }
+        },
+        {
+          "name": "Get Logo Signed URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/image/logos/:logoKey/signed-url",
+              "host": ["{{baseUrl}}"],
+              "path": ["image", "logos", ":logoKey", "signed-url"],
+              "variable": [
+                {
+                  "key": "logoKey",
+                  "value": "logo_key_here"
+                }
+              ]
+            },
+            "description": "Get signed URL for logo"
+          }
+        },
+        {
+          "name": "Delete Logo",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/image/logos/:logoKey",
+              "host": ["{{baseUrl}}"],
+              "path": ["image", "logos", ":logoKey"],
+              "variable": [
+                {
+                  "key": "logoKey",
+                  "value": "logo_key_here"
+                }
+              ]
+            },
+            "description": "Delete company logo"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workshop Profile",
+      "item": [
+        {
+          "name": "Create Workshop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workshop_name\": \"Auto Service Berlin\",\n  \"contact_email\": \"service@autoberlin.com\",\n  \"has_vat_id\": true,\n  \"vat_id\": \"DE987654321\",\n  \"iban\": \"DE89370400440532013000\",\n  \"bic\": \"DEUTDEDBBER\",\n  \"account_holder\": \"Auto Service Berlin\",\n  \"packages_selected\": \"basic\",\n  \"terms_accepted\": true,\n  \"privacy_accepted\": true,\n  \"address\": {\n    \"street\": \"Garage Street\",\n    \"number\": \"789\",\n    \"zip_code\": \"10961\",\n    \"city\": \"Berlin\",\n    \"country\": \"Deutschland\",\n    \"latitude\": 52.4987,\n    \"longitude\": 13.3911\n  },\n  \"contact\": {\n    \"salutation\": \"Herr\",\n    \"first_name\": \"Peter\",\n    \"last_name\": \"Schmidt\",\n    \"international_prefix\": \"+49\",\n    \"primary_phone_number\": \"1122334455\",\n    \"phone_numbers\": []\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workshop/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["workshop", "create"]
+            },
+            "description": "Create a new workshop profile"
+          }
+        },
+        {
+          "name": "Get Workshop",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/workshop/user_id/:userId",
+              "host": ["{{baseUrl}}"],
+              "path": ["workshop", "user_id", ":userId"],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Get workshop profile by user ID"
+          }
+        },
+        {
+          "name": "Update Workshop",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workshop_name\": \"Auto Service Berlin\",\n  \"contact_email\": \"service@autoberlin.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/workshop/:workshopId",
+              "host": ["{{baseUrl}}"],
+              "path": ["workshop", ":workshopId"],
+              "variable": [
+                {
+                  "key": "workshopId",
+                  "value": "workshop_id_here"
+                }
+              ]
+            },
+            "description": "Update workshop profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "Get Vehicle List (By Owner)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicle/list/status/:ownerId",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicle", "list", "status", ":ownerId"],
+              "variable": [
+                {
+                  "key": "ownerId",
+                  "value": "owner_id_here"
+                }
+              ]
+            },
+            "description": "Get list of vehicles by owner ID"
+          }
+        },
+        {
+          "name": "Get Vehicle Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicle/:vehicleId",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicle", ":vehicleId"],
+              "variable": [
+                {
+                  "key": "vehicleId",
+                  "value": "vehicle_id_here"
+                }
+              ]
+            },
+            "description": "Get vehicle details by ID"
+          }
+        },
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"license_plate\": \"M-AB 1234\",\n  \"first_registration_date\": \"2020-01-15\",\n  \"leasing_end_date\": \"2025-01-15\",\n  \"vin\": \"WDBUF56X08B308000\",\n  \"make\": \"Mercedes-Benz\",\n  \"model\": \"C-Class\",\n  \"vehicle_belongs\": \"B2C\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehicle/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicle", "create"]
+            },
+            "description": "Create a new vehicle"
+          }
+        },
+        {
+          "name": "Get Vehicle Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicle/:vehicleId/documents",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicle", ":vehicleId", "documents"],
+              "variable": [
+                {
+                  "key": "vehicleId",
+                  "value": "vehicle_id_here"
+                }
+              ]
+            },
+            "description": "Get list of documents for a vehicle"
+          }
+        },
+        {
+          "name": "Upload Vehicle Document",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/vehicle/:vehicleId/documents",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicle", ":vehicleId", "documents"],
+              "variable": [
+                {
+                  "key": "vehicleId",
+                  "value": "vehicle_id_here"
+                }
+              ]
+            },
+            "description": "Upload a document for a vehicle"
+          }
+        },
+        {
+          "name": "Delete Vehicle Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vehicle/:vehicleId/documents/:documentId",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicle", ":vehicleId", "documents", ":documentId"],
+              "variable": [
+                {
+                  "key": "vehicleId",
+                  "value": "vehicle_id_here"
+                },
+                {
+                  "key": "documentId",
+                  "value": "document_id_here"
+                }
+              ]
+            },
+            "description": "Delete a vehicle document"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders & Stations",
+      "item": [
+        {
+          "name": "Get Stations (TUVSUD/DEKRA)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/order/stations/:provider",
+              "host": ["{{baseUrl}}"],
+              "path": ["order", "stations", ":provider"],
+              "variable": [
+                {
+                  "key": "provider",
+                  "value": "tuvsud"
+                }
+              ]
+            },
+            "description": "Get list of inspection stations for a provider (tuvsud/dekra)"
+          }
+        },
+        {
+          "name": "Create Station",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"tuvsud\",\n  \"name\": \"TUVSUD Berlin Mitte\",\n  \"strasse\": \"Station Street\",\n  \"plz\": \"10117\",\n  \"ort\": \"Berlin\",\n  \"bundesland\": \"Berlin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/order/stations/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["order", "stations", "create"]
+            },
+            "description": "Create a new inspection station"
+          }
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Please check brakes\",\n  \"station_id\": \"station_id_here\",\n  \"termin\": \"2025-01-20T10:00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/order/:provider/create/:vehicleId",
+              "host": ["{{baseUrl}}"],
+              "path": ["order", ":provider", "create", ":vehicleId"],
+              "variable": [
+                {
+                  "key": "provider",
+                  "value": "tuvsud"
+                },
+                {
+                  "key": "vehicleId",
+                  "value": "vehicle_id_here"
+                }
+              ]
+            },
+            "description": "Create an inspection order"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "dashboard", "summary"]
+            },
+            "description": "Get admin dashboard summary"
+          }
+        },
+        {
+          "name": "Get B2C Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/b2c?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "b2c"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get list of B2C users (admin)"
+          }
+        },
+        {
+          "name": "Get B2B Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users/b2b?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "users", "b2b"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get list of B2B users (admin)"
+          }
+        },
+        {
+          "name": "Get All Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/vehicles?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "vehicles"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get all vehicles (admin)"
+          }
+        },
+        {
+          "name": "Get Vehicles by User Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/vehicles/by-user-type?user_type=Firmenkunde&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "vehicles", "by-user-type"],
+              "query": [
+                {
+                  "key": "user_type",
+                  "value": "Firmenkunde"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get vehicles by user type (Firmenkunde/Privatkunde)"
+          }
+        },
+        {
+          "name": "Get Vehicles by User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/vehicles/user/:userId?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "vehicles", "user", ":userId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Get vehicles by specific user ID"
+          }
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/orders?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "orders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get all orders (admin)"
+          }
+        },
+        {
+          "name": "Get Orders by User Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/orders/by-user-type?user_type=Firmenkunde&page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "orders", "by-user-type"],
+              "query": [
+                {
+                  "key": "user_type",
+                  "value": "Firmenkunde"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get orders by user type"
+          }
+        },
+        {
+          "name": "Get Orders by User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/orders/user/:userId?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "orders", "user", ":userId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Get orders by specific user"
+          }
+        },
+        {
+          "name": "Approve Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/order/:provider/order/approve/:orderId",
+              "host": ["{{baseUrl}}"],
+              "path": ["order", ":provider", "order", "approve", ":orderId"],
+              "variable": [
+                {
+                  "key": "provider",
+                  "value": "tuvsud"
+                },
+                {
+                  "key": "orderId",
+                  "value": "order_id_here"
+                }
+              ]
+            },
+            "description": "Approve an inspection order"
+          }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/order/:orderId/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "order", ":orderId", "status"],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "order_id_here"
+                }
+              ]
+            },
+            "description": "Update order status"
+          }
+        },
+        {
+          "name": "Confirm Order (Partner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "tuvsud_confirmation"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/order/others/confirm?auftragsnummer=ORDER123",
+              "host": ["{{baseUrl}}"],
+              "path": ["order", "others", "confirm"],
+              "query": [
+                {
+                  "key": "auftragsnummer",
+                  "value": "ORDER123"
+                }
+              ]
+            },
+            "description": "Confirm order (partner endpoint with API key)"
+          }
+        },
+        {
+          "name": "Get Vehicles by User Type (with status filter)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/vehicles/by-user-type?user_type=Firmenkunde&page=1&limit=20&status=completed",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "vehicles", "by-user-type"],
+              "query": [
+                {
+                  "key": "user_type",
+                  "value": "Firmenkunde"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "completed"
+                }
+              ]
+            },
+            "description": "Get vehicles by user type with optional status filter (admin)"
+          }
+        },
+        {
+          "name": "Get Vehicles by User (with status filter)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/vehicles/user/:userId?page=1&limit=10&status=completed",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "vehicles", "user", ":userId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "completed"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Get vehicles by user with optional status filter (admin)"
+          }
+        },
+        {
+          "name": "Get All Orders (with status filter)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/orders?page=1&limit=50&order_status=completed",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "orders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "order_status",
+                  "value": "completed"
+                }
+              ]
+            },
+            "description": "Get all orders with optional status filter (admin)"
+          }
+        },
+        {
+          "name": "Get Orders by User Type (with status filter)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/list/orders/by-user-type?user_type=Firmenkunde&page=1&limit=50&order_status=completed",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "list", "orders", "by-user-type"],
+              "query": [
+                {
+                  "key": "user_type",
+                  "value": "Firmenkunde"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "order_status",
+                  "value": "completed"
+                }
+              ]
+            },
+            "description": "Get orders by user type with optional status filter (admin)"
+          }
+        },
+        {
+          "name": "TÜV SÜD & Appraisals",
+          "item": [
+            {
+              "name": "Sync TÜV SÜD Appraisal XML",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/tim/appraisal/xml/sync/:path",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tim", "appraisal", "xml", "sync", ":path"],
+                  "variable": [
+                    {
+                      "key": "path",
+                      "value": "43686588",
+                      "description": "Path obtained from orders[].response_status"
+                    }
+                  ]
+                },
+                "description": "Downloads XML from TÜV SÜD, parses inspection data, and uploads documents to AWS"
+              }
+            },
+            {
+              "name": "Read TÜV SÜD XML",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/tim/appraisal/xml/:path",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tim", "appraisal", "xml", ":path"],
+                  "variable": [
+                    {
+                      "key": "path",
+                      "value": "43686588"
+                    }
+                  ]
+                },
+                "description": "Retrieves raw XML previously received from TÜV SÜD"
+              }
+            },
+            {
+              "name": "Get Inspection Documents",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/tim/appraisal/docs/:auftragsnummer",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tim", "appraisal", "docs", ":auftragsnummer"],
+                  "variable": [
+                    {
+                      "key": "auftragsnummer",
+                      "value": "MW2809981"
+                    }
+                  ]
+                },
+                "description": "Returns all TÜV SÜD inspection documents stored in AWS for a given order number"
+              }
+            },
+            {
+              "name": "Upload Vehicle Inspection Report",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "auftragsnummer",
+                      "value": "",
+                      "type": "text"
+                    },
+                    {
+                      "key": "vehicle_id",
+                      "value": "",
+                      "type": "text"
+                    },
+                    {
+                      "key": "document_type",
+                      "value": "",
+                      "type": "text"
+                    },
+                    {
+                      "key": "document_title",
+                      "value": "",
+                      "type": "text"
+                    },
+                    {
+                      "key": "published",
+                      "value": "true",
+                      "type": "text"
+                    },
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": ""
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/vehicle/report/upload",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "vehicle", "report", "upload"]
+                },
+                "description": "Allows Admin users to upload vehicle inspection reports manually"
+              }
+            },
+            {
+              "name": "Transfer TÜV SÜD Report",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"auftragsnummer\": \"\",\n  \"vehicle_id\": \"\",\n  \"order_id\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/vehicle/report/transfer",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "vehicle", "report", "transfer"]
+                },
+                "description": "Copies a TÜV SÜD document already stored in AWS into the vehicle document repository"
+              }
+            },
+            {
+              "name": "Publish / Unpublish Report",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"published\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/vehicle/report/publish/:documentId",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "vehicle", "report", "publish", ":documentId"],
+                  "variable": [
+                    {
+                      "key": "documentId",
+                      "value": "c069611d-b4e3-4018-bcd5-542f715e279b"
+                    }
+                  ]
+                },
+                "description": "Controls whether a report is visible to customers"
+              }
+            },
+            {
+              "name": "Delete Report",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/vehicle/report/delete/:documentId",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "vehicle", "report", "delete", ":documentId"],
+                  "variable": [
+                    {
+                      "key": "documentId",
+                      "value": "c069611d-b4e3-4018-bcd5-542f715e279b"
+                    }
+                  ]
+                },
+                "description": "Deletes a previously uploaded report"
+              }
+            },
+            {
+              "name": "Update Order Status (TÜV SÜD)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/order/tuvsud/status?auftragsnummer=JU0202260617&order_status=inspected",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["order", "tuvsud", "status"],
+                  "query": [
+                    {
+                      "key": "auftragsnummer",
+                      "value": "JU0202260617"
+                    },
+                    {
+                      "key": "order_status",
+                      "value": "inspected"
+                    }
+                  ]
+                },
+                "description": "Updates the status of a TÜV SÜD inspection order"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Offers",
+          "item": [
+            {
+              "name": "Admin: Create Offer Draft",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"repair_cost_net\": \"500.00\",\n  \"repair_cost_gross\": \"595.00\",\n  \"depreciation_value_net\": \"150.00\",\n  \"depreciation_value_gross\": \"178.50\",\n  \"workshop_repair_quote_net\": \"1200.00\",\n  \"workshop_repair_quote_gross\": \"1428.00\",\n  \"missing_parts_cost_net\": \"80.00\",\n  \"missing_parts_cost_gross\": \"95.20\",\n  \"additional_notes\": \"Repair quote based on workshop inspection and missing rear parking sensor.\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/admin/offers/create/:auftragsnummer",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "offers", "orders", ":auftragsnummer"],
+                  "variable": [
+                    {
+                      "key": "auftragsnummer",
+                      "value": "YOUR_ORDER_NUMBER"
+                    }
+                  ]
+                },
+                "description": "Creates an offer draft as admin"
+              }
+            },
+            {
+              "name": "Admin: Publish Draft Offer",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/offers/publish/:auftragsnummer",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "offers", "publish", ":auftragsnummer"],
+                  "variable": [
+                    {
+                      "key": "auftragsnummer",
+                      "value": "YOUR_ORDER_NUMBER"
+                    }
+                  ]
+                },
+                "description": "Publishes an offer draft to customers"
+              }
+            },
+            {
+              "name": "Customer List Offers",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/offers/customer/list/:auftragsnummer",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["admin", "offers", "customer", "list", ":auftragsnummer"],
+                  "variable": [
+                    {
+                      "key": "auftragsnummer",
+                      "value": "YOUR_ORDER_NUMBER"
+                    }
+                  ]
+                },
+                "description": "Lists offers available to customer"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.leasyback.com"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    }
+  ]
+}
