@@ -93,7 +93,11 @@ async function handleSubmit() {
 
   try {
     isLoading.value = true;
-    await adminOrdersApi.updateOrderStatus(props.order.id, newStatus.value);
+    await adminOrdersApi.updateOrderStatus(
+      props.order.leasyback_partner,
+      props.order.auftragsnummer,
+      newStatus.value,
+    );
     emit("orderStatusUpdated");
     close();
   } catch (error) {
