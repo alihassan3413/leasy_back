@@ -61,6 +61,18 @@ export interface RequestPayload {
   besichtigungsort: Besichtigungsort;
 }
 
+export interface ReportDocument {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  document_title: string;
+  document_type: string;
+  published: boolean;
+  s3_bucket: string;
+  s3_key: string;
+  s3_url?: string;
+}
+
 export interface Order {
   auftragsnummer: string;
   created_at: string;
@@ -74,6 +86,7 @@ export interface Order {
   response_status: number;
   sent_at: string;
   status_updates: OrderStatusUpdate[];
+  report_documents: ReportDocument[];
 }
 
 export interface Vehicle {

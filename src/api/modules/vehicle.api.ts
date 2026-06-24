@@ -10,11 +10,12 @@ import type {
 
 export const vehicleApi = {
   getVehicleStatus(ownerId: string): Promise<VehicleStatusResponse[]> {
-    return get<VehicleStatusResponse[]>(`/vehicle/list/${ownerId}`);
+    // return get<VehicleStatusResponse[]>(`/vehicle/list/${ownerId}`);
+    return get<VehicleStatusResponse[]>(`vehicle/list/report/status`);
   },
 
   getB2BVehicleStatus(ownerId: string): Promise<VehicleStatusResponse[]> {
-    return get<VehicleStatusResponse[]>(`/vehicle/list/status/${ownerId}`);
+    return get<VehicleStatusResponse[]>(`/vehicle/list/${ownerId}`);
   },
 
   getVehicle(vehicleId: string): Promise<VehicleStatusResponse> {
