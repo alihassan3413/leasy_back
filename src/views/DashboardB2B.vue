@@ -31,11 +31,11 @@ onMounted(async () => {
     <!-- Page header -->
     <div class="flex flex-col gap-4 mb-6">
       <div class="flex items-start justify-between">
-        <h1 class="text-[28px] font-semibold text-[#10393b]">My Dashboard</h1>
+        <h1 class="text-[28px] font-semibold text-[#10393b]">Mein Dashboard</h1>
 
         <div class="flex flex-col items-end gap-3">
           <!-- Notifications and info icons -->
-          <div
+          <!-- <div
             class="flex items-center gap-2 px-4 py-2 rounded-full"
             style="background-color: #10393b"
           >
@@ -45,7 +45,7 @@ onMounted(async () => {
             <button class="text-white">
               <Icon icon="mdi:information-outline" class="w-5 h-5" />
             </button>
-          </div>
+          </div> -->
 
           <!-- Create new entry button -->
           <button

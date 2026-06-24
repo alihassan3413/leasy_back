@@ -4,11 +4,12 @@ import { useForm } from "vee-validate";
 import { Icon } from "@iconify/vue";
 import { useWorkshopStore } from "@/stores/workshop.store";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
+import FormAddressAutocompleteField from "@/components/ui/form/FormAddressAutocompleteField.vue";
 import Button from "@/components/ui/button/Button.vue";
 
 const workshopStore = useWorkshopStore();
 
-const { handleSubmit, isSubmitting, setValues, errors } = useForm({
+const { handleSubmit, isSubmitting, setValues, setFieldValue, values, errors } = useForm({
   initialValues: {
     firmenname: "",
     ustIdNr: "",
@@ -83,6 +84,32 @@ const onSubmit = handleSubmit(async (values) => {
   console.error("Validation failed in AccountDetail:", invalid.errors);
 });
 
+type ResolvedAddress = {
+  street?: string;
+  number?: string;
+  zip_code?: string;
+  city?: string;
+};
+
+const onAddressFromMap = (resolved: ResolvedAddress) => {
+  if (resolved.street) setFieldValue("address.strasse", resolved.street);
+  if (resolved.number) setFieldValue("address.nr", resolved.number);
+  if (resolved.zip_code) setFieldValue("address.plz", resolved.zip_code);
+  if (resolved.city) setFieldValue("address.ort", resolved.city);
+};
+
+// Full address line used to geocode the map position from the address text
+// (the backend doesn't reliably persist coordinates).
+const addressQuery = computed(() => {
+  const a = values.address;
+  // Require street + city to geocode unambiguously; a lone street name resolves
+  // to a famous default (e.g. "Leopoldstraße" → München). Empty = don't geocode.
+  if (!a?.strasse || !a?.ort) return "";
+  const streetLine = [a.strasse, a.nr].filter(Boolean).join(" ");
+  const cityLine = [a.plz, a.ort].filter(Boolean).join(" ");
+  return [streetLine, cityLine, "Deutschland"].filter(Boolean).join(", ");
+});
+
 const logoUrl = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -141,7 +168,8 @@ const onFileChange = (e: Event) => {
           <!-- Address Fields -->
           <div class="grid flex-1 grid-cols-[2fr_1fr] gap-x-7.5 gap-y-3 lg:max-w-137.5">
             <!-- Row 1: Straße & Nr -->
-            <FormTextField name="address.strasse" label="Straße" placeholder="Sechzig Str" class="w-95" />
+            <FormAddressAutocompleteField name="address.strasse" label="Straße"
+              placeholder="Sechzig Str" @resolved="onAddressFromMap" class="w-95" />
             <FormTextField name="address.nr" label="Nr." placeholder="45" class="w-44.5" />
 
             <!-- Row 2: Zusätzliche Anschrift & PLZ -->
@@ -159,17 +187,16 @@ const onFileChange = (e: Event) => {
             </div>
           </div>
 
-          <!-- Map Placeholder -->
+          <!-- Map -->
           <div
             class="h-52.75 max-w-101.5 flex-1 overflow-hidden rounded-lg border border-[#D9E2E2] bg-[#F9FAFA] lg:h-auto">
-            <div class="flex size-full items-center justify-center bg-[#E5E7EB] relative">
-              <div
-                class="absolute inset-0 bg-[url('https://maps.googleapis.com/maps/api/staticmap?center=Cologne,Germany&zoom=13&size=600x300&key=YOUR_API_KEY')] bg-cover bg-center opacity-40">
-              </div>
-              <div class="z-10 flex flex-col items-center">
-                <Icon icon="mdi:map-marker" class="size-10 text-[#01B990]" />
-              </div>
-            </div>
+            <AppMapPicker
+              :latitude="null"
+              :longitude="null"
+              :address="addressQuery"
+              :interactive="true"
+              @resolved="onAddressFromMap"
+            />
           </div>
         </div>
       </div>

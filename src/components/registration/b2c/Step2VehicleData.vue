@@ -80,12 +80,14 @@ const onSubmit = handleSubmit(async (values) => {
           name="erstzulassungsdatum"
           label="Erstzulassungsdatum"
           help-text="*(seh. Fahrzeugschein)"
+          allow-past
         />
 
         <CalendarDateField
           name="leasingende"
           label="Leasingende"
           help-text="*(seh. Leasingvertrag)"
+          allow-past
         />
 
         <FormTextField

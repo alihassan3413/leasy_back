@@ -143,7 +143,7 @@ function handleCardAction(vehicle: Vehicle, action: string) {
         <button @click.stop="handleCardAction(vehicle, 'Start Process')"
           class="flex items-center gap-2 px-3 py-2 rounded-lg text-white font-medium" style="background-color: #ef8450">
           <Icon icon="solar:play-bold" class="w-5 h-5" />
-          <span class="text-[14px]">Start Process</span>
+          <span class="text-[14px]">Vorgang starten</span>
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
@@ -155,18 +155,18 @@ function handleCardAction(vehicle: Vehicle, action: string) {
             <DropdownMenuItem @click.stop="handleCardAction(vehicle, 'Start Process')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50">
               <Icon icon="solar:play-bold" class="w-6 h-6 text-gray-600" />
-              <span class="text-gray-800 font-medium">Start Process</span>
+              <span class="text-gray-800 font-medium">Vorgang starten</span>
             </DropdownMenuItem>
-            <DropdownMenuItem @click.stop="handleCardAction(vehicle, 'Assign Someone')"
+            <!-- <DropdownMenuItem @click.stop="handleCardAction(vehicle, 'Assign Someone')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50">
               <Icon icon="mdi:account-plus-outline" class="w-6 h-6 text-gray-600" />
               <span class="text-gray-800 font-medium">Assign Someone</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem @click.stop="handleCardAction(vehicle, 'Archive')"
+            </DropdownMenuItem> -->
+            <!-- <DropdownMenuItem @click.stop="handleCardAction(vehicle, 'Archive')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50">
               <Icon icon="mdi:archive-outline" class="w-6 h-6 text-gray-600" />
               <span class="text-gray-800 font-medium">Archive</span>
-            </DropdownMenuItem>
+            </DropdownMenuItem> -->
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

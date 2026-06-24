@@ -4,6 +4,7 @@ import { useForm } from "vee-validate";
 import { Icon } from "@iconify/vue";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import FormSelectField from "@/components/ui/form/FormSelectField.vue";
+import FormAddressAutocompleteField from "@/components/ui/form/FormAddressAutocompleteField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import AppMapPicker from "@/components/ui/AppMapPicker.vue";
 import profileImage from "@/assets/logo/B2bProfile-img.svg";
@@ -27,6 +28,10 @@ const anredeOptions = [
 
 const { handleSubmit, resetForm, setFieldValue, values, isSubmitting } =
   useForm({
+    // Leaving edit mode unmounts the address field components; without this,
+    // vee-validate prunes their values from `values`, so re-entering edit (and
+    // the read-mode map, which derives from `values`) would show empty fields.
+    keepValuesOnUnmount: true,
     initialValues: {
       anrede: "",
       vorname: "",
@@ -94,6 +99,18 @@ type ResolvedAddress = {
   latitude: number;
   longitude: number;
 };
+
+// Full address line used to geocode the map position when stored coordinates
+// are missing/invalid (the backend can drop or corrupt them on save).
+const addressQuery = computed(() => {
+  const a = values.address;
+  // Require street + city to geocode unambiguously; a lone street name resolves
+  // to a famous default (e.g. "Leopoldstraße" → München). Empty = don't geocode.
+  if (!a?.strasse || !a?.ort) return "";
+  const streetLine = [a.strasse, a.nr].filter(Boolean).join(" ");
+  const cityLine = [a.plz, a.ort].filter(Boolean).join(" ");
+  return [streetLine, cityLine, "Deutschland"].filter(Boolean).join(", ");
+});
 
 const onAddressFromMap = (resolved: ResolvedAddress) => {
   if (!isEditMode.value) return;
@@ -275,9 +292,9 @@ const formatAddressLine2 = () => {
         </dl>
 
         <!-- Static map preview -->
-        <div class="h-[180px] sm:h-[185px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[260px]">
+        <div class="h-[240px] sm:h-[300px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[400px]">
           <AppMapPicker :latitude="values.address?.latitude ?? null" :longitude="values.address?.longitude ?? null"
-            :interactive="false" />
+            :address="addressQuery" :interactive="false" />
         </div>
       </div>
     </div>
@@ -320,7 +337,8 @@ const formatAddressLine2 = () => {
 
         <div class="flex flex-col gap-6 lg:flex-row">
           <div class="grid min-w-0 flex-1 grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-[2fr_1fr] sm:gap-x-[30px]">
-            <FormTextField name="address.strasse" label="Straße" placeholder="Straße" />
+            <FormAddressAutocompleteField name="address.strasse" label="Straße"
+              placeholder="Straße eingeben…" @resolved="onAddressFromMap" />
             <FormTextField name="address.nr" label="Nr." placeholder="Nr." />
             <FormTextField name="address.zusaetzlicheAnschrift" label="Zusätzliche Anschrift"
               placeholder="Adresszusatz" />
@@ -336,7 +354,7 @@ const formatAddressLine2 = () => {
 
           <div class="h-[220px] sm:h-[260px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[380px]">
             <AppMapPicker :latitude="values.address?.latitude ?? null" :longitude="values.address?.longitude ?? null"
-              :interactive="true" @resolved="onAddressFromMap" />
+              :address="addressQuery" :interactive="true" @resolved="onAddressFromMap" />
           </div>
         </div>
       </div>
