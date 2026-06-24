@@ -12,6 +12,7 @@ import {
 import OrderCreationModal from "../dashboard/modals/OrderCreationModal.vue";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { getVehicleStatusLabel } from "@/lib/status";
 
 const props = defineProps<{
   vehicle: Vehicle;
@@ -30,16 +31,19 @@ function handleClick() {
   emit("toggle");
 }
 
-const manualStatuses = ["Eingeplant", "Planung", "Erledigt"];
+// Status is driven by the same order check as the play button / "Start Process":
+// no order yet → "Eingeplant" (ready to start), otherwise the real order status.
+const vehicleStatus = computed(() => {
+  const orders = props.vehicle.orders;
 
-const manualStatus = computed(() => {
-  const id = props.vehicle.id || props.vehicle.licensePlate || "";
+  if (!orders?.length) {
+    return { label: "Eingeplant", dotColor: "#ef8450" };
+  }
 
-  const index =
-    id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0) %
-    manualStatuses.length;
-
-  return manualStatuses[index];
+  return {
+    label: getVehicleStatusLabel(orders[0].order_status).label,
+    dotColor: "#01B990",
+  };
 });
 
 const iconClasses = computed(() => [
@@ -48,6 +52,10 @@ const iconClasses = computed(() => [
 
 const activeAction = ref<string | null>(null);
 const orderModalOpen = ref(false);
+
+// "Start Process" creates the first order for a vehicle, so it only applies to
+// vehicles that have not started a process yet (no existing order).
+const canStartProcess = computed(() => !props.vehicle.orders?.length);
 
 async function handleOrderSuccess() {
   if (authStore.user?.id) {
@@ -88,15 +96,9 @@ function handleAction(action: string) {
       <div class="flex items-center gap-2">
         <span
           class="w-3 h-3 rounded-full"
-          :style="
-            manualStatus === 'Eingeplant'
-              ? 'background-color: #ef8450'
-              : manualStatus === 'Planung'
-                ? 'background-color: #8f9ba7'
-                : 'background-color: #01B990'
-          "
+          :style="{ backgroundColor: vehicleStatus.dotColor }"
         ></span>
-        <span class="text-[14px] text-gray-600">{{ manualStatus }}</span>
+        <span class="text-[14px] text-gray-600">{{ vehicleStatus.label }}</span>
       </div>
     </TableCell>
     <TableCell class="h-[52px] truncate px-4 text-[14px] text-gray-600">
@@ -104,6 +106,18 @@ function handleAction(action: string) {
     </TableCell>
     <TableCell class="h-[52px] px-4 text-right">
       <div class="flex items-center justify-end gap-1">
+        <!-- Start Process button -->
+        <button
+          v-if="canStartProcess"
+          @click.stop="handleAction('Start Process')"
+          class="transition-opacity hover:opacity-70 hover:bg-orange-50 p-1 rounded"
+        >
+          <Icon
+            icon="solar:play-bold"
+            class="w-5 h-5"
+            style="color: rgb(239, 132, 80)"
+          />
+        </button>
         <!-- Three dots menu -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
@@ -119,6 +133,7 @@ function handleAction(action: string) {
             class="w-56 rounded-xl shadow-lg border border-gray-100"
           >
             <DropdownMenuItem
+              v-if="canStartProcess"
               @click="handleAction('Start Process')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
               :class="{ 'bg-gray-100': activeAction === 'Start Process' }"
