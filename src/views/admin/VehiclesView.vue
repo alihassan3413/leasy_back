@@ -638,9 +638,11 @@ onBeforeUnmount(() => {
       @order-status-updated="onOrderStatusUpdated" />
 
     <AdminUploadReportModal :open="uploadReportOpen" :vehicle-id="selectedVehicle?.vehicle_id"
+      :auftragsnummer="selectedVehicle?.current_auftragsnummer"
       @update:open="uploadReportOpen = $event" />
 
     <AdminUploadInvoiceModal :open="uploadInvoiceOpen" :vehicle-id="selectedVehicle?.vehicle_id"
+      :auftragsnummer="selectedVehicle?.current_auftragsnummer"
       @update:open="uploadInvoiceOpen = $event" />
     <AdminCreateOfferModal :open="offerModalOpen" :vehicle="selectedVehicle" @update:open="offerModalOpen = $event"
       @success="loadVehicles" />
