@@ -5,7 +5,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAuth } from "@/composables/useAuth";
 import type { UserRole } from "@/types";
 import { useB2BStore } from "@/stores/b2b.store";
-import leasybackLogo from "@/assets/logo/leasyback-logo.svg";
+import leasybackLogo from "@/assets/logo/leasyback-stacked.png";
 
 const collapsed = ref(false);
 const route = useRoute();
@@ -148,35 +148,15 @@ watch(
   >
     <!-- ── BRAND ── -->
     <div
-      class="flex items-center gap-2.5 px-1 h-10 mb-7 shrink-0 overflow-hidden"
+      class="flex items-center mb-6 shrink-0 overflow-hidden px-1"
+      :class="collapsed ? 'justify-center' : ''"
     >
-      <!-- <div
-        class="w-10 h-10 rounded-[13px] flex items-center justify-center shrink-0"
-        style="
-          background: linear-gradient(150deg, #01b990, #10393b);
-          box-shadow: 0 4px 12px rgba(1, 185, 144, 0.3);
-        "
-      >
-        <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-          <path d="M6 11 L11 6 L16 11 L11 16 Z" fill="white" opacity="0.95" />
-        </svg>
-      </div> -->
-      <transition name="lb-fade">
-        <div
-          v-if="!collapsed"
-          class="flex flex-col leading-none whitespace-nowrap overflow-hidden"
-        >
-          <img
-            :src="leasybackLogo"
-            alt="LeasyBack"
-            class="h-5.5 w-auto shrink-0"
-          />
-          <!-- <span
-            class="text-[9.5px] font-bold text-white/35 uppercase tracking-[0.1em] mt-1"
-            >{{ user.value?.role === "ADMIN" ? "Admin" : "App" }}</span -->
-          <!-- > -->
-        </div>
-      </transition>
+      <img
+        :src="leasybackLogo"
+        alt="LeasyBack"
+        class="h-auto object-contain shrink-0"
+        :class="collapsed ? 'w-full' : 'w-[70%]'"
+      />
     </div>
 
     <!-- ── COLLAPSE TOGGLE ──
