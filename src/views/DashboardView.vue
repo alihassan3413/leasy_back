@@ -31,18 +31,13 @@ onMounted(() => {
   <div class="flex flex-col h-full overflow-hidden">
     <!-- Page header -->
     <div class="flex flex-col gap-4 mb-6 px-4 md:px-0">
-      <div class="flex items-start justify-between">
-        <!-- Logo -->
-        <div class="flex items-center">
-          <span class="text-[20px] font-extrabold text-[#10393b]"
-            >Leasy<span class="text-[#01B990]">Back</span></span
-          >
-        </div>
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <h1 class="text-[22px] md:text-[28px] font-semibold text-[#10393b]">My Dashboard</h1>
 
-        <!-- Notifications and info icons (only desktop) -->
-        <div class="hidden md:flex items-center gap-3">
+        <div class="flex flex-col items-stretch md:items-end gap-3 w-full md:w-auto">
+          <!-- Notifications and info icons (only desktop) -->
           <div
-            class="flex items-center gap-2 px-4 py-2 rounded-full"
+            class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full"
             style="background-color: #10393b"
           >
             <button class="text-white">
@@ -52,21 +47,17 @@ onMounted(() => {
               <Icon icon="mdi:information-outline" class="w-5 h-5" />
             </button>
           </div>
+
+          <!-- Create new entry button -->
+          <button
+            @click="addVehicleOpen = true"
+            class="flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium w-full md:w-auto justify-center"
+            style="background-color: #ef8450"
+          >
+            <Icon icon="ic:baseline-plus" class="w-5 h-5" />
+            <span>Neues Fahrzeug anlegen</span>
+          </button>
         </div>
-      </div>
-
-      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-        <h1 class="text-[22px] md:text-[28px] font-semibold text-[#10393b]">My Dashboard</h1>
-
-        <!-- Create new entry button -->
-        <button
-          @click="addVehicleOpen = true"
-          class="flex items-center gap-2 px-4 py-2 rounded-full text-white font-medium w-full md:w-auto justify-center"
-          style="background-color: #ef8450"
-        >
-          <Icon icon="ic:baseline-plus" class="w-5 h-5" />
-          <span>Create new Entry</span>
-        </button>
       </div>
     </div>
 

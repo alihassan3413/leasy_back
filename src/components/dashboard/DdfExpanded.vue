@@ -528,7 +528,7 @@ watch(
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
                 <span class="text-[16px] font-normal" style="color: #64748b">
-                  Mileage
+                  Kilometerstand
                 </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.kilometerstand || "Nicht verfügbar" }}
@@ -874,7 +874,7 @@ watch(
         <div class="h-px bg-gray-200"></div>
         <div class="flex items-center justify-between py-3">
           <span class="text-[14px] font-normal" style="color: #64748b">
-            Mileage
+            Kilometerstand
           </span>
           <span class="text-[14px] font-semibold" style="color: #000">
             {{ vehicle.kilometerstand || "Nicht verfügbar" }}

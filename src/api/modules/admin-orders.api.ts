@@ -33,10 +33,13 @@ export const adminOrdersApi = {
   },
   
   updateOrderStatus(
-    orderId: string,
-    status: string,
+    provider: string,
+    auftragsnummer: string,
+    orderStatus: string,
   ): Promise<unknown> {
-    return post(`/admin/order/${encodeURIComponent(orderId)}/status`, { status });
+    return get(
+      `/order/${encodeURIComponent(provider)}/status?auftragsnummer=${encodeURIComponent(auftragsnummer)}&order_status=${encodeURIComponent(orderStatus)}`,
+    );
   },
 
   confirmOrder(
