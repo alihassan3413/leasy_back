@@ -268,7 +268,7 @@ async function handleSubmit() {
               {{
                 isEditMode
                   ? "Bearbeiten Sie die Fahrzeugdaten im Formular unten."
-                  : "Please fill in all the details in the form below."
+                  : "Bitte füllen Sie alle Angaben im Formular unten aus."
               }}
             </p>
           </div>
