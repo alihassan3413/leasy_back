@@ -405,7 +405,7 @@ async function handleSubmit() {
                 class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
                 <input v-model="rueckgabestart" type="date"
                   class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60" />
-                <Icon icon="mdi:calendar-outline" class="absolute right-4 text-gray-400" />
+                <Icon icon="mdi:calendar-outline" class="absolute right-4 text-gray-400 pointer-events-none" />
               </div>
             </div>
           </div>
