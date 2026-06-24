@@ -1,23 +1,18 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+import { useGooglePlaces, isValidDeCoord } from "@/composables/useGooglePlaces";
+import { loadGoogleMaps } from "@/composables/useGoogleMapsLoader";
 
 interface Props {
   latitude: number | null;
   longitude: number | null;
   interactive?: boolean;
+  /**
+   * Full address line ("Straße Nr, PLZ Ort, Deutschland"). Used to position
+   * the marker by geocoding when latitude/longitude are missing or invalid
+   * (e.g. the backend dropped or corrupted them on save).
+   */
+  address?: string;
 }
 
 interface ResolvedAddress {
@@ -37,12 +32,18 @@ const emit = defineEmits<{
   resolved: [address: ResolvedAddress];
 }>();
 
+const { geocodeAddress } = useGooglePlaces();
+
 const mapContainer = ref<HTMLDivElement | null>(null);
-let map: L.Map | null = null;
-let marker: L.Marker | null = null;
+const loadFailed = ref(false);
+
+// `any` — we don't ship @types/google.maps; the surface used is small.
+let gmaps: any = null;
+let map: any = null;
+let marker: any = null;
 
 // Fallback center: Cologne, Germany.
-const DEFAULT_CENTER: [number, number] = [50.9375, 6.9603];
+const DEFAULT_CENTER = { lat: 50.9375, lng: 6.9603 };
 
 const reverseGeocode = async (
   lat: number,
@@ -76,60 +77,113 @@ const reverseGeocode = async (
 };
 
 const placeMarker = (lat: number, lng: number) => {
-  if (!map) return;
+  if (!map || !gmaps) return;
+  const position = { lat, lng };
   if (marker) {
-    marker.setLatLng([lat, lng]);
+    marker.setPosition(position);
   } else {
-    marker = L.marker([lat, lng], { draggable: props.interactive }).addTo(map);
-    marker.on("dragend", async () => {
-      const pos = marker!.getLatLng();
-      emit("resolved", await reverseGeocode(pos.lat, pos.lng));
+    marker = new gmaps.Marker({
+      position,
+      map,
+      draggable: props.interactive,
+    });
+    marker.addListener("dragend", async (e: any) => {
+      emit("resolved", await reverseGeocode(e.latLng.lat(), e.latLng.lng()));
     });
   }
-  marker.dragging?.[props.interactive ? "enable" : "disable"]();
+  marker.setDraggable(props.interactive);
 };
 
-onMounted(() => {
+// Resolve the position to display: trust valid stored coordinates, otherwise
+// geocode the address text (which is reliably persisted) as a fallback.
+let resolveSeq = 0;
+const resolvePosition = async (): Promise<[number, number] | null> => {
+  // Edit mode honours coordinates set by live interaction (map click/drag or an
+  // autocomplete selection) so the marker stays exactly where the user put it.
+  if (props.interactive && isValidDeCoord(props.latitude, props.longitude)) {
+    return [props.latitude as number, props.longitude as number];
+  }
+  // Otherwise the address text is the source of truth: stored coordinates are
+  // unreliable (the backend round-trips them as 0,0) and can be stale, so a
+  // complete address must win. The parent passes an empty string when the
+  // address is too incomplete to geocode unambiguously (a lone street name
+  // resolves to a famous default, e.g. "Leopoldstraße" → München).
+  if (props.address?.trim()) {
+    const geo = await geocodeAddress(props.address);
+    if (geo) return [geo.latitude, geo.longitude];
+  }
+  // Last resort: any valid coordinates we were handed.
+  if (isValidDeCoord(props.latitude, props.longitude)) {
+    return [props.latitude as number, props.longitude as number];
+  }
+  return null;
+};
+
+const renderPosition = async () => {
+  const seq = ++resolveSeq;
+  const pos = await resolvePosition();
+  // Bail if a newer call superseded this one, or the map was torn down.
+  if (seq !== resolveSeq || !map) return;
+  if (pos) {
+    placeMarker(pos[0], pos[1]);
+    map.setCenter({ lat: pos[0], lng: pos[1] });
+  }
+};
+
+// Debounce position updates triggered by prop changes (e.g. typing) so we
+// don't fire a geocode request on every keystroke.
+let renderTimer: ReturnType<typeof setTimeout> | null = null;
+const scheduleRender = () => {
+  if (renderTimer) clearTimeout(renderTimer);
+  renderTimer = setTimeout(renderPosition, 400);
+};
+
+onMounted(async () => {
+  try {
+    gmaps = await loadGoogleMaps();
+  } catch (err) {
+    console.error("Google Maps failed to load:", err);
+    loadFailed.value = true;
+    return;
+  }
   if (!mapContainer.value) return;
 
-  const center: [number, number] =
-    props.latitude != null && props.longitude != null
-      ? [props.latitude, props.longitude]
+  // Only seed from coordinates we will actually keep (edit-mode live coords);
+  // otherwise start at the default and let renderPosition geocode the address,
+  // so a stale stored coordinate never flashes before the correct one resolves.
+  const center =
+    props.interactive && isValidDeCoord(props.latitude, props.longitude)
+      ? { lat: props.latitude as number, lng: props.longitude as number }
       : DEFAULT_CENTER;
 
-  map = L.map(mapContainer.value, {
+  map = new gmaps.Map(mapContainer.value, {
     center,
     zoom: 14,
     zoomControl: true,
-    scrollWheelZoom: props.interactive,
-    dragging: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    clickableIcons: false,
+    gestureHandling: "cooperative",
+    scrollwheel: props.interactive,
+    keyboardShortcuts: false,
   });
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "© OpenStreetMap",
-  }).addTo(map);
-
-  if (props.latitude != null && props.longitude != null) {
-    placeMarker(props.latitude, props.longitude);
-  }
-
-  map.on("click", async (e: L.LeafletMouseEvent) => {
+  map.addListener("click", async (e: any) => {
     if (!props.interactive) return;
-    const { lat, lng } = e.latlng;
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
     placeMarker(lat, lng);
     emit("resolved", await reverseGeocode(lat, lng));
   });
+
+  renderPosition();
 });
 
-// Keep marker in sync when the parent updates coordinates (e.g. profile loads).
+// Keep marker in sync when the parent updates coordinates or address.
 watch(
-  () => [props.latitude, props.longitude] as const,
-  ([lat, lng]) => {
-    if (lat == null || lng == null || !map) return;
-    placeMarker(lat, lng);
-    map.setView([lat, lng], map.getZoom());
-  },
+  () => [props.latitude, props.longitude, props.address] as const,
+  () => scheduleRender(),
 );
 
 // Toggle interactivity when edit mode changes.
@@ -137,27 +191,32 @@ watch(
   () => props.interactive,
   (interactive) => {
     if (!map) return;
-    interactive ? map.scrollWheelZoom.enable() : map.scrollWheelZoom.disable();
-    marker?.dragging?.[interactive ? "enable" : "disable"]();
+    map.setOptions({ scrollwheel: interactive });
+    marker?.setDraggable(interactive);
   },
 );
 
 onBeforeUnmount(() => {
-  map?.remove();
-  map = null;
-  marker = null;
+  if (renderTimer) clearTimeout(renderTimer);
+  if (marker) {
+    gmaps?.event.clearInstanceListeners(marker);
+    marker.setMap(null);
+    marker = null;
+  }
+  if (map) {
+    gmaps?.event.clearInstanceListeners(map);
+    map = null;
+  }
 });
 </script>
 
 <template>
-  <div ref="mapContainer" class="size-full" />
+  <div ref="mapContainer" class="size-full">
+    <div
+      v-if="loadFailed"
+      class="flex size-full items-center justify-center bg-[#F1F5F5] text-xs text-[#7A9699]"
+    >
+      Karte konnte nicht geladen werden.
+    </div>
+  </div>
 </template>
-
-<style scoped>
-/* Leaflet needs a positioned container; size-full handles dimensions. */
-:deep(.leaflet-container) {
-  height: 100%;
-  width: 100%;
-  border-radius: inherit;
-}
-</style>

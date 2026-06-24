@@ -32,11 +32,11 @@ onMounted(() => {
     <!-- Page header -->
     <div class="flex flex-col gap-4 mb-6 px-4 md:px-0">
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-        <h1 class="text-[22px] md:text-[28px] font-semibold text-[#10393b]">My Dashboard</h1>
+        <h1 class="text-[22px] md:text-[28px] font-semibold text-[#10393b]">Mein Dashboard</h1>
 
         <div class="flex flex-col items-stretch md:items-end gap-3 w-full md:w-auto">
           <!-- Notifications and info icons (only desktop) -->
-          <div
+          <!-- <div
             class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full"
             style="background-color: #10393b"
           >
@@ -46,7 +46,7 @@ onMounted(() => {
             <button class="text-white">
               <Icon icon="mdi:information-outline" class="w-5 h-5" />
             </button>
-          </div>
+          </div> -->
 
           <!-- Create new entry button -->
           <button

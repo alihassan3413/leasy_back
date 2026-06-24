@@ -43,7 +43,6 @@ const modell = ref("");
 const leasingende = ref("");
 const fin = ref("");
 const rueckgabestart = ref("");
-const status = ref("");
 const fahrzeugnutzer = ref("");
 
 const markeOpen = ref(false);
@@ -89,14 +88,12 @@ watch(
       leasingende.value = props.vehicle.leaseEnd ?? "";
       fin.value = props.vehicle.fin ?? "";
       rueckgabestart.value = props.vehicle.returnStart ?? "";
-      status.value = props.vehicle.status ?? "";
       fahrzeugnutzer.value = props.vehicle.driver ?? "";
     } else {
       city.value = district.value = number.value = "";
       marke.value = modell.value = leasingende.value = "";
       fin.value =
         rueckgabestart.value =
-        status.value =
         fahrzeugnutzer.value =
         "";
     }
@@ -124,7 +121,6 @@ watch(
     leasingende,
     fin,
     rueckgabestart,
-    status,
     fahrzeugnutzer,
   ],
   () => {
@@ -220,7 +216,6 @@ async function handleSubmit() {
         leaseEnd: leasingende.value,
         vin: fin.value,
         returnStart: rueckgabestart.value,
-        status: status.value,
         driver: fahrzeugnutzer.value,
       });
     }
@@ -273,7 +268,7 @@ async function handleSubmit() {
               {{
                 isEditMode
                   ? "Bearbeiten Sie die Fahrzeugdaten im Formular unten."
-                  : "Please fill in all the details in the form below."
+                  : "Bitte füllen Sie alle Angaben im Formular unten aus."
               }}
             </p>
           </div>
@@ -410,17 +405,7 @@ async function handleSubmit() {
                 class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
                 <input v-model="rueckgabestart" type="date"
                   class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60" />
-                <Icon icon="mdi:calendar-outline" class="absolute right-4 text-gray-400" />
-              </div>
-            </div>
-
-            <div class="relative flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black"> Status </label>
-              <div
-                class="flex h-9 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500">
-                <span class="text-sm" :class="status ? 'text-gray-800' : 'text-gray-400'">{{ status || "Status wählen"
-                }}</span>
-                <Icon icon="mdi:chevron-down" class="text-gray-400" />
+                <Icon icon="mdi:calendar-outline" class="absolute right-4 text-gray-400 pointer-events-none" />
               </div>
             </div>
           </div>

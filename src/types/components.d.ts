@@ -111,6 +111,7 @@ declare module 'vue' {
     DropdownMenuSubContent: typeof import('./../components/ui/dropdown-menu/DropdownMenuSubContent.vue')['default']
     DropdownMenuSubTrigger: typeof import('./../components/ui/dropdown-menu/DropdownMenuSubTrigger.vue')['default']
     DropdownMenuTrigger: typeof import('./../components/ui/dropdown-menu/DropdownMenuTrigger.vue')['default']
+    FormAddressAutocompleteField: typeof import('./../components/ui/form/FormAddressAutocompleteField.vue')['default']
     FormB2CSelectField: typeof import('./../components/ui/form/B2CSelectField.vue')['default']
     FormCalendarDateField: typeof import('./../components/ui/form/CalendarDateField.vue')['default']
     FormControl: typeof import('./../components/ui/form/FormControl.vue')['default']

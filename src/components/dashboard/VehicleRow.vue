@@ -39,6 +39,10 @@ const iconClasses = computed(() => [
 const activeAction = ref<string | null>(null);
 const orderModalOpen = ref(false);
 
+// "Start Process" creates the first order for a vehicle, so it only applies to
+// vehicles that have not started a process yet (no existing order).
+const canStartProcess = computed(() => !props.vehicle.orders?.length);
+
 async function handleOrderSuccess() {
   if (authStore.user?.id) {
     if (authStore.user.role === "B2B") {
@@ -94,6 +98,7 @@ function handleAction(action: string) {
       <div class="flex items-center justify-end gap-1">
         <!-- Start Process button -->
         <button
+          v-if="canStartProcess"
           @click.stop="handleAction('Start Process')"
           class="transition-opacity hover:opacity-70 hover:bg-orange-50 p-1 rounded"
         >
@@ -118,14 +123,15 @@ function handleAction(action: string) {
             class="w-56 rounded-xl shadow-lg border border-gray-100"
           >
             <DropdownMenuItem
+              v-if="canStartProcess"
               @click="handleAction('Start Process')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
               :class="{ 'bg-gray-100': activeAction === 'Start Process' }"
             >
               <Icon icon="solar:play-bold" class="w-6 h-6 text-gray-600" />
-              <span class="text-gray-800 font-medium">Start Process</span>
+              <span class="text-gray-800 font-medium">Vorgang starten</span>
             </DropdownMenuItem>
-            <DropdownMenuItem
+            <!-- <DropdownMenuItem
               @click="handleAction('Assign Someone')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
               :class="{ 'bg-gray-100': activeAction === 'Assign Someone' }"
@@ -135,15 +141,15 @@ function handleAction(action: string) {
                 class="w-6 h-6 text-gray-600"
               />
               <span class="text-gray-800 font-medium">Assign Someone</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
+            </DropdownMenuItem> -->
+            <!-- <DropdownMenuItem
               @click="handleAction('Archive')"
               class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50"
               :class="{ 'bg-gray-100': activeAction === 'Archive' }"
             >
               <Icon icon="mdi:archive-outline" class="w-6 h-6 text-gray-600" />
               <span class="text-gray-800 font-medium">Archive</span>
-            </DropdownMenuItem>
+            </DropdownMenuItem> -->
           </DropdownMenuContent>
         </DropdownMenu>
 

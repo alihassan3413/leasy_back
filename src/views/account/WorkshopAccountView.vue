@@ -51,7 +51,7 @@ onMounted(() => {
     <div class="bg-[#FAFAFA] p-2.5 rounded-md">
     <!-- Page header -->
     <div class="flex items-center justify-between pl-7.5 mb-2">
-      <h1 class="text-2xl font-normal text-custom-black">My Account</h1>
+      <h1 class="text-2xl font-normal text-custom-black">Mein Konto</h1>
     </div>
 
     <!-- Account Details Section -->

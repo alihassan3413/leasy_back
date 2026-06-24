@@ -9,13 +9,12 @@ import type {
 } from "@/types";
 
 export const vehicleApi = {
-  getVehicleStatus(ownerId: string): Promise<VehicleStatusResponse[]> {
-    // return get<VehicleStatusResponse[]>(`/vehicle/list/${ownerId}`);
-    return get<VehicleStatusResponse[]>(`vehicle/list/report/status`);
+  getVehicleStatus(): Promise<VehicleStatusResponse[]> {
+    return get<VehicleStatusResponse[]>(`/vehicle/list/report/status`);
   },
 
-  getB2BVehicleStatus(ownerId: string): Promise<VehicleStatusResponse[]> {
-    return get<VehicleStatusResponse[]>(`/vehicle/list/${ownerId}`);
+  getB2BVehicleStatus(): Promise<VehicleStatusResponse[]> {
+    return get<VehicleStatusResponse[]>(`/vehicle/list/report/status`);
   },
 
   getVehicle(vehicleId: string): Promise<VehicleStatusResponse> {

@@ -11,11 +11,11 @@ export const useB2BVehicleStore = defineStore("b2bVehicle", () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
-  async function fetchVehicles(ownerId: string) {
+  async function fetchVehicles(_ownerId?: string) {
     isLoading.value = true;
     error.value = null;
     try {
-      const response = await vehicleApi.getB2BVehicleStatus(ownerId);
+      const response = await vehicleApi.getB2BVehicleStatus();
       const mapped = response.map(mapVehicleResponseToVehicle);
 
       vehicles.value = mapped.filter((v) => !v.completed);

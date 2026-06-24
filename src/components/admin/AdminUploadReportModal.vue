@@ -245,7 +245,7 @@ watch(
 
             <!-- Upload report section -->
             <div class="flex flex-col gap-2">
-              <span class="text-sm font-semibold text-black">Datei</span>
+              <span class="text-sm font-semibold text-black">Gutachten hochladen</span>
 
               <!-- Drop zone -->
               <div
@@ -284,9 +284,11 @@ watch(
                     class="size-8 mb-2 text-gray-500"
                   />
                   <p class="text-center text-sm text-gray-600">
-                    Click or Drag & Drop to start uploading
+                    Zum Hochladen klicken oder Datei hierher ziehen
                   </p>
-                  <p class="mt-1 text-xs text-gray-400">.pdf, .jpg or .png</p>
+                  <p class="mt-1 text-xs text-gray-400">
+                    .pdf, .jpg oder .png
+                  </p>
                 </template>
               </div>
 
