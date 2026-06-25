@@ -1,111 +1,116 @@
-import { computed, ref } from 'vue'
-import type { Ref } from 'vue'
+import { computed, ref } from "vue";
+import type { Ref } from "vue";
 
 type CalendarDay = {
-  day: number
-  monthOffset: -1 | 0 | 1
-}
+  day: number;
+  monthOffset: -1 | 0 | 1;
+};
 
 export function useAppointmentCalendar(
   selectedDate: Ref<string | undefined>,
-  options: { minDaysAhead?: number; allowPast?: boolean } = {},
+  options: {
+    minDaysAhead?: number;
+    allowPast?: boolean;
+    blockWeekends?: boolean;
+  } = {},
 ) {
-  const today = new Date()
-  const minDaysAhead = options.minDaysAhead ?? 0
-  const allowPast = options.allowPast ?? false
+  const today = new Date();
+  const minDaysAhead = options.minDaysAhead ?? 0;
+  const allowPast = options.allowPast ?? false;
+  const blockWeekends = options.blockWeekends ?? false;
 
-  const calendarYear = ref(today.getFullYear())
-  const calendarMonth = ref(today.getMonth())
-  const datePopoverOpen = ref(false)
+  const calendarYear = ref(today.getFullYear());
+  const calendarMonth = ref(today.getMonth());
+  const datePopoverOpen = ref(false);
 
   const monthNamesShort = [
-    'Jan',
-    'Feb',
-    'Mär',
-    'Apr',
-    'Mai',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Okt',
-    'Nov',
-    'Dez',
-  ]
+    "Jan",
+    "Feb",
+    "Mär",
+    "Apr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Dez",
+  ];
 
-  const dayHeaders = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+  const dayHeaders = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
   const calendarDays = computed<CalendarDay[]>(() => {
-    const year = calendarYear.value
-    const month = calendarMonth.value
+    const year = calendarYear.value;
+    const month = calendarMonth.value;
 
-    const firstDay = new Date(year, month, 1).getDay()
-    const daysInMonth = new Date(year, month + 1, 0).getDate()
-    const daysInPreviousMonth = new Date(year, month, 0).getDate()
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPreviousMonth = new Date(year, month, 0).getDate();
 
-    const startOffset = (firstDay + 6) % 7
-    const days: CalendarDay[] = []
+    const startOffset = (firstDay + 6) % 7;
+    const days: CalendarDay[] = [];
 
     for (let i = startOffset - 1; i >= 0; i -= 1) {
       days.push({
         day: daysInPreviousMonth - i,
         monthOffset: -1,
-      })
+      });
     }
 
     for (let day = 1; day <= daysInMonth; day += 1) {
       days.push({
         day,
         monthOffset: 0,
-      })
+      });
     }
 
-    const remainingDays = 35 - days.length
+    const remainingDays = 35 - days.length;
 
     for (let day = 1; day <= remainingDays; day += 1) {
       days.push({
         day,
         monthOffset: 1,
-      })
+      });
     }
 
-    return days
-  })
+    return days;
+  });
 
   const selectedDateDisplay = computed(() => {
-    if (!selectedDate.value) return ''
+    if (!selectedDate.value) return "";
 
-    const [year, month, day] = selectedDate.value.split('-')
+    const [year, month, day] = selectedDate.value.split("-");
 
-    return `${day}.${month}.${year}`
-  })
+    return `${day}.${month}.${year}`;
+  });
 
   function previousMonth(): void {
     if (calendarMonth.value === 0) {
-      calendarMonth.value = 11
-      calendarYear.value -= 1
-      return
+      calendarMonth.value = 11;
+      calendarYear.value -= 1;
+      return;
     }
 
-    calendarMonth.value -= 1
+    calendarMonth.value -= 1;
   }
 
   function nextMonth(): void {
     if (calendarMonth.value === 11) {
-      calendarMonth.value = 0
-      calendarYear.value += 1
-      return
+      calendarMonth.value = 0;
+      calendarYear.value += 1;
+      return;
     }
 
-    calendarMonth.value += 1
+    calendarMonth.value += 1;
   }
 
   function previousYear(): void {
-    calendarYear.value -= 1
+    calendarYear.value -= 1;
   }
 
   function nextYear(): void {
-    calendarYear.value += 1
+    calendarYear.value += 1;
   }
 
   function getDateFromCalendarDay(calendarDay: CalendarDay): string {
@@ -113,45 +118,55 @@ export function useAppointmentCalendar(
       calendarYear.value,
       calendarMonth.value + calendarDay.monthOffset,
       calendarDay.day,
-    )
+    );
 
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
 
-    return `${year}-${month}-${day}`
+    return `${year}-${month}-${day}`;
   }
 
   function getMinSelectableDate(): Date {
-    const minDate = new Date(today)
-    minDate.setDate(minDate.getDate() + minDaysAhead)
-    minDate.setHours(0, 0, 0, 0)
-    return minDate
+    const minDate = new Date(today);
+    minDate.setDate(minDate.getDate() + minDaysAhead);
+    minDate.setHours(0, 0, 0, 0);
+    return minDate;
   }
 
   function isSelectableDay(calendarDay: CalendarDay): boolean {
-    if (allowPast) return true
+    if (allowPast) return true;
 
     const date = new Date(
       calendarYear.value,
       calendarMonth.value + calendarDay.monthOffset,
       calendarDay.day,
-    )
-    date.setHours(0, 0, 0, 0)
-    return date >= getMinSelectableDate()
+    );
+    date.setHours(0, 0, 0, 0);
+
+    // Block weekends: 0 = Sunday, 6 = Saturday
+    if (blockWeekends) {
+      const dayOfWeek = date.getDay();
+
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        return false;
+      }
+    }
+
+    return date >= getMinSelectableDate();
   }
 
   function selectDay(calendarDay: CalendarDay): void {
-    if (!isSelectableDay(calendarDay)) return
+    if (!isSelectableDay(calendarDay)) return;
 
-    selectedDate.value = getDateFromCalendarDay(calendarDay)
-    datePopoverOpen.value = false
+    selectedDate.value = getDateFromCalendarDay(calendarDay);
+    datePopoverOpen.value = false;
   }
 
   function isSelectedDay(calendarDay: CalendarDay): boolean {
-    if (!selectedDate.value) return false
+    if (!selectedDate.value) return false;
 
-    return getDateFromCalendarDay(calendarDay) === selectedDate.value
+    return getDateFromCalendarDay(calendarDay) === selectedDate.value;
   }
 
   return {
@@ -170,5 +185,5 @@ export function useAppointmentCalendar(
     isSelectedDay,
     isSelectableDay,
     getMinSelectableDate,
-  }
+  };
 }

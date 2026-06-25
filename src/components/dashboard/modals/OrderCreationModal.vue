@@ -255,7 +255,7 @@ function closeSuccessDialog() {
                   <label class="text-xs md:text-sm font-semibold text-black">
                     Datum
                   </label>
-                  <CalendarDateField name="terminDate" :minDaysAhead="3" inputHeight="h-8" inputRounded="rounded-2xl" />
+                  <CalendarDateField name="terminDate" :minDaysAhead="3" :blockWeekends="true" inputHeight="h-8" inputRounded="rounded-2xl" />
                 </div>
                 <div class="flex flex-col gap-1">
                   <label class="text-xs md:text-sm font-semibold text-black">

@@ -17,6 +17,7 @@ interface Props {
   helpText?: string;
   minDaysAhead?: number;
   allowPast?: boolean;
+  blockWeekends?: boolean;
   inputHeight?: string;
   inputRounded?: string;
   inputClass?: string;
@@ -27,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
   helpText: "",
   minDaysAhead: 0,
   allowPast: false,
+  blockWeekends: false,
   inputHeight: "h-8.5",
   inputRounded: "rounded-[5px]",
   inputClass: "",
@@ -52,6 +54,7 @@ const {
 } = useAppointmentCalendar(value, {
   minDaysAhead: props.minDaysAhead,
   allowPast: props.allowPast,
+  blockWeekends: props.blockWeekends,
 });
 </script>
 

@@ -315,6 +315,7 @@ function close() {
                   <CalendarDateField
                     name="terminDate"
                     :minDaysAhead="3"
+                    :blockWeekends="true" 
                     inputRounded="rounded-2xl"
                     inputClass="any-extra-class"
                   />
