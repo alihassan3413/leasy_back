@@ -9,6 +9,7 @@ import type { AdminVehicle } from "@/types";
 import AppMapPicker from "@/components/ui/AppMapPicker.vue";
 import { useForm } from "vee-validate";
 import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
+import TimePicker from "@/components/ui/form/TimePicker.vue";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AdminCreateStationModal from "./AdminCreateStationModal.vue";
 
@@ -315,25 +316,18 @@ function close() {
                   <CalendarDateField
                     name="terminDate"
                     :minDaysAhead="3"
-                    :blockWeekends="true" 
+                    :blockWeekends="true"
                     inputRounded="rounded-2xl"
                     inputClass="any-extra-class"
                   />
                 </div>
-                <div class="flex flex-col gap-1">
-                  <label class="text-sm font-semibold text-black">
-                    Uhrzeit
-                  </label>
-                  <div
-                    class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
-                  >
-                    <input
-                      v-model="terminTime"
-                      type="time"
-                      class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
-                    />
-                  </div>
-                </div>
+                <TimePicker
+                  v-model="terminTime"
+                  label="Uhrzeit"
+                  placeholder="Uhrzeit wählen"
+                  input-height="h-9"
+                  input-rounded="rounded-full"
+                />
               </div>
             </div>
 
