@@ -186,11 +186,10 @@ const onSubmit = handleSubmit(async (formValues) => {
         first_name: profile?.contact.first_name ?? "",
         last_name: profile?.contact.last_name ?? "",
         international_prefix:
-          profile?.contact.phone_numbers.find((p) => p.is_primary_contact)
-            ?.international_prefix ?? "+49",
+          profile?.contact.phone_numbers.find((p) => p.is_primary_contact)?.international_prefix ??
+          "+49",
         primary_phone_number:
-          profile?.contact.phone_numbers.find((p) => p.is_primary_contact)
-            ?.phone_number ?? "",
+          profile?.contact.phone_numbers.find((p) => p.is_primary_contact)?.phone_number ?? "",
       },
     };
 
@@ -238,9 +237,7 @@ const formatAddressLine2 = () => {
     <div class="flex items-center justify-between border-b border-[#EDF2F2] px-8 py-5">
       <div>
         <h2 class="text-[17px] font-bold text-[#10393B]">Kontodaten</h2>
-        <p class="mt-0.5 text-[13px] text-[#7A9699]">
-          Unternehmensdaten und Anschrift
-        </p>
+        <p class="mt-0.5 text-[13px] text-[#7A9699]">Unternehmensdaten und Anschrift</p>
       </div>
 
       <button
@@ -277,11 +274,7 @@ const formatAddressLine2 = () => {
               alt="Firmenlogo"
               class="size-full object-cover"
             />
-            <Icon
-              v-else
-              icon="mdi:image-outline"
-              class="size-10 text-[#9CB3B4]"
-            />
+            <Icon v-else icon="mdi:image-outline" class="size-10 text-[#9CB3B4]" />
           </div>
         </div>
 
@@ -319,9 +312,7 @@ const formatAddressLine2 = () => {
           </div>
 
           <div class="min-w-0">
-            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
-              Land
-            </dt>
+            <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">Land</dt>
             <dd class="mt-1.5 text-[15px] font-semibold text-[#10393B]">
               {{ b2bStore.profile?.address?.country || "Deutschland" }}
             </dd>
@@ -329,7 +320,9 @@ const formatAddressLine2 = () => {
         </dl>
 
         <!-- Static map preview -->
-        <div class="h-[240px] sm:h-[300px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[400px]">
+        <div
+          class="h-[240px] sm:h-[300px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[400px]"
+        >
           <AppMapPicker
             :latitude="null"
             :longitude="null"
@@ -359,11 +352,7 @@ const formatAddressLine2 = () => {
                   class="size-full object-cover"
                   @error="logoUrl = null"
                 />
-                <Icon
-                  v-else
-                  icon="mdi:image-outline"
-                  class="size-10 text-[#9CB3B4]"
-                />
+                <Icon v-else icon="mdi:image-outline" class="size-10 text-[#9CB3B4]" />
               </div>
 
               <button
@@ -414,8 +403,12 @@ const formatAddressLine2 = () => {
 
         <div class="flex flex-col gap-6 xl:flex-row">
           <div class="grid min-w-0 flex-1 grid-cols-[2fr_1fr] gap-x-[30px] gap-y-5">
-            <FormAddressAutocompleteField name="address.strasse" label="Straße"
-              placeholder="Straße eingeben…" @resolved="onAddressFromMap" />
+            <FormAddressAutocompleteField
+              name="address.strasse"
+              label="Straße"
+              placeholder="Straße eingeben…"
+              @resolved="onAddressFromMap"
+            />
             <FormTextField name="address.nr" label="Nr." placeholder="Nr." />
             <FormTextField
               name="address.zusaetzlicheAnschrift"

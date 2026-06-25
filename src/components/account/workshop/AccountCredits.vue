@@ -54,10 +54,7 @@ const onSubmit = handleSubmit(
       };
 
       console.log("Update Payload:", payload);
-      await workshopStore.updateWorkshop(
-        workshopStore.profile.workshop_id,
-        payload,
-      );
+      await workshopStore.updateWorkshop(workshopStore.profile.workshop_id, payload);
       alert("Kontodaten erfolgreich gespeichert");
     } catch (err) {
       console.error("Update failed:", err);
@@ -74,9 +71,7 @@ const onSubmit = handleSubmit(
   <div class="w-full rounded-[10px] border border-[#D9E2E2] bg-white p-6 mt-5">
     <!-- Header -->
     <div class="mb-6">
-      <h2 class="text-xl font-bold text-color-primary">
-        Kontodaten für Gutschriften
-      </h2>
+      <h2 class="text-xl font-bold text-color-primary">Kontodaten für Gutschriften</h2>
     </div>
 
     <form @submit.prevent="onSubmit" class="space-y-6">
@@ -89,12 +84,7 @@ const onSubmit = handleSubmit(
             placeholder="Kontoinhaber"
             required
           />
-          <FormTextField
-            name="iban"
-            label="IBAN*"
-            placeholder="IBAN"
-            required
-          />
+          <FormTextField name="iban" label="IBAN*" placeholder="IBAN" required />
           <FormTextField name="bic" label="BIC*" placeholder="BIC" required />
         </div>
 
@@ -106,12 +96,7 @@ const onSubmit = handleSubmit(
             </span>
             <div class="flex items-center gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input
-                  v-model="hasVatId"
-                  type="radio"
-                  value="Ja"
-                  class="size-4 accent-[#EF8450]"
-                />
+                <input v-model="hasVatId" type="radio" value="Ja" class="size-4 accent-[#EF8450]" />
                 <span class="text-sm">Ja</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">

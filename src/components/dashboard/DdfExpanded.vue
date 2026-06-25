@@ -143,17 +143,13 @@ const timelineData = computed(() => {
         label: firstOrder.leasyback_partner || "",
         sublabel: `${firstOrder.request_payload.besichtigungsort.strasse || ""}, ${firstOrder.request_payload.besichtigungsort.plz || ""} ${firstOrder.request_payload.besichtigungsort.ort || ""}`,
         datetime:
-          new Date(
-            firstOrder.request_payload.besichtigungsort.termin,
-          ).toLocaleDateString("de-DE", {
+          new Date(firstOrder.request_payload.besichtigungsort.termin).toLocaleDateString("de-DE", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
           }) +
           "\n" +
-          new Date(
-            firstOrder.request_payload.besichtigungsort.termin,
-          ).toLocaleTimeString("de-DE", {
+          new Date(firstOrder.request_payload.besichtigungsort.termin).toLocaleTimeString("de-DE", {
             hour: "2-digit",
             minute: "2-digit",
           }) +
@@ -172,10 +168,7 @@ const timelineData = computed(() => {
             // Also clean up any extra backticks or spaces
             const cleanS3Url = doc.s3_url?.trim().replace(/^`|`$/g, "");
             const docUrl = cleanS3Url
-              ? cleanS3Url.replace(
-                  /^s3:\/\/([^/]+)\//,
-                  "https://$1.s3.amazonaws.com/",
-                )
+              ? cleanS3Url.replace(/^s3:\/\/([^/]+)\//, "https://$1.s3.amazonaws.com/")
               : doc.s3_bucket && doc.s3_key
                 ? `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`
                 : "";
@@ -231,9 +224,7 @@ const timelineData = computed(() => {
 const realOffers = ref<Offer[]>([]);
 const selectingOfferId = ref<string | null>(null);
 
-const auftragsnummer = computed(
-  () => props.vehicle.orders?.[0]?.auftragsnummer || "",
-);
+const auftragsnummer = computed(() => props.vehicle.orders?.[0]?.auftragsnummer || "");
 
 const hasRealOffers = computed(() => realOffers.value.length > 0);
 
@@ -307,9 +298,7 @@ async function loadDocuments() {
     // First add documents from API
     if (props.vehicle?.vehicle_id) {
       try {
-        const apiDocs = await vehicleApi.getVehicleDocuments(
-          props.vehicle.vehicle_id,
-        );
+        const apiDocs = await vehicleApi.getVehicleDocuments(props.vehicle.vehicle_id);
         allDocuments.push(...apiDocs);
       } catch (err) {
         console.error("Failed to load API documents:", err);
@@ -348,10 +337,7 @@ async function loadDocuments() {
 async function deleteDocument(documentId: string) {
   try {
     if (!props.vehicle?.vehicle_id) return;
-    await vehicleApi.deleteVehicleDocument(
-      props.vehicle.vehicle_id,
-      documentId,
-    );
+    await vehicleApi.deleteVehicleDocument(props.vehicle.vehicle_id, documentId);
     await loadDocuments();
 
     // Refresh vehicle lists in stores
@@ -399,9 +385,7 @@ watch(
             style="border-color: #ececec"
           >
             <div class="px-6 py-5 flex items-center justify-between">
-              <p
-                class="text-[16px] font-bold text-[#000000] leading-tight uppercase"
-              >
+              <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
                 {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
               </p>
               <button class="text-[#01b990] hover:opacity-70">
@@ -420,21 +404,13 @@ watch(
                 <div
                   v-if="i < timelineData.slice(1).length - 1"
                   class="absolute left-2 top-5 w-0.5 h-full"
-                  :style="
-                    entry.completed
-                      ? 'background:#01B990'
-                      : 'background:#B7C2C2'
-                  "
+                  :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
                 />
 
                 <!-- Dot -->
                 <div
                   class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
-                  :style="
-                    entry.completed
-                      ? 'background:#01B990'
-                      : 'background:#B7C2C2'
-                  "
+                  :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
                 />
 
                 <!-- Content -->
@@ -451,10 +427,7 @@ watch(
                       entry.label.toLowerCase() === 'tuvsud'
                     "
                   >
-                    <p
-                      class="text-[16px] font-bold mb-1"
-                      style="color: #01b990"
-                    >
+                    <p class="text-[16px] font-bold mb-1" style="color: #01b990">
                       {{ entry.label }}
                     </p>
                     <p
@@ -477,10 +450,7 @@ watch(
                           {{ entry.sublabel }}
                         </p>
                       </div>
-                      <div
-                        v-if="entry.isReport && entry.docUrl"
-                        class="flex items-center gap-2"
-                      >
+                      <div v-if="entry.isReport && entry.docUrl" class="flex items-center gap-2">
                         <a
                           :href="entry.docUrl"
                           target="_blank"
@@ -488,10 +458,7 @@ watch(
                           class="text-[#01b990] hover:opacity-70"
                           title="Download"
                         >
-                          <Icon
-                            icon="material-symbols:download"
-                            class="size-[18.5px] shrink-0"
-                          />
+                          <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
                         </a>
                         <a
                           :href="entry.docUrl"
@@ -500,10 +467,7 @@ watch(
                           class="text-[#01b990] hover:opacity-70"
                           title="Open"
                         >
-                          <Icon
-                            icon="mdi:open-in-new"
-                            class="size-[18.5px] shrink-0"
-                          />
+                          <Icon icon="mdi:open-in-new" class="size-[18.5px] shrink-0" />
                         </a>
                       </div>
                     </div>
@@ -523,29 +487,17 @@ watch(
                 @click="uploadDocsOpen = true"
                 class="absolute right-5 top-5 transition-opacity hover:opacity-60"
               >
-                <Icon
-                  icon="mdi:pencil"
-                  class="size-[18.5px] shrink-0"
-                  style="color: #01b990"
-                />
+                <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
               </button>
               <div class="p-6">
-                <p class="text-[16px] font-semibold uppercase text-[#000000]">
-                  Fahrzeugdokumente
-                </p>
+                <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeugdokumente</p>
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
               <div class="flex flex-col gap-5 p-6 pt-0">
-                <div
-                  v-for="group in groupedDocuments"
-                  :key="group.key"
-                  class="flex flex-col gap-3"
-                >
+                <div v-for="group in groupedDocuments" :key="group.key" class="flex flex-col gap-3">
                   <div v-if="group.key !== 'gutachten'">
-                    <p
-                      class="text-[16px] font-semibold uppercase text-[#000000]"
-                    >
+                    <p class="text-[16px] font-semibold uppercase text-[#000000]">
                       {{ group.title }}
                     </p>
                     <div class="h-px bg-gray-200 mt-2"></div>
@@ -568,27 +520,18 @@ watch(
                         target="_blank"
                         class="text-[#01b990] hover:opacity-70 flex-shrink-0"
                       >
-                        <Icon
-                          icon="material-symbols:download"
-                          class="size-[18.5px] shrink-0"
-                        />
+                        <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
                       </a>
                       <button
                         @click="deleteDocument(doc.id)"
                         class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
                       >
-                        <Icon
-                          icon="mdi:delete-outline"
-                          class="size-[18.5px] shrink-0"
-                        />
+                        <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
                       </button>
                     </div>
                   </div>
                 </div>
-                <div
-                  v-if="documents.length === 0"
-                  class="text-[14px] text-[#b7c2c2]"
-                >
+                <div v-if="documents.length === 0" class="text-[14px] text-[#b7c2c2]">
                   Keine Dokumente gefunden
                 </div>
               </div>
@@ -601,15 +544,11 @@ watch(
             <div
               class="flex flex-col rounded-[16px] border bg-white"
               :style="
-                hasRealOffers
-                  ? 'border-color: #ececec'
-                  : 'border-color: #ececec; opacity: 0.5'
+                hasRealOffers ? 'border-color: #ececec' : 'border-color: #ececec; opacity: 0.5'
               "
             >
               <div class="px-6 py-6">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">
-                  Angebote
-                </p>
+                <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
               </div>
 
               <!-- Offer rows -->
@@ -629,9 +568,7 @@ watch(
                     type="button"
                     @click.stop="hasRealOffers && requestSelect(offer.offer_id)"
                     :disabled="
-                      !hasRealOffers ||
-                      !!acceptedOffer ||
-                      selectingOfferId === offer.offer_id
+                      !hasRealOffers || !!acceptedOffer || selectingOfferId === offer.offer_id
                     "
                     class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
                     :style="
@@ -641,40 +578,28 @@ watch(
                     "
                     title="Angebot auswählen"
                   >
-                    <div
-                      v-if="offer.accepted"
-                      class="w-4.5 h-4.5 rounded-full bg-white"
-                    ></div>
+                    <div v-if="offer.accepted" class="w-4.5 h-4.5 rounded-full bg-white"></div>
                   </button>
 
                   <!-- Content -->
-                  <div
-                    class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden"
-                  >
+                  <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
                     <div class="flex justify-between items-start gap-3">
                       <p
                         class="text-[14px] font-bold flex-1 min-w-0 truncate"
-                        :style="
-                          offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
-                        "
+                        :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
                         :title="`${offer.id} - ${offer.name}`"
                       >
                         {{ offer.id }} - {{ offer.name }}
                       </p>
                       <p
                         class="text-[16px] font-normal flex-shrink-0"
-                        :style="
-                          offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
-                        "
+                        :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
                       >
                         {{ offer.cost.toLocaleString("de-DE") }} €
                       </p>
                     </div>
                     <div class="flex justify-between items-center gap-3">
-                      <p
-                        class="text-[12px] flex-1 truncate"
-                        style="color: #b7c2c2"
-                      >
+                      <p class="text-[12px] flex-1 truncate" style="color: #b7c2c2">
                         {{ offer.distance || "227km Entfernung" }}
                       </p>
                       <p
@@ -721,9 +646,7 @@ watch(
               class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
             >
               <div class="bg-white/80 px-6 py-3 rounded-full shadow-lg">
-                <p class="text-[18px] font-bold" style="color: #ef8450">
-                  Keine Angebote
-                </p>
+                <p class="text-[18px] font-bold" style="color: #ef8450">Keine Angebote</p>
               </div>
             </div>
           </div>
@@ -737,19 +660,11 @@ watch(
             style="border-color: #ececec"
           >
             <div class="pb-6">
-              <p
-                class="text-[16px] font-normal uppercase"
-                style="color: #2e3e3f"
-              >
-                Zugewiesen an
-              </p>
+              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Zugewiesen an</p>
             </div>
 
             <!-- Avatar + Name row -->
-            <div
-              class="flex items-start gap-6 pb-6"
-              v-if="vehicle.orders.length > 0"
-            >
+            <div class="flex items-start gap-6 pb-6" v-if="vehicle.orders.length > 0">
               <Avatar class="size-[64px] shrink-0">
                 <AvatarFallback
                   class="text-xl font-bold"
@@ -757,8 +672,7 @@ watch(
                 >
                   {{
                     vehicle.orders[0].request_payload?.ansprechpartner?.name
-                      ? vehicle.orders[0].request_payload?.ansprechpartner
-                          ?.name[0]
+                      ? vehicle.orders[0].request_payload?.ansprechpartner?.name[0]
                       : "M"
                   }}
                 </AvatarFallback>
@@ -766,13 +680,10 @@ watch(
               <div class="flex flex-col gap-2 pt-2">
                 <p class="text-[16px] font-bold" style="color: #2e3e3f">
                   {{
-                    vehicle.orders[0].request_payload?.ansprechpartner?.name ||
-                    "Marcus Dietrich"
+                    vehicle.orders[0].request_payload?.ansprechpartner?.name || "Marcus Dietrich"
                   }}
                 </p>
-                <p class="text-[12px] font-semibold" style="color: #01b990">
-                  Primärer Fahrer
-                </p>
+                <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
               </div>
             </div>
             <div class="flex items-start gap-6 pb-6" v-else>
@@ -785,12 +696,8 @@ watch(
                 </AvatarFallback>
               </Avatar>
               <div class="flex flex-col gap-2 pt-2">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">
-                  Marcus Dietrich
-                </p>
-                <p class="text-[12px] font-semibold" style="color: #01b990">
-                  Primärer Fahrer
-                </p>
+                <p class="text-[16px] font-bold" style="color: #2e3e3f">Marcus Dietrich</p>
+                <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
               </div>
             </div>
 
@@ -802,33 +709,23 @@ watch(
               >
                 Letzte Aktivität
               </p>
-              <div
-                class="flex items-center justify-between pt-2"
-                v-if="vehicle.orders.length > 0"
-              >
+              <div class="flex items-center justify-between pt-2" v-if="vehicle.orders.length > 0">
                 <p class="text-[14px] font-normal" style="color: #2e3e3f">
                   {{
-                    new Date(vehicle.orders[0].created_at).toLocaleDateString(
-                      "de-DE",
-                      {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      },
-                    )
+                    new Date(vehicle.orders[0].created_at).toLocaleDateString("de-DE", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })
                   }}
                   · Auftrag erstellt
                 </p>
                 <p class="text-[14px] font-bold" style="color: #2e3e3f">
-                  {{
-                    getOrderStatusLabel(vehicle.orders[0].order_status).label
-                  }}
+                  {{ getOrderStatusLabel(vehicle.orders[0].order_status).label }}
                 </p>
               </div>
               <div class="flex items-center justify-between pt-2" v-else>
-                <p class="text-[14px] font-normal" style="color: #2e3e3f">
-                  Keine Aktivität
-                </p>
+                <p class="text-[14px] font-normal" style="color: #2e3e3f">Keine Aktivität</p>
               </div>
             </div>
 
@@ -844,10 +741,7 @@ watch(
                   style="color: #5a6b7a"
                 />
                 <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{
-                    vehicle.orders[0].request_payload?.ansprechpartner
-                      ?.telefon || "17655874354"
-                  }}
+                  {{ vehicle.orders[0].request_payload?.ansprechpartner?.telefon || "17655874354" }}
                 </span>
               </div>
               <div class="flex items-center gap-4">
@@ -858,17 +752,10 @@ watch(
                 />
                 <span class="text-[14px] font-normal" style="color: #2e3e3f">
                   {{
-                    vehicle.orders[0].request_payload?.besichtigungsort
-                      ?.strasse || "Radestraße 12"
+                    vehicle.orders[0].request_payload?.besichtigungsort?.strasse || "Radestraße 12"
                   }},
-                  {{
-                    vehicle.orders[0].request_payload?.besichtigungsort?.plz ||
-                    "35037"
-                  }}
-                  {{
-                    vehicle.orders[0].request_payload?.besichtigungsort?.ort ||
-                    "Marburg"
-                  }}
+                  {{ vehicle.orders[0].request_payload?.besichtigungsort?.plz || "35037" }}
+                  {{ vehicle.orders[0].request_payload?.besichtigungsort?.ort || "Marburg" }}
                 </span>
               </div>
             </div>
@@ -879,9 +766,7 @@ watch(
                   class="size-[18px] shrink-0"
                   style="color: #5a6b7a"
                 />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  17655874354
-                </span>
+                <span class="text-[14px] font-normal" style="color: #2e3e3f"> 17655874354 </span>
               </div>
               <div class="flex items-center gap-4">
                 <Icon
@@ -905,65 +790,45 @@ watch(
               @click="editVehicleOpen = true"
               class="absolute right-6 top-6 transition-opacity hover:opacity-60"
             >
-              <Icon
-                icon="mdi:pencil"
-                class="size-5 shrink-0"
-                style="color: #01b990"
-              />
+              <Icon icon="mdi:pencil" class="size-5 shrink-0" style="color: #01b990" />
             </button>
             <div class="px-6 pt-6">
-              <p class="text-[18px] font-bold" style="color: #000">
-                FAHRZEUGDATEN
-              </p>
+              <p class="text-[18px] font-bold" style="color: #000">FAHRZEUGDATEN</p>
             </div>
 
             <div class="flex flex-col gap-0 px-6 pt-4 pb-6">
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Kennzeichen
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Kennzeichen </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.license_plate }}
                 </span>
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Modell
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Modell </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.make }} {{ vehicle.model }}
                 </span>
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Kilometerstand
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Kilometerstand </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.kilometerstand || "Nicht verfügbar" }}
                 </span>
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Leasinggeber
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Leasinggeber </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.leasinggeber || "Nicht verfügbar" }}
                 </span>
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Rückgabetermin
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Rückgabetermin </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
-                  {{
-                    new Date(vehicle.leasing_end_date).toLocaleDateString(
-                      "de-DE",
-                    )
-                  }}
+                  {{ new Date(vehicle.leasing_end_date).toLocaleDateString("de-DE") }}
                 </span>
               </div>
             </div>
@@ -1000,17 +865,13 @@ watch(
           <div
             v-if="i < timelineData.slice(1).length - 1"
             class="absolute left-2 top-5 w-0.5 h-full"
-            :style="
-              entry.completed ? 'background:#01B990' : 'background:#B7C2C2'
-            "
+            :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
           />
 
           <!-- Dot -->
           <div
             class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
-            :style="
-              entry.completed ? 'background:#01B990' : 'background:#B7C2C2'
-            "
+            :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
           />
 
           <!-- Content -->
@@ -1022,10 +883,7 @@ watch(
 
             <!-- Label -->
             <template
-              v-if="
-                entry.label.toLowerCase() === 'dekra' ||
-                entry.label.toLowerCase() === 'tuvsud'
-              "
+              v-if="entry.label.toLowerCase() === 'dekra' || entry.label.toLowerCase() === 'tuvsud'"
             >
               <p class="text-[16px] font-bold mb-1" style="color: #01b990">
                 {{ entry.label }}
@@ -1050,10 +908,7 @@ watch(
                     {{ entry.sublabel }}
                   </p>
                 </div>
-                <div
-                  v-if="entry.isReport && entry.docUrl"
-                  class="flex items-center gap-2"
-                >
+                <div v-if="entry.isReport && entry.docUrl" class="flex items-center gap-2">
                   <a
                     :href="entry.docUrl"
                     target="_blank"
@@ -1061,10 +916,7 @@ watch(
                     class="text-[#01b990] hover:opacity-70"
                     title="Download"
                   >
-                    <Icon
-                      icon="material-symbols:download"
-                      class="size-[18.5px] shrink-0"
-                    />
+                    <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
                   </a>
                   <a
                     :href="entry.docUrl"
@@ -1073,10 +925,7 @@ watch(
                     class="text-[#01b990] hover:opacity-70"
                     title="Open"
                   >
-                    <Icon
-                      icon="mdi:open-in-new"
-                      class="size-[18.5px] shrink-0"
-                    />
+                    <Icon icon="mdi:open-in-new" class="size-[18.5px] shrink-0" />
                   </a>
                 </div>
               </div>
@@ -1095,25 +944,15 @@ watch(
         @click="uploadDocsOpen = true"
         class="absolute right-4 top-4 transition-opacity hover:opacity-60"
       >
-        <Icon
-          icon="mdi:pencil"
-          class="size-[18.5px] shrink-0"
-          style="color: #01b990"
-        />
+        <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
       </button>
       <div class="p-4">
-        <p class="text-[16px] font-semibold uppercase text-[#000000]">
-          Fahrzeugdokumente
-        </p>
+        <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeugdokumente</p>
         <div class="h-px bg-gray-200 mt-2"></div>
       </div>
 
       <div class="flex flex-col gap-4 p-4 pt-0">
-        <div
-          v-for="group in groupedDocuments"
-          :key="group.key"
-          class="flex flex-col gap-3"
-        >
+        <div v-for="group in groupedDocuments" :key="group.key" class="flex flex-col gap-3">
           <div v-if="group.key !== 'gutachten'">
             <p class="text-[16px] font-semibold uppercase text-[#000000]">
               {{ group.title }}
@@ -1138,19 +977,13 @@ watch(
                 target="_blank"
                 class="text-[#01b990] hover:opacity-70 flex-shrink-0"
               >
-                <Icon
-                  icon="material-symbols:download"
-                  class="size-[18.5px] shrink-0"
-                />
+                <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
               </a>
               <button
                 @click="deleteDocument(doc.id)"
                 class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
               >
-                <Icon
-                  icon="mdi:delete-outline"
-                  class="size-[18.5px] shrink-0"
-                />
+                <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
               </button>
             </div>
           </div>
@@ -1165,11 +998,7 @@ watch(
     <div class="relative">
       <div
         class="flex flex-col rounded-[16px] border bg-white"
-        :style="
-          hasRealOffers
-            ? 'border-color: #ececec'
-            : 'border-color: #ececec; opacity: 0.5'
-        "
+        :style="hasRealOffers ? 'border-color: #ececec' : 'border-color: #ececec; opacity: 0.5'"
       >
         <div class="px-4 py-4">
           <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
@@ -1191,11 +1020,7 @@ watch(
             <button
               type="button"
               @click.stop="hasRealOffers && requestSelect(offer.offer_id)"
-              :disabled="
-                !hasRealOffers ||
-                !!acceptedOffer ||
-                selectingOfferId === offer.offer_id
-              "
+              :disabled="!hasRealOffers || !!acceptedOffer || selectingOfferId === offer.offer_id"
               class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
               :style="
                 offer.accepted
@@ -1204,10 +1029,7 @@ watch(
               "
               title="Angebot auswählen"
             >
-              <div
-                v-if="offer.accepted"
-                class="w-3.5 h-3.5 rounded-full bg-white"
-              ></div>
+              <div v-if="offer.accepted" class="w-3.5 h-3.5 rounded-full bg-white"></div>
             </button>
 
             <!-- Content -->
@@ -1264,9 +1086,7 @@ watch(
         class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
       >
         <div class="bg-white/80 px-4 py-2 rounded-full shadow-lg">
-          <p class="text-[16px] font-bold" style="color: #ef8450">
-            Keine Angebote
-          </p>
+          <p class="text-[16px] font-bold" style="color: #ef8450">Keine Angebote</p>
         </div>
       </div>
     </div>
@@ -1277,9 +1097,7 @@ watch(
       style="border-color: #ececec"
     >
       <div class="pb-4">
-        <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
-          Zugewiesen an
-        </p>
+        <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Zugewiesen an</p>
       </div>
 
       <!-- Avatar + Name row -->
@@ -1298,14 +1116,9 @@ watch(
         </Avatar>
         <div class="flex flex-col gap-1 pt-1">
           <p class="text-[15px] font-bold" style="color: #2e3e3f">
-            {{
-              vehicle.orders[0].request_payload?.ansprechpartner?.name ||
-              "Marcus Dietrich"
-            }}
+            {{ vehicle.orders[0].request_payload?.ansprechpartner?.name || "Marcus Dietrich" }}
           </p>
-          <p class="text-[11px] font-semibold" style="color: #01b990">
-            Primärer Fahrer
-          </p>
+          <p class="text-[11px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
         </div>
       </div>
       <div class="flex items-start gap-4 pb-4" v-else>
@@ -1318,34 +1131,24 @@ watch(
           </AvatarFallback>
         </Avatar>
         <div class="flex flex-col gap-1 pt-1">
-          <p class="text-[15px] font-bold" style="color: #2e3e3f">
-            Marcus Dietrich
-          </p>
-          <p class="text-[11px] font-semibold" style="color: #01b990">
-            Primärer Fahrer
-          </p>
+          <p class="text-[15px] font-bold" style="color: #2e3e3f">Marcus Dietrich</p>
+          <p class="text-[11px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
         </div>
       </div>
 
       <!-- Last Activity -->
       <div class="pb-4">
-        <p
-          class="text-[10px] font-medium uppercase"
-          style="color: #8f9ba7; letter-spacing: 0.5px"
-        >
+        <p class="text-[10px] font-medium uppercase" style="color: #8f9ba7; letter-spacing: 0.5px">
           Letzte Aktivität
         </p>
         <div class="flex flex-col gap-1 pt-2" v-if="vehicle.orders.length > 0">
           <p class="text-[13px] font-normal" style="color: #2e3e3f">
             {{
-              new Date(vehicle.orders[0].created_at).toLocaleDateString(
-                "de-DE",
-                {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                },
-              )
+              new Date(vehicle.orders[0].created_at).toLocaleDateString("de-DE", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })
             }}
             · Auftrag erstellt
           </p>
@@ -1354,9 +1157,7 @@ watch(
           </p>
         </div>
         <div class="flex items-center justify-between pt-2" v-else>
-          <p class="text-[13px] font-normal" style="color: #2e3e3f">
-            Keine Aktivität
-          </p>
+          <p class="text-[13px] font-normal" style="color: #2e3e3f">Keine Aktivität</p>
         </div>
       </div>
 
@@ -1366,16 +1167,9 @@ watch(
       <!-- Contact Fields -->
       <div class="flex flex-col gap-3" v-if="vehicle.orders.length > 0">
         <div class="flex items-center gap-3">
-          <Icon
-            icon="mdi:phone-outline"
-            class="size-[16px] shrink-0"
-            style="color: #5a6b7a"
-          />
+          <Icon icon="mdi:phone-outline" class="size-[16px] shrink-0" style="color: #5a6b7a" />
           <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            {{
-              vehicle.orders[0].request_payload?.ansprechpartner?.telefon ||
-              "17655874354"
-            }}
+            {{ vehicle.orders[0].request_payload?.ansprechpartner?.telefon || "17655874354" }}
           </span>
         </div>
         <div class="flex items-start gap-3">
@@ -1385,31 +1179,16 @@ watch(
             style="color: #5a6b7a"
           />
           <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            {{
-              vehicle.orders[0].request_payload?.besichtigungsort?.strasse ||
-              "Radestraße 12"
-            }},
-            {{
-              vehicle.orders[0].request_payload?.besichtigungsort?.plz ||
-              "35037"
-            }}
-            {{
-              vehicle.orders[0].request_payload?.besichtigungsort?.ort ||
-              "Marburg"
-            }}
+            {{ vehicle.orders[0].request_payload?.besichtigungsort?.strasse || "Radestraße 12" }},
+            {{ vehicle.orders[0].request_payload?.besichtigungsort?.plz || "35037" }}
+            {{ vehicle.orders[0].request_payload?.besichtigungsort?.ort || "Marburg" }}
           </span>
         </div>
       </div>
       <div class="flex flex-col gap-3" v-else>
         <div class="flex items-center gap-3">
-          <Icon
-            icon="mdi:phone-outline"
-            class="size-[16px] shrink-0"
-            style="color: #5a6b7a"
-          />
-          <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            17655874354
-          </span>
+          <Icon icon="mdi:phone-outline" class="size-[16px] shrink-0" style="color: #5a6b7a" />
+          <span class="text-[13px] font-normal" style="color: #2e3e3f"> 17655874354 </span>
         </div>
         <div class="flex items-start gap-3">
           <Icon
@@ -1433,11 +1212,7 @@ watch(
         @click="editVehicleOpen = true"
         class="absolute right-4 top-4 transition-opacity hover:opacity-60"
       >
-        <Icon
-          icon="mdi:pencil"
-          class="size-4 shrink-0"
-          style="color: #01b990"
-        />
+        <Icon icon="mdi:pencil" class="size-4 shrink-0" style="color: #01b990" />
       </button>
       <div class="px-4 pt-4">
         <p class="text-[16px] font-bold" style="color: #000">FAHRZEUGDATEN</p>
@@ -1445,45 +1220,35 @@ watch(
 
       <div class="flex flex-col gap-0 px-4 pt-3 pb-4">
         <div class="flex items-center justify-between py-3">
-          <span class="text-[14px] font-normal" style="color: #64748b">
-            Kennzeichen
-          </span>
+          <span class="text-[14px] font-normal" style="color: #64748b"> Kennzeichen </span>
           <span class="text-[14px] font-semibold" style="color: #000">
             {{ vehicle.license_plate }}
           </span>
         </div>
         <div class="h-px bg-gray-200"></div>
         <div class="flex items-center justify-between py-3">
-          <span class="text-[14px] font-normal" style="color: #64748b">
-            Modell
-          </span>
+          <span class="text-[14px] font-normal" style="color: #64748b"> Modell </span>
           <span class="text-[14px] font-semibold" style="color: #000">
             {{ vehicle.make }} {{ vehicle.model }}
           </span>
         </div>
         <div class="h-px bg-gray-200"></div>
         <div class="flex items-center justify-between py-3">
-          <span class="text-[14px] font-normal" style="color: #64748b">
-            Kilometerstand
-          </span>
+          <span class="text-[14px] font-normal" style="color: #64748b"> Kilometerstand </span>
           <span class="text-[14px] font-semibold" style="color: #000">
             {{ vehicle.kilometerstand || "Nicht verfügbar" }}
           </span>
         </div>
         <div class="h-px bg-gray-200"></div>
         <div class="flex items-center justify-between py-3">
-          <span class="text-[14px] font-normal" style="color: #64748b">
-            Leasinggeber
-          </span>
+          <span class="text-[14px] font-normal" style="color: #64748b"> Leasinggeber </span>
           <span class="text-[14px] font-semibold" style="color: #000">
             {{ vehicle.leasinggeber || "Nicht verfügbar" }}
           </span>
         </div>
         <div class="h-px bg-gray-200"></div>
         <div class="flex items-center justify-between py-3">
-          <span class="text-[14px] font-normal" style="color: #64748b">
-            Rückgabetermin
-          </span>
+          <span class="text-[14px] font-normal" style="color: #64748b"> Rückgabetermin </span>
           <span class="text-[14px] font-semibold" style="color: #000">
             {{ new Date(vehicle.leasing_end_date).toLocaleDateString("de-DE") }}
           </span>
@@ -1507,14 +1272,11 @@ watch(
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/5 p-4"
     @click="cancelSelect"
   >
-    <div
-      class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
-      @click.stop
-    >
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" @click.stop>
       <h3 class="text-[18px] font-bold text-[#2e3e3f]">Angebot auswählen</h3>
       <p class="mt-3 text-[14px] text-[#5a6b7a] leading-relaxed">
-        Sind Sie sicher, dass Sie dieses Angebot auswählen möchten? Sie können
-        die Auswahl danach nicht mehr ändern.
+        Sind Sie sicher, dass Sie dieses Angebot auswählen möchten? Sie können die Auswahl danach
+        nicht mehr ändern.
       </p>
       <div class="mt-6 flex justify-end gap-3">
         <button

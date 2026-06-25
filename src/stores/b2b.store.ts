@@ -122,10 +122,7 @@ export const useB2BStore = defineStore("b2b", () => {
     }
   }
 
-  async function updateProfile(
-    b2bId: string,
-    payload: B2BProfileUpdatePayload,
-  ) {
+  async function updateProfile(b2bId: string, payload: B2BProfileUpdatePayload) {
     status.value = "loading";
     error.value = "";
     try {

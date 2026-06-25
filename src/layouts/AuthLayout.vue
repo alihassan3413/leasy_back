@@ -5,10 +5,7 @@ import leasybackLogo from "@/assets/logo/leasyback-logo.svg";
 <template>
   <div class="relative flex min-h-screen overflow-hidden">
     <!-- Left background -->
-    <div
-      class="absolute left-0 top-0 z-0 h-full w-1/2"
-      style="background-color: #fafafa"
-    />
+    <div class="absolute left-0 top-0 z-0 h-full w-1/2" style="background-color: #fafafa" />
 
     <!-- Paths on the LEFT side (behind form) -->
     <img
@@ -36,14 +33,9 @@ import leasybackLogo from "@/assets/logo/leasyback-logo.svg";
     </div>
 
     <!-- Right side — branding panel -->
-    <div
-      class="relative hidden w-1/2 items-center justify-center bg-primary px-12 lg:flex"
-    >
-
+    <div class="relative hidden w-1/2 items-center justify-center bg-primary px-12 lg:flex">
       <!-- Logo and text ABOVE the paths -->
-      <div
-        class="relative z-10 w-full max-w-[565px] flex flex-col items-center text-left"
-      >
+      <div class="relative z-10 w-full max-w-[565px] flex flex-col items-center text-left">
         <img
           :src="leasybackLogo"
           alt="LeasyBack"

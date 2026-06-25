@@ -4,8 +4,8 @@
  * and network round-trip time before the server rejects the token.
  */
 export function isTokenExpired(expiresAt: number): boolean {
-  const SAFETY_BUFFER_SECONDS = 30
-  return Date.now() / 1000 >= expiresAt - SAFETY_BUFFER_SECONDS
+  const SAFETY_BUFFER_SECONDS = 30;
+  return Date.now() / 1000 >= expiresAt - SAFETY_BUFFER_SECONDS;
 }
 
 /**
@@ -15,9 +15,9 @@ export function isTokenExpired(expiresAt: number): boolean {
  */
 export function decodeTokenPayload<T = Record<string, unknown>>(token: string): T | null {
   try {
-    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-    return JSON.parse(atob(base64)) as T
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64)) as T;
   } catch {
-    return null
+    return null;
   }
 }

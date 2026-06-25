@@ -49,40 +49,40 @@ watch(
   { immediate: true },
 );
 
-const onSubmit = handleSubmit(async (values) => {
-  console.log("Submitting account detail...", values);
-  if (!workshopStore.profile?.workshop_id) {
-    console.error("No workshop ID found");
-    return;
-  }
+const onSubmit = handleSubmit(
+  async (values) => {
+    console.log("Submitting account detail...", values);
+    if (!workshopStore.profile?.workshop_id) {
+      console.error("No workshop ID found");
+      return;
+    }
 
-  try {
-    const payload = {
-      workshop_name: values.firmenname,
-      vat_id: values.ustIdNr,
-      address: {
-        street: values.address.strasse,
-        number: values.address.nr,
-        additional_address: values.address.zusaetzlicheAnschrift,
-        zip_code: values.address.plz,
-        city: values.address.ort,
-        country: values.address.land,
-      },
-    };
+    try {
+      const payload = {
+        workshop_name: values.firmenname,
+        vat_id: values.ustIdNr,
+        address: {
+          street: values.address.strasse,
+          number: values.address.nr,
+          additional_address: values.address.zusaetzlicheAnschrift,
+          zip_code: values.address.plz,
+          city: values.address.ort,
+          country: values.address.land,
+        },
+      };
 
-    console.log("Update Payload:", payload);
-    await workshopStore.updateWorkshop(
-      workshopStore.profile.workshop_id,
-      payload,
-    );
-    alert("Kontodaten erfolgreich aktualisiert");
-  } catch (err) {
-    console.error("Update failed:", err);
-    alert("Fehler beim Aktualisieren");
-  }
-}, (invalid) => {
-  console.error("Validation failed in AccountDetail:", invalid.errors);
-});
+      console.log("Update Payload:", payload);
+      await workshopStore.updateWorkshop(workshopStore.profile.workshop_id, payload);
+      alert("Kontodaten erfolgreich aktualisiert");
+    } catch (err) {
+      console.error("Update failed:", err);
+      alert("Fehler beim Aktualisieren");
+    }
+  },
+  (invalid) => {
+    console.error("Validation failed in AccountDetail:", invalid.errors);
+  },
+);
 
 type ResolvedAddress = {
   street?: string;
@@ -140,19 +140,31 @@ const onFileChange = (e: Event) => {
       <div class="flex justify-between gap-8 items-end">
         <!-- Square Logo Upload -->
         <div class="flex flex-col items-start gap-3">
-          <div class="flex w-[97px] h-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-lg
-            border border-[#D9E2E2] bg-custom-gray transition-colors hover:bg-[#F0F2F2]" @click="triggerLogoUpload">
+          <div
+            class="flex w-[97px] h-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-[#D9E2E2] bg-custom-gray transition-colors hover:bg-[#F0F2F2]"
+            @click="triggerLogoUpload"
+          >
             <img v-if="logoUrl" :src="logoUrl" class="size-full object-cover" />
             <Icon v-else icon="mdi:image-outline" class="size-16 text-green-gray" />
           </div>
           <span class="text-base font-normal text-custom-black">Laden Sie ihr Logo auf</span>
-          <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange" />
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="onFileChange"
+          />
         </div>
 
         <!-- Company Info Fields -->
         <div class="flex gap-7.5">
-          <FormTextField name="firmenname" label="Firmenname (lt. HGB/Gewerbeeintrag)*" placeholder="HWT GmbH"
-            class="w-95" />
+          <FormTextField
+            name="firmenname"
+            label="Firmenname (lt. HGB/Gewerbeeintrag)*"
+            placeholder="HWT GmbH"
+            class="w-95"
+          />
           <FormTextField name="ustIdNr" label="USt-IdNr." placeholder="DE 127395564" class="w-95" />
         </div>
       </div>
@@ -160,36 +172,43 @@ const onFileChange = (e: Event) => {
       <!-- Address Section -->
       <div class="space-y-4 pt-4">
         <p class="text-xl font-bold text-custom-black">
-          Bitte geben Sie die Adresse ein oder wählen Sie diese direkt in der
-          Karte aus.
+          Bitte geben Sie die Adresse ein oder wählen Sie diese direkt in der Karte aus.
         </p>
 
         <div class="flex justify-between gap-6">
           <!-- Address Fields -->
           <div class="grid flex-1 grid-cols-[2fr_1fr] gap-x-7.5 gap-y-3 lg:max-w-137.5">
             <!-- Row 1: Straße & Nr -->
-            <FormAddressAutocompleteField name="address.strasse" label="Straße"
-              placeholder="Sechzig Str" @resolved="onAddressFromMap" class="w-95" />
+            <FormAddressAutocompleteField
+              name="address.strasse"
+              label="Straße"
+              placeholder="Sechzig Str"
+              @resolved="onAddressFromMap"
+              class="w-95"
+            />
             <FormTextField name="address.nr" label="Nr." placeholder="45" class="w-44.5" />
 
             <!-- Row 2: Zusätzliche Anschrift & PLZ -->
-            <FormTextField name="address.zusaetzlicheAnschrift" label="Zusätzliche Anschrift" placeholder=""
-              class="w-95" />
+            <FormTextField
+              name="address.zusaetzlicheAnschrift"
+              label="Zusätzliche Anschrift"
+              placeholder=""
+              class="w-95"
+            />
             <FormTextField name="address.plz" label="PLZ" placeholder="50733" class="w-44.5" />
 
             <!-- Row 3: Ort & Land -->
             <FormTextField name="address.ort" label="Ort" placeholder="Köln" class="w-95" />
             <div class="flex flex-col">
               <span class="mb-1.5 text-sm font-bold text-black">Land</span>
-              <span class="py-2 text-[15px] font-medium text-[#10393B]">
-                Deutschland
-              </span>
+              <span class="py-2 text-[15px] font-medium text-[#10393B]"> Deutschland </span>
             </div>
           </div>
 
           <!-- Map -->
           <div
-            class="h-52.75 max-w-101.5 flex-1 overflow-hidden rounded-lg border border-[#D9E2E2] bg-[#F9FAFA] lg:h-auto">
+            class="h-52.75 max-w-101.5 flex-1 overflow-hidden rounded-lg border border-[#D9E2E2] bg-[#F9FAFA] lg:h-auto"
+          >
             <AppMapPicker
               :latitude="null"
               :longitude="null"
@@ -203,9 +222,11 @@ const onFileChange = (e: Event) => {
 
       <!-- Save Button -->
       <div class="flex justify-end mb-7.5">
-        <Button type="submit"
+        <Button
+          type="submit"
           class="h-8.5 rounded-[5px] bg-custom-green text-sm font-bold text-white transition-all hover:bg-[#019d7a] w-37.5"
-          :disabled="isSubmitting">
+          :disabled="isSubmitting"
+        >
           {{ isSubmitting ? "Wird gespeichert..." : "Speichern" }}
         </Button>
       </div>

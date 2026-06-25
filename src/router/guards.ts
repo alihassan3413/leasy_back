@@ -7,10 +7,7 @@ import type { UserRole } from "@/types";
  * account. If the user hasn't finished profile setup, send them to their
  * role's onboarding route. Otherwise, send them to their dashboard.
  */
-function landingRouteFor(
-  role: UserRole | null,
-  onboardingComplete: boolean,
-): RouteLocationRaw {
+function landingRouteFor(role: UserRole | null, onboardingComplete: boolean): RouteLocationRaw {
   if (!role) return { name: "login" };
 
   if (!onboardingComplete) {
@@ -87,11 +84,7 @@ export function registerGuards(router: Router): void {
     // If a route declares roles and the user's role isn't in the list,
     // bounce them to their OWN dashboard (not the B2C one, which was
     // the previous behavior and could cause loops).
-    if (
-      to.meta.roles &&
-      auth.userRole &&
-      !to.meta.roles.includes(auth.userRole)
-    ) {
+    if (to.meta.roles && auth.userRole && !to.meta.roles.includes(auth.userRole)) {
       return landingRouteFor(auth.userRole, onboardingComplete);
     }
 
@@ -116,8 +109,6 @@ export function registerGuards(router: Router): void {
 
   // Keep the browser tab title in sync with the current route.
   router.afterEach((to) => {
-    document.title = to.meta.title
-      ? `${to.meta.title} — Leasyback`
-      : "Leasyback";
+    document.title = to.meta.title ? `${to.meta.title} — Leasyback` : "Leasyback";
   });
 }

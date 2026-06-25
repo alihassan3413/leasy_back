@@ -160,12 +160,10 @@ export const useB2CRegistrationStore = defineStore("b2cRegistration", () => {
       } else if (apiError.status === 500) {
         error.value = "Diese E-Mail-Adresse wurde bereits verwendet.";
       } else if (apiError.status === 0 || !apiError.status) {
-        error.value =
-          "Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.";
+        error.value = "Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.";
       } else {
         error.value =
-          apiError.message ||
-          "Profil konnte nicht erstellt werden. Bitte versuchen Sie es erneut.";
+          apiError.message || "Profil konnte nicht erstellt werden. Bitte versuchen Sie es erneut.";
       }
     }
   }

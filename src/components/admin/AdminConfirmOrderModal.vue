@@ -65,33 +65,22 @@ async function handleSubmit() {
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
           <div class="px-2 pt-2 mb-2">
-            <h2 class="text-[24px] font-bold leading-normal text-black">
-              Auftrag bestätigen
-            </h2>
-            <p
-              class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]"
-            >
+            <h2 class="text-[24px] font-bold leading-normal text-black">Auftrag bestätigen</h2>
+            <p class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]">
               Möchten Sie den ausgewählten Auftrag wirklich bestätigen?
             </p>
           </div>
 
           <div class="grid grid-cols-1 gap-y-4">
             <!-- Order info -->
-            <div
-              v-if="order"
-              class="flex flex-col gap-2 p-4 bg-gray-50 rounded-2xl"
-            >
+            <div v-if="order" class="flex flex-col gap-2 p-4 bg-gray-50 rounded-2xl">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Auftragsnummer</span>
-                <span class="text-sm font-semibold text-gray-800">{{
-                  order.auftragsnummer
-                }}</span>
+                <span class="text-sm font-semibold text-gray-800">{{ order.auftragsnummer }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Kennzeichen</span>
-                <span class="text-sm font-semibold text-gray-800">{{
-                  order.license_plate
-                }}</span>
+                <span class="text-sm font-semibold text-gray-800">{{ order.license_plate }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Aktueller Status</span>
@@ -128,8 +117,7 @@ async function handleSubmit() {
 }
 
 .inverted-corner-top-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 0%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 0%);
   --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 

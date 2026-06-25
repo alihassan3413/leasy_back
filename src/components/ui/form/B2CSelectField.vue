@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import { Field as FormField } from 'vee-validate'
-import FormItem from './FormItem.vue'
-import FormLabel from './FormLabel.vue'
-import FormControl from './FormControl.vue'
-import FormMessage from './FormMessage.vue'
+import { Field as FormField } from "vee-validate";
+import FormItem from "./FormItem.vue";
+import FormLabel from "./FormLabel.vue";
+import FormControl from "./FormControl.vue";
+import FormMessage from "./FormMessage.vue";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select";
 
 const props = withDefaults(
   defineProps<{
-    name: string
-    label: string
-    options: { label: string; value: string | number }[]
-    placeholder?: string
-    required?: boolean
+    name: string;
+    label: string;
+    options: { label: string; value: string | number }[];
+    placeholder?: string;
+    required?: boolean;
   }>(),
   {
-    placeholder: 'Bitte wählen',
+    placeholder: "Bitte wählen",
     required: false,
   },
-)
+);
 </script>
 
 <template>
@@ -42,18 +42,14 @@ const props = withDefaults(
             <SelectValue :placeholder="placeholder" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem
-              v-for="option in options"
-              :key="option.value"
-              :value="String(option.value)"
-            >
+            <SelectItem v-for="option in options" :key="option.value" :value="String(option.value)">
               {{ option.label }}
             </SelectItem>
           </SelectContent>
         </Select>
       </FormControl>
       <!-- <div class="min-h-[14px] leading-[14px]"> -->
-        <FormMessage class="text-[11px] text-red-500" />
+      <FormMessage class="text-[11px] text-red-500" />
       <!-- </div> -->
     </FormItem>
   </FormField>

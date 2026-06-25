@@ -3,7 +3,9 @@ import { Icon } from "@iconify/vue";
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-2xl border border-[#F0D9D9] border-l-4 border-l-[#B4544F] bg-white shadow-sm">
+  <div
+    class="overflow-hidden rounded-2xl border border-[#F0D9D9] border-l-4 border-l-[#B4544F] bg-white shadow-sm"
+  >
     <div class="flex flex-col gap-5 px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-start gap-4">
         <div
@@ -14,8 +16,8 @@ import { Icon } from "@iconify/vue";
         <div>
           <h2 class="text-[17px] font-bold text-[#10393B]">Konto löschen</h2>
           <p class="mt-0.5 max-w-[520px] text-[13px] leading-relaxed text-[#7A9699]">
-            Wenn Sie Ihr Konto dauerhaft löschen möchten, kontaktieren Sie uns
-            bitte per E-Mail. Wir kümmern uns um den Rest.
+            Wenn Sie Ihr Konto dauerhaft löschen möchten, kontaktieren Sie uns bitte per E-Mail. Wir
+            kümmern uns um den Rest.
           </p>
         </div>
       </div>

@@ -1,9 +1,7 @@
 import type { VehicleStatusResponse } from "@/types";
 import type { Vehicle } from "@/components/dashboard/vehicle.types";
 
-export const mapVehicleResponseToVehicle = (
-  response: VehicleStatusResponse,
-): Vehicle => {
+export const mapVehicleResponseToVehicle = (response: VehicleStatusResponse): Vehicle => {
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -32,10 +30,8 @@ export const mapVehicleResponseToVehicle = (
   };
 
   // Get data from the latest order if available
-  const latestOrder =
-    response.orders && response.orders.length > 0 ? response.orders[0] : null;
-  const workshopName =
-    latestOrder?.request_payload?.besichtigungsort?.name || "";
+  const latestOrder = response.orders && response.orders.length > 0 ? response.orders[0] : null;
+  const workshopName = latestOrder?.request_payload?.besichtigungsort?.name || "";
 
   // Create timeline from status updates and inspection
   const timeline: any[] = [];
@@ -57,9 +53,7 @@ export const mapVehicleResponseToVehicle = (
         timeline.push({
           datetime: formatDateTime(update.created_at),
           label: "Status Update",
-          sublabel: update.bewertung_id
-            ? `Bewertung ID: ${update.bewertung_id}`
-            : "",
+          sublabel: update.bewertung_id ? `Bewertung ID: ${update.bewertung_id}` : "",
         });
       });
     }
@@ -78,9 +72,7 @@ export const mapVehicleResponseToVehicle = (
     }
     if (b.terminbestätigung && Array.isArray(b.terminbestätigung)) {
       b.terminbestätigung.forEach((doc: any) =>
-        leasingDocuments.push(
-          typeof doc === "string" ? doc : "Terminbestätigung",
-        ),
+        leasingDocuments.push(typeof doc === "string" ? doc : "Terminbestätigung"),
       );
     }
   }
@@ -99,9 +91,9 @@ export const mapVehicleResponseToVehicle = (
     b2c_user_id: response.b2c_user_id || null,
     created_at: response.created_at,
     updated_at: response.updated_at,
-    orders: (response.orders || []).map(order => ({
+    orders: (response.orders || []).map((order) => ({
       ...order,
-      report_documents: order.report_documents || []
+      report_documents: order.report_documents || [],
     })),
     // Mapped fields for backwards compatibility
     id: response.vehicle_id,
@@ -110,21 +102,14 @@ export const mapVehicleResponseToVehicle = (
     leaseEnd: formatDate(response.leasing_end_date),
     returnStart: formatDate(response.first_registration_date),
     driver: latestOrder?.request_payload?.ansprechpartner?.name || "",
-    driverFirstName:
-      latestOrder?.request_payload?.ansprechpartner?.name?.split(" ")[0] || "",
+    driverFirstName: latestOrder?.request_payload?.ansprechpartner?.name?.split(" ")[0] || "",
     driverLastName:
-      latestOrder?.request_payload?.ansprechpartner?.name
-        ?.split(" ")
-        .slice(1)
-        .join(" ") || "",
+      latestOrder?.request_payload?.ansprechpartner?.name?.split(" ").slice(1).join(" ") || "",
     driverPhone: latestOrder?.request_payload?.ansprechpartner?.telefon || "",
     usageAddress: latestOrder?.request_payload?.besichtigungsort
       ? `${latestOrder.request_payload.besichtigungsort.strasse}, ${latestOrder.request_payload.besichtigungsort.plz} ${latestOrder.request_payload.besichtigungsort.ort}`
       : "",
-    lastActivity:
-      timeline.length > 0
-        ? timeline[timeline.length - 1].label
-        : "Neu angelegt",
+    lastActivity: timeline.length > 0 ? timeline[timeline.length - 1].label : "Neu angelegt",
     fin: response.vin,
     kilometerstand: "N/A",
     leasinggeber: latestOrder?.leasyback_partner || "N/A",

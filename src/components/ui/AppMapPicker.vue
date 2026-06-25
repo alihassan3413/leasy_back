@@ -45,10 +45,7 @@ let marker: any = null;
 // Fallback center: Cologne, Germany.
 const DEFAULT_CENTER = { lat: 50.9375, lng: 6.9603 };
 
-const reverseGeocode = async (
-  lat: number,
-  lng: number,
-): Promise<ResolvedAddress> => {
+const reverseGeocode = async (lat: number, lng: number): Promise<ResolvedAddress> => {
   // Nominatim usage policy requires a meaningful User-Agent / Referer,
   // which the browser sends automatically. Keep request rate < 1/sec.
   const url =

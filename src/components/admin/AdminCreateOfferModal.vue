@@ -65,10 +65,7 @@ const onAmountPaste = (event: ClipboardEvent) => {
 
   if (existingSeparatorIndex !== -1 && pastedHasSeparator) {
     // If pasting into selection that includes existing separator, remove from pasted
-    if (
-      selectionStart <= existingSeparatorIndex &&
-      selectionEnd > existingSeparatorIndex
-    ) {
+    if (selectionStart <= existingSeparatorIndex && selectionEnd > existingSeparatorIndex) {
       // Keep only first separator in pasted text
       const firstSepIndex = pastedText.search(/[.,]/);
       pastedText =
@@ -172,12 +169,7 @@ const onAmountKeyDown = (event: KeyboardEvent) => {
     const existingSeparatorIndex = currentValue.search(/[.,]/);
     if (existingSeparatorIndex !== -1) {
       // Only allow if we're replacing the existing separator
-      if (
-        !(
-          selectionStart <= existingSeparatorIndex &&
-          selectionEnd > existingSeparatorIndex
-        )
-      ) {
+      if (!(selectionStart <= existingSeparatorIndex && selectionEnd > existingSeparatorIndex)) {
         event.preventDefault();
         return;
       }
@@ -295,29 +287,19 @@ async function handleSubmit() {
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
           <div class="px-6 pt-6 mb-6">
-            <h2 class="text-[20px] font-bold leading-normal text-black">
-              Angebot erstellen
-            </h2>
-            <p
-              class="mt-1 mx-2 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]"
-            >
+            <h2 class="text-[20px] font-bold leading-normal text-black">Angebot erstellen</h2>
+            <p class="mt-1 mx-2 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]">
               Bitte füllen Sie die Details für das Angebot aus.
             </p>
           </div>
 
-          <div
-            class="grid grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1"
-          >
+          <div class="grid grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
             <!-- Repair Costs -->
             <div class="col-span-2 flex flex-col gap-2">
-              <label class="text-sm font-semibold text-black">
-                Reparaturkosten Gesamt
-              </label>
+              <label class="text-sm font-semibold text-black"> Reparaturkosten Gesamt </label>
               <div class="grid grid-cols-2 gap-3">
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Netto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Netto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
                   >
@@ -325,12 +307,7 @@ async function handleSubmit() {
                       :value="repairCosts.net"
                       @keydown="onAmountKeyDown"
                       @paste="onAmountPaste"
-                      @input="
-                        onNetInput(
-                          repairCosts,
-                          ($event.target as HTMLInputElement).value,
-                        )
-                      "
+                      @input="onNetInput(repairCosts, ($event.target as HTMLInputElement).value)"
                       type="text"
                       inputmode="decimal"
                       class="h-full w-full bg-transparent text-sm outline-none"
@@ -339,9 +316,7 @@ async function handleSubmit() {
                   </div>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Brutto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Brutto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
                   >
@@ -349,12 +324,7 @@ async function handleSubmit() {
                       :value="repairCosts.gross"
                       @keydown="onAmountKeyDown"
                       @paste="onAmountPaste"
-                      @input="
-                        onGrossInput(
-                          repairCosts,
-                          ($event.target as HTMLInputElement).value,
-                        )
-                      "
+                      @input="onGrossInput(repairCosts, ($event.target as HTMLInputElement).value)"
                       type="text"
                       inputmode="decimal"
                       class="h-full w-full bg-transparent text-sm outline-none"
@@ -367,14 +337,10 @@ async function handleSubmit() {
 
             <!-- Depreciation Value -->
             <div class="col-span-2 flex flex-col gap-2">
-              <label class="text-sm font-semibold text-black">
-                Wertminderung Gesamt
-              </label>
+              <label class="text-sm font-semibold text-black"> Wertminderung Gesamt </label>
               <div class="grid grid-cols-2 gap-3">
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Netto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Netto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
                   >
@@ -383,10 +349,7 @@ async function handleSubmit() {
                       @keydown="onAmountKeyDown"
                       @paste="onAmountPaste"
                       @input="
-                        onNetInput(
-                          depreciationValue,
-                          ($event.target as HTMLInputElement).value,
-                        )
+                        onNetInput(depreciationValue, ($event.target as HTMLInputElement).value)
                       "
                       type="text"
                       inputmode="decimal"
@@ -396,9 +359,7 @@ async function handleSubmit() {
                   </div>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Brutto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Brutto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
                   >
@@ -407,10 +368,7 @@ async function handleSubmit() {
                       @keydown="onAmountKeyDown"
                       @paste="onAmountPaste"
                       @input="
-                        onGrossInput(
-                          depreciationValue,
-                          ($event.target as HTMLInputElement).value,
-                        )
+                        onGrossInput(depreciationValue, ($event.target as HTMLInputElement).value)
                       "
                       type="text"
                       inputmode="decimal"
@@ -424,14 +382,10 @@ async function handleSubmit() {
 
             <!-- Workshop Repair Quote -->
             <div class="col-span-2 flex flex-col gap-2">
-              <label class="text-sm font-semibold text-black">
-                Werkstattreparaturangebot
-              </label>
+              <label class="text-sm font-semibold text-black"> Werkstattreparaturangebot </label>
               <div class="grid grid-cols-2 gap-3">
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Netto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Netto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
                   >
@@ -439,12 +393,7 @@ async function handleSubmit() {
                       :value="workshopQuote.net"
                       @keydown="onAmountKeyDown"
                       @paste="onAmountPaste"
-                      @input="
-                        onNetInput(
-                          workshopQuote,
-                          ($event.target as HTMLInputElement).value,
-                        )
-                      "
+                      @input="onNetInput(workshopQuote, ($event.target as HTMLInputElement).value)"
                       type="text"
                       inputmode="decimal"
                       class="h-full w-full bg-transparent text-sm outline-none"
@@ -453,9 +402,7 @@ async function handleSubmit() {
                   </div>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Brutto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Brutto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
                   >
@@ -464,10 +411,7 @@ async function handleSubmit() {
                       @keydown="onAmountKeyDown"
                       @paste="onAmountPaste"
                       @input="
-                        onGrossInput(
-                          workshopQuote,
-                          ($event.target as HTMLInputElement).value,
-                        )
+                        onGrossInput(workshopQuote, ($event.target as HTMLInputElement).value)
                       "
                       type="text"
                       inputmode="decimal"
@@ -481,14 +425,10 @@ async function handleSubmit() {
 
             <!-- Missing Parts Cost -->
             <div class="col-span-2 flex flex-col gap-2">
-              <label class="text-sm font-semibold text-black">
-                Fehlende Teile Kosten
-              </label>
+              <label class="text-sm font-semibold text-black"> Fehlende Teile Kosten </label>
               <div class="grid grid-cols-2 gap-3">
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Netto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Netto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
                   >
@@ -497,10 +437,7 @@ async function handleSubmit() {
                       @keydown="onAmountKeyDown"
                       @paste="onAmountPaste"
                       @input="
-                        onNetInput(
-                          missingPartsCost,
-                          ($event.target as HTMLInputElement).value,
-                        )
+                        onNetInput(missingPartsCost, ($event.target as HTMLInputElement).value)
                       "
                       type="text"
                       inputmode="decimal"
@@ -510,9 +447,7 @@ async function handleSubmit() {
                   </div>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Brutto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Brutto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
                   >
@@ -521,10 +456,7 @@ async function handleSubmit() {
                       @keydown="onAmountKeyDown"
                       @paste="onAmountPaste"
                       @input="
-                        onGrossInput(
-                          missingPartsCost,
-                          ($event.target as HTMLInputElement).value,
-                        )
+                        onGrossInput(missingPartsCost, ($event.target as HTMLInputElement).value)
                       "
                       type="text"
                       inputmode="decimal"
@@ -537,35 +469,23 @@ async function handleSubmit() {
             </div>
 
             <!-- Final Total -->
-            <div
-              class="col-span-2 flex flex-col gap-2 bg-gray-50 rounded-xl p-4"
-            >
-              <label class="text-sm font-semibold text-black">
-                Endsumme (auto-berechnet)
-              </label>
+            <div class="col-span-2 flex flex-col gap-2 bg-gray-50 rounded-xl p-4">
+              <label class="text-sm font-semibold text-black"> Endsumme (auto-berechnet) </label>
               <div class="grid grid-cols-2 gap-3">
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Netto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Netto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 bg-white px-4"
                   >
-                    <span class="text-sm font-medium text-gray-700">{{
-                      finalTotal.net
-                    }}</span>
+                    <span class="text-sm font-medium text-gray-700">{{ finalTotal.net }}</span>
                   </div>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-xs font-medium text-gray-500">
-                    Brutto (€)
-                  </label>
+                  <label class="text-xs font-medium text-gray-500"> Brutto (€) </label>
                   <div
                     class="relative flex h-9 items-center rounded-full border border-gray-300 bg-white px-4"
                   >
-                    <span class="text-sm font-medium text-gray-700">{{
-                      finalTotal.gross
-                    }}</span>
+                    <span class="text-sm font-medium text-gray-700">{{ finalTotal.gross }}</span>
                   </div>
                 </div>
               </div>
@@ -616,8 +536,7 @@ async function handleSubmit() {
 }
 
 .inverted-corner-top-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 0%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 0%);
   --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 

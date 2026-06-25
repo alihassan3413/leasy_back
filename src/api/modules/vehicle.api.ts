@@ -26,14 +26,8 @@ export const vehicleApi = {
   },
 
   // PATCH /vehicle/{vehicle_id} — update editable vehicle details
-  updateVehicle(
-    vehicleId: string,
-    payload: Partial<CreateVehiclePayload>,
-  ): Promise<any> {
-    return patch<any, Partial<CreateVehiclePayload>>(
-      `/vehicle/${vehicleId}`,
-      payload,
-    );
+  updateVehicle(vehicleId: string, payload: Partial<CreateVehiclePayload>): Promise<any> {
+    return patch<any, Partial<CreateVehiclePayload>>(`/vehicle/${vehicleId}`, payload);
   },
 
   async getVehicleDocuments(vehicleId: string): Promise<VehicleDocument[]> {
@@ -48,10 +42,7 @@ export const vehicleApi = {
     }));
   },
 
-  async uploadVehicleDocument(
-    vehicleId: string,
-    body: FormData,
-  ): Promise<VehicleDocument> {
+  async uploadVehicleDocument(vehicleId: string, body: FormData): Promise<VehicleDocument> {
     const resp = await put<any>(`/vehicle/${vehicleId}/documents`, body, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -61,8 +52,7 @@ export const vehicleApi = {
     return {
       id: resp?.document_id ?? resp?.id,
       document_type: resp?.document_type ?? resp?.documentType,
-      file_name:
-        resp?.original_file_name ?? resp?.file_name ?? resp?.originalFileName,
+      file_name: resp?.original_file_name ?? resp?.file_name ?? resp?.originalFileName,
       created_at: resp?.created_at ?? resp?.uploaded_at ?? resp?.createdAt,
       url: resp?.signed_url ?? resp?.url ?? resp?.signedUrl,
     };

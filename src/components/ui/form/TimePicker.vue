@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { Icon } from '@iconify/vue';
-import { useTimeSlots } from '@/composables/useTimeSlots';
+import { ref, computed, watch } from "vue";
+import { Icon } from "@iconify/vue";
+import { useTimeSlots } from "@/composables/useTimeSlots";
 
 interface Props {
   modelValue?: string;
@@ -16,19 +16,19 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: '',
-  label: '',
-  placeholder: 'Uhrzeit wählen',
-  startTime: '08:00',
-  endTime: '16:00',
+  modelValue: "",
+  label: "",
+  placeholder: "Uhrzeit wählen",
+  startTime: "08:00",
+  endTime: "16:00",
   intervalMinutes: 30,
-  inputHeight: 'h-8',
-  inputRounded: 'rounded-full',
+  inputHeight: "h-8",
+  inputRounded: "rounded-full",
   disabled: false,
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string];
+  "update:modelValue": [value: string];
 }>();
 
 const isOpen = ref(false);
@@ -45,7 +45,7 @@ const displayValue = computed(() => {
 });
 
 function selectTime(time: string) {
-  emit('update:modelValue', time);
+  emit("update:modelValue", time);
   isOpen.value = false;
 }
 
@@ -56,14 +56,14 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted } from "vue";
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
+  document.addEventListener("click", handleClickOutside);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside);
+  document.removeEventListener("click", handleClickOutside);
 });
 </script>
 

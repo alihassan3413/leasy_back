@@ -50,11 +50,9 @@ export const useAuthStore = defineStore(
       } else if (apiError.status === 422) {
         error.value = apiError.message || "Bitte überprüfen Sie Ihre Eingaben.";
       } else if (apiError.status === 0) {
-        error.value =
-          "Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.";
+        error.value = "Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.";
       } else {
-        error.value =
-          "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.";
+        error.value = "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.";
       }
 
       throw apiError;

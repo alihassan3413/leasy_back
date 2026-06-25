@@ -28,10 +28,7 @@ const confirmModalOpen = ref(false);
 const selectedConfirmOrder = ref<AdminOrder | null>(null);
 
 // ── Status config ─────────────────────────────────────────────────
-const statusFilterOptions = [
-  { label: "Alle", value: "" },
-  ...orderStatusFilterOptions,
-];
+const statusFilterOptions = [{ label: "Alle", value: "" }, ...orderStatusFilterOptions];
 
 const modalStatusOptions = orderStatusOptions;
 
@@ -82,8 +79,7 @@ function getStatus(s: string | null | undefined) {
 // ── Response status helper ────────────────────────────────────────
 function responseStatusStyle(code: number | null) {
   if (!code) return { bg: "rgba(0,0,0,0.05)", fg: "#6b7280" };
-  if (code >= 200 && code < 300)
-    return { bg: "rgba(1,185,144,0.1)", fg: "#00856a" };
+  if (code >= 200 && code < 300) return { bg: "rgba(1,185,144,0.1)", fg: "#00856a" };
   if (code >= 400) return { bg: "rgba(239,132,80,0.1)", fg: "#c0622e" };
   return { bg: "rgba(99,102,241,0.1)", fg: "#4f46e5" };
 }
@@ -107,11 +103,7 @@ async function loadOrders() {
   try {
     const res =
       userType.value === "all"
-        ? await adminOrdersApi.listAll(
-            page.value,
-            limit.value,
-            statusFilter.value,
-          )
+        ? await adminOrdersApi.listAll(page.value, limit.value, statusFilter.value)
         : await adminOrdersApi.listByUserType(
             userType.value,
             page.value,
@@ -209,13 +201,9 @@ async function handleOrderConfirmed() {
       style="box-shadow: 0 6px 22px rgba(16, 57, 59, 0.04)"
     >
       <!-- Card header -->
-      <div
-        class="flex items-start justify-between mb-4 shrink-0 gap-4 flex-wrap"
-      >
+      <div class="flex items-start justify-between mb-4 shrink-0 gap-4 flex-wrap">
         <div>
-          <h2
-            class="text-[20px] font-extrabold text-[#10393b] tracking-[-0.4px]"
-          >
+          <h2 class="text-[20px] font-extrabold text-[#10393b] tracking-[-0.4px]">
             {{
               userType === "all"
                 ? "Alle Aufträge"
@@ -224,9 +212,7 @@ async function handleOrderConfirmed() {
                   : "Privatkunden Aufträge"
             }}
           </h2>
-          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">
-            {{ total }} Aufträge gesamt
-          </p>
+          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">{{ total }} Aufträge gesamt</p>
         </div>
 
         <!-- Summary chips -->
@@ -280,9 +266,7 @@ async function handleOrderConfirmed() {
       </div>
 
       <!-- Table -->
-      <div
-        class="flex-1 overflow-auto rounded-[18px] border border-[#eef3f2] min-h-0"
-      >
+      <div class="flex-1 overflow-auto rounded-[18px] border border-[#eef3f2] min-h-0">
         <table class="min-w-full border-collapse">
           <thead class="sticky top-0 z-10">
             <tr class="bg-[#f8faf9]">
@@ -338,10 +322,7 @@ async function handleOrderConfirmed() {
 
             <!-- Empty -->
             <tr v-else-if="!orders.length">
-              <td
-                colspan="7"
-                class="py-16 text-center text-[13px] text-[#9bb0af]"
-              >
+              <td colspan="7" class="py-16 text-center text-[13px] text-[#9bb0af]">
                 Keine Aufträge gefunden.
               </td>
             </tr>
@@ -368,16 +349,12 @@ async function handleOrderConfirmed() {
                       stroke="currentColor"
                       stroke-width="1.8"
                     >
-                      <path
-                        d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
-                      />
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                       <path d="M14 2v6h6M16 13H8M16 17H8" />
                     </svg>
                   </div>
                   <div>
-                    <div
-                      class="text-[13px] font-extrabold text-[#10393b] font-mono tracking-tight"
-                    >
+                    <div class="text-[13px] font-extrabold text-[#10393b] font-mono tracking-tight">
                       {{ o.auftragsnummer }}
                     </div>
                     <div class="text-[10.5px] text-[#9bb0af] mt-0.5 font-mono">
@@ -423,9 +400,7 @@ async function handleOrderConfirmed() {
                     class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full"
                     :style="`background:${getStatus(o.order_status).bg}; color:${getStatus(o.order_status).fg}`"
                   >
-                    <span
-                      class="w-[5px] h-[5px] rounded-full bg-current"
-                    ></span>
+                    <span class="w-[5px] h-[5px] rounded-full bg-current"></span>
                     {{ getStatus(o.order_status).label }}
                   </span>
                   <button
@@ -463,12 +438,8 @@ async function handleOrderConfirmed() {
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     >
-                      <path
-                        d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                      />
-                      <path
-                        d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                      />
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
                   </button>
                 </div>

@@ -71,20 +71,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="rootRef" class="relative space-y-1.5">
-    <FormLabel
-      :label="label"
-      :required="required"
-      :for-id="forId"
-      :label-classes="labelClasses"
-    />
+    <FormLabel :label="label" :required="required" :for-id="forId" :label-classes="labelClasses" />
 
-    <button
-      type="button"
-      :id="forId"
-      :class="triggerClasses"
-      :disabled="disabled"
-      @click="toggle"
-    >
+    <button type="button" :id="forId" :class="triggerClasses" :disabled="disabled" @click="toggle">
       <span :class="selected ? 'text-custom-black' : 'text-green-gray'">
         {{ displayLabel }}
       </span>

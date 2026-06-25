@@ -8,9 +8,7 @@
     </div>
 
     <div class="space-y-1">
-      <p class="text-[15px] font-medium text-color-primary">
-        Möchten Sie Ihre Konto löschen?
-      </p>
+      <p class="text-[15px] font-medium text-color-primary">Möchten Sie Ihre Konto löschen?</p>
       <p class="text-[15px] font-medium text-color-primary">
         Falls Sie Ihr Konto löschen möchten, kontaktieren Sie uns bitte unter:
         <a

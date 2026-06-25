@@ -19,23 +19,14 @@ const { value: wantsAbweichendeAdresse } = useField<string>("account.wantsAbweic
         <div class="w-full">
           <!-- Row 1: UST-ID Question + Radio Buttons -->
           <div class="flex items-center justify-between w-full mb-0.5">
-            <label
-              class="text-sm font-bold text-black leading-normal not-italic"
-            >
+            <label class="text-sm font-bold text-black leading-normal not-italic">
               Haben Sie eine Umsatzsteuer-Identifikationsnr. (“Ust-IdNr.)
             </label>
             <div class="flex items-center gap-6">
-              <div
-                class="flex items-center gap-2 cursor-pointer"
-                @click="hasUstIdNr = 'ja'"
-              >
+              <div class="flex items-center gap-2 cursor-pointer" @click="hasUstIdNr = 'ja'">
                 <div
                   class="size-4 rounded-full border-2 flex items-center justify-center transition-colors"
-                  :class="
-                    hasUstIdNr === 'ja'
-                      ? 'border-custom-orange'
-                      : 'border-black'
-                  "
+                  :class="hasUstIdNr === 'ja' ? 'border-custom-orange' : 'border-black'"
                 >
                   <div
                     v-if="hasUstIdNr === 'ja'"
@@ -44,15 +35,10 @@ const { value: wantsAbweichendeAdresse } = useField<string>("account.wantsAbweic
                 </div>
                 <span class="text-sm font-bold text-black">Ja</span>
               </div>
-              <div
-                class="flex items-center gap-2 cursor-pointer"
-                @click="hasUstIdNr = 'nein'"
-              >
+              <div class="flex items-center gap-2 cursor-pointer" @click="hasUstIdNr = 'nein'">
                 <div
                   class="size-4 rounded-full border-2 flex items-center justify-center transition-colors"
-                  :class="
-                    hasUstIdNr === 'nein' ? 'border-black' : 'border-black'
-                  "
+                  :class="hasUstIdNr === 'nein' ? 'border-black' : 'border-black'"
                 >
                   <div
                     v-if="hasUstIdNr === 'nein'"
@@ -75,12 +61,7 @@ const { value: wantsAbweichendeAdresse } = useField<string>("account.wantsAbweic
 
         <!-- Row 3: Kontoinhaber -->
         <div class="w-full">
-          <FormTextField
-            name="account.kontoinhaber"
-            label="Kontoinhaber"
-            required
-            class="w-full"
-          />
+          <FormTextField name="account.kontoinhaber" label="Kontoinhaber" required class="w-full" />
         </div>
 
         <!-- Row 4: IBAN & BIC (Grid) -->
@@ -93,9 +74,7 @@ const { value: wantsAbweichendeAdresse } = useField<string>("account.wantsAbweic
         <div class="w-full">
           <!-- Row 5: Rechnungsadressierung Question + Radio Buttons -->
           <div class="flex items-center justify-between w-full mb-0.5">
-            <label
-              class="text-sm font-bold text-black leading-normal not-italic"
-            >
+            <label class="text-sm font-bold text-black leading-normal not-italic">
               Wünschen Sie eine abweichende Rechnungsadressierung
             </label>
             <div class="flex items-center gap-6">
@@ -106,9 +85,7 @@ const { value: wantsAbweichendeAdresse } = useField<string>("account.wantsAbweic
                 <div
                   class="size-4 rounded-full border-2 flex items-center justify-center transition-colors"
                   :class="
-                    wantsAbweichendeAdresse === 'ja'
-                      ? 'border-custom-orange'
-                      : 'border-black'
+                    wantsAbweichendeAdresse === 'ja' ? 'border-custom-orange' : 'border-black'
                   "
                 >
                   <div
@@ -124,11 +101,7 @@ const { value: wantsAbweichendeAdresse } = useField<string>("account.wantsAbweic
               >
                 <div
                   class="size-4 rounded-full border-2 flex items-center justify-center transition-colors"
-                  :class="
-                    wantsAbweichendeAdresse === 'nein'
-                      ? 'border-black'
-                      : 'border-black'
-                  "
+                  :class="wantsAbweichendeAdresse === 'nein' ? 'border-black' : 'border-black'"
                 >
                   <div
                     v-if="wantsAbweichendeAdresse === 'nein'"

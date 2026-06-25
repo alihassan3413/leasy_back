@@ -20,11 +20,9 @@ const vorwahlOptions = [
       <h2 class="text-primary text-[20px] font-bold leading-normal not-italic">
         Ansprechpartner für LeasyBack
       </h2>
-      <p
-        class="text-black text-base font-normal leading-normal not-italic mt-1"
-      >
-        Damit wir Sie betreuen und informieren können, teilen Sie uns bitte
-        einen Ansprechpartner für den LeasyBack.com Kundenservice mit.
+      <p class="text-black text-base font-normal leading-normal not-italic mt-1">
+        Damit wir Sie betreuen und informieren können, teilen Sie uns bitte einen Ansprechpartner
+        für den LeasyBack.com Kundenservice mit.
       </p>
 
       <div class="w-full h-px bg-green-gray mb-4"></div>
@@ -53,20 +51,10 @@ const vorwahlOptions = [
           />
         </div>
         <div class="col-span-1">
-          <FormTextField
-            name="contact.vorname"
-            label="Vorname"
-            placeholder=""
-            required
-          />
+          <FormTextField name="contact.vorname" label="Vorname" placeholder="" required />
         </div>
         <div class="col-span-1">
-          <FormTextField
-            name="contact.nachname"
-            label="Nachname"
-            placeholder=""
-            required
-          />
+          <FormTextField name="contact.nachname" label="Nachname" placeholder="" required />
         </div>
 
         <!-- Row 3: Internat. Vorwahl, Tel. für Anfragen -->
@@ -80,12 +68,7 @@ const vorwahlOptions = [
           />
         </div>
         <div class="col-span-2">
-          <FormTextField
-            name="contact.telefon"
-            label="Tel. für Anfragen"
-            placeholder=""
-            required
-          />
+          <FormTextField name="contact.telefon" label="Tel. für Anfragen" placeholder="" required />
         </div>
       </div>
     </div>

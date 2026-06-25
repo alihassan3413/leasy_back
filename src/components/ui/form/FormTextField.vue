@@ -1,22 +1,25 @@
 <script setup lang="ts">
-import { useField } from 'vee-validate'
-import Input from '@/components/form/Input.vue'
+import { useField } from "vee-validate";
+import Input from "@/components/form/Input.vue";
 
-const props = withDefaults(defineProps<{
-  name: string
-  label: string
-  placeholder?: string
-  type?: string
-  required?: boolean
-  disabled?: boolean
-}>(), {
-  placeholder: '',
-  type: 'text',
-  required: false,
-  disabled: false,
-})
+const props = withDefaults(
+  defineProps<{
+    name: string;
+    label: string;
+    placeholder?: string;
+    type?: string;
+    required?: boolean;
+    disabled?: boolean;
+  }>(),
+  {
+    placeholder: "",
+    type: "text",
+    required: false,
+    disabled: false,
+  },
+);
 
-const { value, errorMessage, meta, handleChange } = useField<string>(() => props.name)
+const { value, errorMessage, meta, handleChange } = useField<string>(() => props.name);
 </script>
 
 <template>

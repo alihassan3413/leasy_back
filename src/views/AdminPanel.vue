@@ -1,86 +1,78 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import { useAdminStore } from '@/stores/admin.store'
-import { useAuthStore } from '@/stores/auth.store'
-import {
-  adminOrdersApi,
-  adminUsersApi,
-  adminVehiclesApi,
-} from '@/api'
-import { formatGermanDate } from '@/lib/formatting'
-import UserDetailModal from '@/components/admin/UserDetail.vue'
-import type {
-  AdminOrder,
-  AdminUser,
-  AdminVehicle,
-} from '@/types'
+import { computed, onMounted, ref, watch } from "vue";
+import { useAdminStore } from "@/stores/admin.store";
+import { useAuthStore } from "@/stores/auth.store";
+import { adminOrdersApi, adminUsersApi, adminVehiclesApi } from "@/api";
+import { formatGermanDate } from "@/lib/formatting";
+import UserDetailModal from "@/components/admin/UserDetail.vue";
+import type { AdminOrder, AdminUser, AdminVehicle } from "@/types";
 
-type PanelType = 'orders' | 'users' | 'vehicles'
+type PanelType = "orders" | "users" | "vehicles";
 
-const adminStore = useAdminStore()
-const auth = useAuthStore()
+const adminStore = useAdminStore();
+const auth = useAuthStore();
 
 // ─────────────────────────────────────────────────────────────────
 // Header
 // ─────────────────────────────────────────────────────────────────
 
-const today = new Intl.DateTimeFormat('de-DE', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-}).format(new Date())
+const today = new Intl.DateTimeFormat("de-DE", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+}).format(new Date());
 
 const headerUserName = computed(() => {
-  const user = auth.user as any
+  const user = auth.user as any;
 
-  if (!user) return 'Administrator'
+  if (!user) return "Administrator";
 
   if (user.first_name && user.last_name) {
-    return `${user.first_name} ${user.last_name}`
+    return `${user.first_name} ${user.last_name}`;
   }
 
-  return user.name ?? user.email ?? user.user_email ?? 'Administrator'
-})
+  return user.name ?? user.email ?? user.user_email ?? "Administrator";
+});
 
 const headerInitials = computed(() => {
-  const parts = headerUserName.value.trim().split(/\s+/)
+  const parts = headerUserName.value.trim().split(/\s+/);
 
   if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
   }
 
-  return headerUserName.value.slice(0, 2).toUpperCase()
-})
+  return headerUserName.value.slice(0, 2).toUpperCase();
+});
 
 // ─────────────────────────────────────────────────────────────────
 // Active dashboard panel
 // ─────────────────────────────────────────────────────────────────
 
-const activePanel = ref<PanelType>('orders')
-const search = ref('')
+const activePanel = ref<PanelType>("orders");
+const search = ref("");
 
 const totalCustomers = computed(() => {
-  return adminStore.totalB2B + adminStore.totalB2C
-})
+  return adminStore.totalB2B + adminStore.totalB2C;
+});
 
 function activatePanel(type: PanelType) {
-  search.value = ''
-  activePanel.value = type
+  search.value = "";
+  activePanel.value = type;
 
-  if (type === 'orders') {
-    panelOrdersPage.value = 1
-    void loadPanelOrders()
+  if (type === "orders") {
+    panelOrdersPage.value = 1;
+    void loadPanelOrders();
   }
 
-  if (type === 'users') {
-    panelUsersPage.value = 1
-    void loadPanelUsers()
+  if (type === "users") {
+    panelUsersPage.value = 1;
+    void loadPanelUsers();
   }
 
-  if (type === 'vehicles') {
-    panelVehiclesPage.value = 1
-    void loadPanelVehicles()
+  if (type === "vehicles") {
+    panelVehiclesPage.value = 1;
+    void loadPanelVehicles();
   }
 }
 
@@ -91,249 +83,228 @@ function activatePanel(type: PanelType) {
 const statusStyles: Record<
   string,
   {
-    label: string
-    background: string
-    color: string
+    label: string;
+    background: string;
+    color: string;
   }
 > = {
   order_placed: {
-    label: 'Bestellt',
-    background: 'rgba(239, 132, 80, 0.12)',
-    color: '#c0622e',
+    label: "Bestellt",
+    background: "rgba(239, 132, 80, 0.12)",
+    color: "#c0622e",
   },
   confirmed: {
-    label: 'Bestätigt',
-    background: 'rgba(99, 102, 241, 0.12)',
-    color: '#4f46e5',
+    label: "Bestätigt",
+    background: "rgba(99, 102, 241, 0.12)",
+    color: "#4f46e5",
   },
   inspected: {
-    label: 'Geprüft',
-    background: 'rgba(1, 185, 144, 0.12)',
-    color: '#00856a',
+    label: "Geprüft",
+    background: "rgba(1, 185, 144, 0.12)",
+    color: "#00856a",
   },
   workshop: {
-    label: 'In Werkstatt',
-    background: 'rgba(245, 158, 11, 0.12)',
-    color: '#b45309',
+    label: "In Werkstatt",
+    background: "rgba(245, 158, 11, 0.12)",
+    color: "#b45309",
   },
   reinspection: {
-    label: 'Nachprüfung',
-    background: 'rgba(124, 58, 237, 0.12)',
-    color: '#6d28d9',
+    label: "Nachprüfung",
+    background: "rgba(124, 58, 237, 0.12)",
+    color: "#6d28d9",
   },
   reworkshop: {
-    label: 'Erneut in Werkstatt',
-    background: 'rgba(234, 88, 12, 0.12)',
-    color: '#c2410c',
+    label: "Erneut in Werkstatt",
+    background: "rgba(234, 88, 12, 0.12)",
+    color: "#c2410c",
   },
   delivered: {
-    label: 'Geliefert',
-    background: 'rgba(16, 57, 59, 0.09)',
-    color: '#10393b',
+    label: "Geliefert",
+    background: "rgba(16, 57, 59, 0.09)",
+    color: "#10393b",
   },
   completed: {
-    label: 'Abgeschlossen',
-    background: 'rgba(1, 185, 144, 0.12)',
-    color: '#00856a',
+    label: "Abgeschlossen",
+    background: "rgba(1, 185, 144, 0.12)",
+    color: "#00856a",
   },
   discarded: {
-    label: 'Verworfen',
-    background: 'rgba(107, 114, 128, 0.12)',
-    color: '#374151',
+    label: "Verworfen",
+    background: "rgba(107, 114, 128, 0.12)",
+    color: "#374151",
   },
   cancelled: {
-    label: 'Storniert',
-    background: 'rgba(220, 38, 38, 0.10)',
-    color: '#991b1b',
+    label: "Storniert",
+    background: "rgba(220, 38, 38, 0.10)",
+    color: "#991b1b",
   },
-}
+};
 
 function getStatus(status: string | null | undefined) {
   if (!status) {
     return {
-      label: 'Kein Status',
-      background: 'rgba(0, 0, 0, 0.05)',
-      color: '#6f8585',
-    }
+      label: "Kein Status",
+      background: "rgba(0, 0, 0, 0.05)",
+      color: "#6f8585",
+    };
   }
 
   return (
     statusStyles[status] ?? {
       label: status,
-      background: 'rgba(0, 0, 0, 0.05)',
-      color: '#6f8585',
+      background: "rgba(0, 0, 0, 0.05)",
+      color: "#6f8585",
     }
-  )
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────
 // Users
 // ─────────────────────────────────────────────────────────────────
 
-const panelUsers = ref<AdminUser[]>([])
-const panelUsersPage = ref(1)
-const panelUsersTotal = ref(0)
-const panelUsersLoading = ref(false)
-const panelUsersType = ref<'B2C' | 'B2B'>('B2C')
+const panelUsers = ref<AdminUser[]>([]);
+const panelUsersPage = ref(1);
+const panelUsersTotal = ref(0);
+const panelUsersLoading = ref(false);
+const panelUsersType = ref<"B2C" | "B2B">("B2C");
 
-const panelUsersLimit = 10
+const panelUsersLimit = 10;
 
 const panelUsersTotalPages = computed(() => {
-  return Math.max(
-    1,
-    Math.ceil(panelUsersTotal.value / panelUsersLimit),
-  )
-})
+  return Math.max(1, Math.ceil(panelUsersTotal.value / panelUsersLimit));
+});
 
 async function loadPanelUsers() {
-  panelUsersLoading.value = true
+  panelUsersLoading.value = true;
 
   try {
     const response =
-      panelUsersType.value === 'B2C'
-        ? await adminUsersApi.getB2c(
-            panelUsersPage.value,
-            panelUsersLimit,
-          )
-        : await adminUsersApi.getB2b(
-            panelUsersPage.value,
-            panelUsersLimit,
-          )
+      panelUsersType.value === "B2C"
+        ? await adminUsersApi.getB2c(panelUsersPage.value, panelUsersLimit)
+        : await adminUsersApi.getB2b(panelUsersPage.value, panelUsersLimit);
 
-    panelUsers.value = response.data
-    panelUsersTotal.value = response.total
+    panelUsers.value = response.data;
+    panelUsersTotal.value = response.total;
   } catch (error) {
-    console.error('Kunden konnten nicht geladen werden:', error)
+    console.error("Kunden konnten nicht geladen werden:", error);
 
-    panelUsers.value = []
-    panelUsersTotal.value = 0
+    panelUsers.value = [];
+    panelUsersTotal.value = 0;
   } finally {
-    panelUsersLoading.value = false
+    panelUsersLoading.value = false;
   }
 }
 
 watch(panelUsersType, () => {
-  panelUsersPage.value = 1
+  panelUsersPage.value = 1;
 
-  if (activePanel.value === 'users') {
-    void loadPanelUsers()
+  if (activePanel.value === "users") {
+    void loadPanelUsers();
   }
-})
+});
 
 watch(panelUsersPage, () => {
-  if (activePanel.value === 'users') {
-    void loadPanelUsers()
+  if (activePanel.value === "users") {
+    void loadPanelUsers();
   }
-})
+});
 
 // ─────────────────────────────────────────────────────────────────
 // Vehicles
 // ─────────────────────────────────────────────────────────────────
 
-const panelVehicles = ref<AdminVehicle[]>([])
-const panelVehiclesPage = ref(1)
-const panelVehiclesTotal = ref(0)
-const panelVehiclesLoading = ref(false)
+const panelVehicles = ref<AdminVehicle[]>([]);
+const panelVehiclesPage = ref(1);
+const panelVehiclesTotal = ref(0);
+const panelVehiclesLoading = ref(false);
 
-const panelVehiclesLimit = 10
+const panelVehiclesLimit = 10;
 
 const panelVehiclesTotalPages = computed(() => {
-  return Math.max(
-    1,
-    Math.ceil(panelVehiclesTotal.value / panelVehiclesLimit),
-  )
-})
+  return Math.max(1, Math.ceil(panelVehiclesTotal.value / panelVehiclesLimit));
+});
 
 async function loadPanelVehicles() {
-  panelVehiclesLoading.value = true
+  panelVehiclesLoading.value = true;
 
   try {
-    const response = await adminVehiclesApi.listAll(
-      panelVehiclesPage.value,
-      panelVehiclesLimit,
-    )
+    const response = await adminVehiclesApi.listAll(panelVehiclesPage.value, panelVehiclesLimit);
 
-    panelVehicles.value = response.data
-    panelVehiclesTotal.value = response.total
+    panelVehicles.value = response.data;
+    panelVehiclesTotal.value = response.total;
   } catch (error) {
-    console.error('Fahrzeuge konnten nicht geladen werden:', error)
+    console.error("Fahrzeuge konnten nicht geladen werden:", error);
 
-    panelVehicles.value = []
-    panelVehiclesTotal.value = 0
+    panelVehicles.value = [];
+    panelVehiclesTotal.value = 0;
   } finally {
-    panelVehiclesLoading.value = false
+    panelVehiclesLoading.value = false;
   }
 }
 
 watch(panelVehiclesPage, () => {
-  if (activePanel.value === 'vehicles') {
-    void loadPanelVehicles()
+  if (activePanel.value === "vehicles") {
+    void loadPanelVehicles();
   }
-})
+});
 
 // ─────────────────────────────────────────────────────────────────
 // Orders
 // ─────────────────────────────────────────────────────────────────
 
-const panelOrders = ref<AdminOrder[]>([])
-const panelOrdersPage = ref(1)
-const panelOrdersTotal = ref(0)
-const panelOrdersLoading = ref(false)
-const panelOrdersFilter = ref<'Alle' | 'Offen' | 'Abgeschlossen'>(
-  'Alle',
-)
+const panelOrders = ref<AdminOrder[]>([]);
+const panelOrdersPage = ref(1);
+const panelOrdersTotal = ref(0);
+const panelOrdersLoading = ref(false);
+const panelOrdersFilter = ref<"Alle" | "Offen" | "Abgeschlossen">("Alle");
 
-const panelOrdersFilters: Array<
-  'Alle' | 'Offen' | 'Abgeschlossen'
-> = ['Alle', 'Offen', 'Abgeschlossen']
+const panelOrdersFilters: Array<"Alle" | "Offen" | "Abgeschlossen"> = [
+  "Alle",
+  "Offen",
+  "Abgeschlossen",
+];
 
-const panelOrdersLimit = 10
+const panelOrdersLimit = 10;
 
 const panelOrdersTotalPages = computed(() => {
-  return Math.max(
-    1,
-    Math.ceil(panelOrdersTotal.value / panelOrdersLimit),
-  )
-})
+  return Math.max(1, Math.ceil(panelOrdersTotal.value / panelOrdersLimit));
+});
 
 async function loadPanelOrders() {
-  panelOrdersLoading.value = true
+  panelOrdersLoading.value = true;
 
   try {
-    const response = await adminOrdersApi.listAll(
-      panelOrdersPage.value,
-      panelOrdersLimit,
-    )
+    const response = await adminOrdersApi.listAll(panelOrdersPage.value, panelOrdersLimit);
 
-    panelOrders.value = response.data
-    panelOrdersTotal.value = response.total
+    panelOrders.value = response.data;
+    panelOrdersTotal.value = response.total;
   } catch (error) {
-    console.error('Aufträge konnten nicht geladen werden:', error)
+    console.error("Aufträge konnten nicht geladen werden:", error);
 
-    panelOrders.value = []
-    panelOrdersTotal.value = 0
+    panelOrders.value = [];
+    panelOrdersTotal.value = 0;
   } finally {
-    panelOrdersLoading.value = false
+    panelOrdersLoading.value = false;
   }
 }
 
 watch(panelOrdersPage, () => {
-  if (activePanel.value === 'orders') {
-    void loadPanelOrders()
+  if (activePanel.value === "orders") {
+    void loadPanelOrders();
   }
-})
+});
 
 // ─────────────────────────────────────────────────────────────────
 // Local search and filtering
 // ─────────────────────────────────────────────────────────────────
 
 const normalizedSearch = computed(() => {
-  return search.value.trim().toLowerCase()
-})
+  return search.value.trim().toLowerCase();
+});
 
 const filteredPanelUsers = computed(() => {
   if (!normalizedSearch.value) {
-    return panelUsers.value
+    return panelUsers.value;
   }
 
   return panelUsers.value.filter((user) => {
@@ -346,16 +317,16 @@ const filteredPanelUsers = computed(() => {
       user.country,
     ]
       .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
+      .join(" ")
+      .toLowerCase();
 
-    return searchableText.includes(normalizedSearch.value)
-  })
-})
+    return searchableText.includes(normalizedSearch.value);
+  });
+});
 
 const filteredPanelVehicles = computed(() => {
   if (!normalizedSearch.value) {
-    return panelVehicles.value
+    return panelVehicles.value;
   }
 
   return panelVehicles.value.filter((vehicle) => {
@@ -370,30 +341,30 @@ const filteredPanelVehicles = computed(() => {
       getStatus(vehicle.current_order_status).label,
     ]
       .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
+      .join(" ")
+      .toLowerCase();
 
-    return searchableText.includes(normalizedSearch.value)
-  })
-})
+    return searchableText.includes(normalizedSearch.value);
+  });
+});
 
 const filteredPanelOrders = computed(() => {
-  let orders = panelOrders.value
+  let orders = panelOrders.value;
 
-  if (panelOrdersFilter.value === 'Offen') {
+  if (panelOrdersFilter.value === "Offen") {
     orders = orders.filter((order) => {
-      return order.order_status !== 'completed'
-    })
+      return order.order_status !== "completed";
+    });
   }
 
-  if (panelOrdersFilter.value === 'Abgeschlossen') {
+  if (panelOrdersFilter.value === "Abgeschlossen") {
     orders = orders.filter((order) => {
-      return order.order_status === 'completed'
-    })
+      return order.order_status === "completed";
+    });
   }
 
   if (!normalizedSearch.value) {
-    return orders
+    return orders;
   }
 
   return orders.filter((order) => {
@@ -408,64 +379,58 @@ const filteredPanelOrders = computed(() => {
       getStatus(order.order_status).label,
     ]
       .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
+      .join(" ")
+      .toLowerCase();
 
-    return searchableText.includes(normalizedSearch.value)
-  })
-})
+    return searchableText.includes(normalizedSearch.value);
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────
 // User detail modal
 // ─────────────────────────────────────────────────────────────────
 
-const selectedUser = ref<AdminUser | null>(null)
-const modalOpen = ref(false)
+const selectedUser = ref<AdminUser | null>(null);
+const modalOpen = ref(false);
 
 function openUserModal(user: AdminUser) {
-  selectedUser.value = user
-  modalOpen.value = true
+  selectedUser.value = user;
+  modalOpen.value = true;
 }
 
 function closeUserModal() {
-  modalOpen.value = false
-  selectedUser.value = null
+  modalOpen.value = false;
+  selectedUser.value = null;
 }
 
 // ─────────────────────────────────────────────────────────────────
 // Pagination
 // ─────────────────────────────────────────────────────────────────
 
-function pageRange(
-  currentPage: number,
-  totalPages: number,
-): Array<number | '…'> {
-  const pages: Array<number | '…'> = []
+function pageRange(currentPage: number, totalPages: number): Array<number | "…"> {
+  const pages: Array<number | "…"> = [];
 
   for (let page = 1; page <= totalPages; page += 1) {
-    const shouldDisplay =
-      page === 1 ||
-      page === totalPages ||
-      Math.abs(page - currentPage) <= 1
+    const shouldDisplay = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
 
     if (shouldDisplay) {
-      pages.push(page)
-      continue
+      pages.push(page);
+      continue;
     }
 
-    if (pages[pages.length - 1] !== '…') {
-      pages.push('…')
+    if (pages[pages.length - 1] !== "…") {
+      pages.push("…");
     }
   }
 
-  return pages
+  return pages;
 }
 
 function userInitials(user: AdminUser) {
-  const first = user.first_name?.charAt(0) ?? ''
-  const last = user.last_name?.charAt(0) ?? ''
+  const first = user.first_name?.charAt(0) ?? "";
+  const last = user.last_name?.charAt(0) ?? "";
 
-  return `${first}${last}`.toUpperCase() || '?'
+  return `${first}${last}`.toUpperCase() || "?";
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -474,101 +439,93 @@ function userInitials(user: AdminUser) {
 
 const donutDistribution = computed(() => [
   {
-    label: 'Aktiv',
+    label: "Aktiv",
     count: adminStore.activeOrders,
-    color: '#01B990',
+    color: "#01B990",
   },
   {
-    label: 'Abgeschlossen',
+    label: "Abgeschlossen",
     count: adminStore.completedOrders,
-    color: '#10393b',
+    color: "#10393b",
   },
   {
-    label: 'Ausstehend',
+    label: "Ausstehend",
     count: adminStore.pendingInspections,
-    color: '#ef8450',
+    color: "#ef8450",
   },
-])
+]);
 
 const donutTotal = computed(() => {
-  return donutDistribution.value.reduce(
-    (total, item) => total + item.count,
-    0,
-  )
-})
+  return donutDistribution.value.reduce((total, item) => total + item.count, 0);
+});
 
 const donutSegments = computed(() => {
-  const circumference = 2 * Math.PI * 48
-  let accumulatedLength = 0
+  const circumference = 2 * Math.PI * 48;
+  let accumulatedLength = 0;
 
   return donutDistribution.value.map((item) => {
     const segmentLength =
-      donutTotal.value > 0
-        ? (item.count / donutTotal.value) * circumference
-        : 0
+      donutTotal.value > 0 ? (item.count / donutTotal.value) * circumference : 0;
 
     const segment = {
       label: item.label,
       color: item.color,
       dash: `${Math.max(segmentLength - 4, 0)} ${circumference}`,
       offset: -accumulatedLength,
-    }
+    };
 
-    accumulatedLength += segmentLength
+    accumulatedLength += segmentLength;
 
-    return segment
-  })
-})
+    return segment;
+  });
+});
 
 const services = [
   {
-    name: 'API-Gateway',
-    status: 'ok',
-    label: 'Aktiv',
+    name: "API-Gateway",
+    status: "ok",
+    label: "Aktiv",
   },
   {
-    name: 'Datenbank',
-    status: 'ok',
-    label: 'Aktiv',
+    name: "Datenbank",
+    status: "ok",
+    label: "Aktiv",
   },
   {
-    name: 'E-Mail-Dienst',
-    status: 'ok',
-    label: 'Aktiv',
+    name: "E-Mail-Dienst",
+    status: "ok",
+    label: "Aktiv",
   },
   {
-    name: 'Hintergrundjobs',
-    status: 'warning',
-    label: 'Verzögert',
+    name: "Hintergrundjobs",
+    status: "warning",
+    label: "Verzögert",
   },
-]
+];
 
 // ─────────────────────────────────────────────────────────────────
 // Mount
 // ─────────────────────────────────────────────────────────────────
 
 onMounted(async () => {
-  await adminStore.fetchSummary()
+  await adminStore.fetchSummary();
 
-  activePanel.value = 'orders'
-  await loadPanelOrders()
-})
+  activePanel.value = "orders";
+  await loadPanelOrders();
+});
 </script>
 
 <template>
   <div class="flex h-full flex-col gap-5">
     <!-- Floating header -->
     <header
-      class="flex h-[60px] shrink-0 items-center gap-4 rounded-[18px]
-             border border-[#eaf0ef] bg-white/70 px-4 backdrop-blur"
+      class="flex h-[60px] shrink-0 items-center gap-4 rounded-[18px] border border-[#eaf0ef] bg-white/70 px-4 backdrop-blur"
       style="box-shadow: 0 4px 18px rgba(16, 57, 59, 0.04)"
     >
       <div class="ml-auto flex items-center gap-2.5">
         <button
           type="button"
-          class="relative flex h-10 w-10 items-center justify-center
-                 rounded-[12px] bg-[#f4f7f6] text-[#6f8585]
-                 transition-all hover:bg-[#eaf0ef] hover:text-[#10393b]"
+          class="relative flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#f4f7f6] text-[#6f8585] transition-all hover:bg-[#eaf0ef] hover:text-[#10393b]"
         >
           <svg
             width="18"
@@ -585,19 +542,15 @@ onMounted(async () => {
           </svg>
 
           <span
-            class="absolute right-2.5 top-2.5 h-[7px] w-[7px]
-                   rounded-full border-2 border-white bg-[#ef8450]"
+            class="absolute right-2.5 top-2.5 h-[7px] w-[7px] rounded-full border-2 border-white bg-[#ef8450]"
           ></span>
         </button>
 
         <div
-          class="flex cursor-pointer items-center gap-2.5 rounded-[12px]
-                 bg-[#f4f7f6] py-1 pl-1 pr-3 transition-all
-                 hover:bg-[#eaf0ef]"
+          class="flex cursor-pointer items-center gap-2.5 rounded-[12px] bg-[#f4f7f6] py-1 pl-1 pr-3 transition-all hover:bg-[#eaf0ef]"
         >
           <div
-            class="flex h-8 w-8 items-center justify-center rounded-[9px]
-                   text-[11px] font-extrabold text-white"
+            class="flex h-8 w-8 items-center justify-center rounded-[9px] text-[11px] font-extrabold text-white"
             style="background: linear-gradient(150deg, #01b990, #10393b)"
           >
             {{ headerInitials }}
@@ -608,41 +561,26 @@ onMounted(async () => {
               {{ headerUserName }}
             </span>
 
-            <span class="text-[10.5px] text-[#9bb0af]">
-              Administrator
-            </span>
+            <span class="text-[10.5px] text-[#9bb0af]"> Administrator </span>
           </div>
         </div>
       </div>
     </header>
 
     <!-- Scrollable content -->
-    <main
-      class="flex flex-1 flex-col gap-5 overflow-y-auto pb-4 pr-1"
-    >
+    <main class="flex flex-1 flex-col gap-5 overflow-y-auto pb-4 pr-1">
       <!-- Page title -->
-      <div
-        class="flex items-end justify-between gap-5
-               max-[760px]:items-start"
-      >
+      <div class="flex items-end justify-between gap-5 max-[760px]:items-start">
         <div>
-          <p
-            class="mb-1.5 text-[12px] font-bold capitalize
-                   text-[#01B990]"
-          >
+          <p class="mb-1.5 text-[12px] font-bold capitalize text-[#01B990]">
             {{ today }}
           </p>
 
-          <h1
-            class="text-[34px] font-extrabold leading-none
-                   tracking-[-1.2px] text-[#10393b]"
-          >
+          <h1 class="text-[34px] font-extrabold leading-none tracking-[-1.2px] text-[#10393b]">
             Übersicht
           </h1>
 
-          <p
-            class="mt-2 text-[13.5px] font-medium text-[#6f8585]"
-          >
+          <p class="mt-2 text-[13.5px] font-medium text-[#6f8585]">
             Willkommen zurück — der aktuelle Stand Ihrer Flotte.
           </p>
         </div>
@@ -650,11 +588,7 @@ onMounted(async () => {
         <div class="flex gap-2.5 max-[760px]:flex-col">
           <button
             type="button"
-            class="flex items-center gap-1.5 rounded-[13px] border
-                   border-[#e9efee] bg-white px-[18px] py-2.5
-                   font-[Manrope,sans-serif] text-[13px] font-bold
-                   text-[#10393b] transition-all hover:border-[#d6dddd]
-                   hover:shadow-sm"
+            class="flex items-center gap-1.5 rounded-[13px] border border-[#e9efee] bg-white px-[18px] py-2.5 font-[Manrope,sans-serif] text-[13px] font-bold text-[#10393b] transition-all hover:border-[#d6dddd] hover:shadow-sm"
           >
             <svg
               width="15"
@@ -664,9 +598,9 @@ onMounted(async () => {
               stroke="currentColor"
               stroke-width="2"
             >
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
 
             Export
@@ -674,10 +608,7 @@ onMounted(async () => {
 
           <button
             type="button"
-            class="flex items-center gap-1.5 rounded-[13px] px-[18px]
-                   py-2.5 font-[Manrope,sans-serif] text-[13px]
-                   font-bold text-white transition-all
-                   hover:-translate-y-px"
+            class="flex items-center gap-1.5 rounded-[13px] px-[18px] py-2.5 font-[Manrope,sans-serif] text-[13px] font-bold text-white transition-all hover:-translate-y-px"
             style="
               background: linear-gradient(135deg, #10393b, #1a5052);
               box-shadow: 0 8px 20px rgba(16, 57, 59, 0.2);
@@ -691,8 +622,8 @@ onMounted(async () => {
               stroke="currentColor"
               stroke-width="2.2"
             >
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
 
             Neuer Auftrag
@@ -701,10 +632,7 @@ onMounted(async () => {
       </div>
 
       <!-- Three equal clickable cards -->
-      <section
-        class="grid grid-cols-3 gap-4
-               max-[1100px]:grid-cols-1"
-      >
+      <section class="grid grid-cols-3 gap-4 max-[1100px]:grid-cols-1">
         <!-- Summary and orders -->
         <button
           type="button"
@@ -716,15 +644,13 @@ onMounted(async () => {
         >
           <div
             v-if="activePanel === 'orders'"
-            class="absolute -right-20 -top-24 h-64 w-64
-                   rounded-full bg-white/15 blur-2xl"
+            class="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/15 blur-2xl"
           ></div>
 
           <div class="relative z-10 flex h-full flex-col">
             <div class="flex items-start justify-between gap-4">
               <div
-                class="flex h-14 w-14 shrink-0 items-center justify-center
-                       rounded-[17px] border"
+                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-[17px] border"
                 :class="
                   activePanel === 'orders'
                     ? 'border-white/25 bg-white/20 text-white'
@@ -743,31 +669,26 @@ onMounted(async () => {
                     d="M14 2H6a2 2 0 00-2 2v16a2 2 0
                        002 2h12a2 2 0 002-2V8z"
                   />
-                  <path d="M14 2v6h6M16 13H8M16 17H8"/>
+                  <path d="M14 2v6h6M16 13H8M16 17H8" />
                 </svg>
               </div>
 
               <span
-                class="rounded-full px-3 py-1.5 text-[11px]
-                       font-extrabold"
+                class="rounded-full px-3 py-1.5 text-[11px] font-extrabold"
                 :class="
                   activePanel === 'orders'
                     ? 'bg-white/20 text-white'
                     : 'bg-[#01B990]/10 text-[#00856a]'
                 "
               >
-                {{ activePanel === 'orders' ? 'Aktiv' : 'Anzeigen' }}
+                {{ activePanel === "orders" ? "Aktiv" : "Anzeigen" }}
               </span>
             </div>
 
             <div class="mt-6">
               <p
                 class="text-[12px] font-bold uppercase tracking-[0.08em]"
-                :class="
-                  activePanel === 'orders'
-                    ? 'text-white/65'
-                    : 'text-[#9bb0af]'
-                "
+                :class="activePanel === 'orders' ? 'text-white/65' : 'text-[#9bb0af]'"
               >
                 Gesamtübersicht
               </p>
@@ -775,28 +696,16 @@ onMounted(async () => {
               <div
                 v-if="adminStore.summaryLoading"
                 class="mt-2 h-12 w-24 animate-pulse rounded-xl"
-                :class="
-                  activePanel === 'orders'
-                    ? 'bg-white/15'
-                    : 'bg-[#f1f5f4]'
-                "
+                :class="activePanel === 'orders' ? 'bg-white/15' : 'bg-[#f1f5f4]'"
               ></div>
 
-              <p
-                v-else
-                class="mt-2 text-[48px] font-extrabold leading-none
-                       tracking-[-2px]"
-              >
-                {{ adminStore.totalOrders.toLocaleString('de-DE') }}
+              <p v-else class="mt-2 text-[48px] font-extrabold leading-none tracking-[-2px]">
+                {{ adminStore.totalOrders.toLocaleString("de-DE") }}
               </p>
 
               <p
                 class="mt-2 text-[14px] font-bold"
-                :class="
-                  activePanel === 'orders'
-                    ? 'text-white/85'
-                    : 'text-[#6f8585]'
-                "
+                :class="activePanel === 'orders' ? 'text-white/85' : 'text-[#6f8585]'"
               >
                 Aufträge gesamt
               </p>
@@ -804,27 +713,15 @@ onMounted(async () => {
 
             <div
               class="mt-auto grid grid-cols-2 gap-2 border-t pt-5"
-              :class="
-                activePanel === 'orders'
-                  ? 'border-white/20'
-                  : 'border-[#edf2f1]'
-              "
+              :class="activePanel === 'orders' ? 'border-white/20' : 'border-[#edf2f1]'"
             >
               <div
                 class="rounded-[13px] px-3 py-2.5"
-                :class="
-                  activePanel === 'orders'
-                    ? 'bg-white/10'
-                    : 'bg-[#f4f7f6]'
-                "
+                :class="activePanel === 'orders' ? 'bg-white/10' : 'bg-[#f4f7f6]'"
               >
                 <p
                   class="text-[10px] font-bold uppercase tracking-[0.05em]"
-                  :class="
-                    activePanel === 'orders'
-                      ? 'text-white/55'
-                      : 'text-[#9bb0af]'
-                  "
+                  :class="activePanel === 'orders' ? 'text-white/55' : 'text-[#9bb0af]'"
                 >
                   Offen
                 </p>
@@ -836,19 +733,11 @@ onMounted(async () => {
 
               <div
                 class="rounded-[13px] px-3 py-2.5"
-                :class="
-                  activePanel === 'orders'
-                    ? 'bg-white/10'
-                    : 'bg-[#f4f7f6]'
-                "
+                :class="activePanel === 'orders' ? 'bg-white/10' : 'bg-[#f4f7f6]'"
               >
                 <p
                   class="text-[10px] font-bold uppercase tracking-[0.05em]"
-                  :class="
-                    activePanel === 'orders'
-                      ? 'text-white/55'
-                      : 'text-[#9bb0af]'
-                  "
+                  :class="activePanel === 'orders' ? 'text-white/55' : 'text-[#9bb0af]'"
                 >
                   Abgeschlossen
                 </p>
@@ -860,19 +749,11 @@ onMounted(async () => {
 
               <div
                 class="rounded-[13px] px-3 py-2.5"
-                :class="
-                  activePanel === 'orders'
-                    ? 'bg-white/10'
-                    : 'bg-[#f4f7f6]'
-                "
+                :class="activePanel === 'orders' ? 'bg-white/10' : 'bg-[#f4f7f6]'"
               >
                 <p
                   class="text-[10px] font-bold uppercase tracking-[0.05em]"
-                  :class="
-                    activePanel === 'orders'
-                      ? 'text-white/55'
-                      : 'text-[#9bb0af]'
-                  "
+                  :class="activePanel === 'orders' ? 'text-white/55' : 'text-[#9bb0af]'"
                 >
                   Inspektionen
                 </p>
@@ -884,19 +765,11 @@ onMounted(async () => {
 
               <div
                 class="rounded-[13px] px-3 py-2.5"
-                :class="
-                  activePanel === 'orders'
-                    ? 'bg-white/10'
-                    : 'bg-[#f4f7f6]'
-                "
+                :class="activePanel === 'orders' ? 'bg-white/10' : 'bg-[#f4f7f6]'"
               >
                 <p
                   class="text-[10px] font-bold uppercase tracking-[0.05em]"
-                  :class="
-                    activePanel === 'orders'
-                      ? 'text-white/55'
-                      : 'text-[#9bb0af]'
-                  "
+                  :class="activePanel === 'orders' ? 'text-white/55' : 'text-[#9bb0af]'"
                 >
                   Kunden
                 </p>
@@ -920,15 +793,13 @@ onMounted(async () => {
         >
           <div
             v-if="activePanel === 'users'"
-            class="absolute -right-20 -top-24 h-64 w-64
-                   rounded-full bg-white/15 blur-2xl"
+            class="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/15 blur-2xl"
           ></div>
 
           <div class="relative z-10 flex h-full flex-col">
             <div class="flex items-start justify-between gap-4">
               <div
-                class="flex h-14 w-14 shrink-0 items-center justify-center
-                       rounded-[17px] border"
+                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-[17px] border"
                 :class="
                   activePanel === 'users'
                     ? 'border-white/25 bg-white/20 text-white'
@@ -943,35 +814,29 @@ onMounted(async () => {
                   stroke="currentColor"
                   stroke-width="1.8"
                 >
-                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 00-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 010 7.75"/>
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                  <path d="M16 3.13a4 4 0 010 7.75" />
                 </svg>
               </div>
 
               <span
-                class="rounded-full px-3 py-1.5 text-[11px]
-                       font-extrabold"
+                class="rounded-full px-3 py-1.5 text-[11px] font-extrabold"
                 :class="
                   activePanel === 'users'
                     ? 'bg-white/20 text-white'
                     : 'bg-[#10393b]/[0.06] text-[#6f8585]'
                 "
               >
-                B2B: {{ adminStore.totalB2B }} ·
-                B2C: {{ adminStore.totalB2C }}
+                B2B: {{ adminStore.totalB2B }} · B2C: {{ adminStore.totalB2C }}
               </span>
             </div>
 
             <div class="mt-6">
               <p
                 class="text-[12px] font-bold uppercase tracking-[0.08em]"
-                :class="
-                  activePanel === 'users'
-                    ? 'text-white/65'
-                    : 'text-[#9bb0af]'
-                "
+                :class="activePanel === 'users' ? 'text-white/65' : 'text-[#9bb0af]'"
               >
                 Kunden
               </p>
@@ -979,28 +844,16 @@ onMounted(async () => {
               <div
                 v-if="adminStore.summaryLoading"
                 class="mt-2 h-12 w-28 animate-pulse rounded-xl"
-                :class="
-                  activePanel === 'users'
-                    ? 'bg-white/15'
-                    : 'bg-[#f1f5f4]'
-                "
+                :class="activePanel === 'users' ? 'bg-white/15' : 'bg-[#f1f5f4]'"
               ></div>
 
-              <p
-                v-else
-                class="mt-2 text-[48px] font-extrabold leading-none
-                       tracking-[-2px]"
-              >
-                {{ totalCustomers.toLocaleString('de-DE') }}
+              <p v-else class="mt-2 text-[48px] font-extrabold leading-none tracking-[-2px]">
+                {{ totalCustomers.toLocaleString("de-DE") }}
               </p>
 
               <p
                 class="mt-2 text-[14px] font-bold"
-                :class="
-                  activePanel === 'users'
-                    ? 'text-white/85'
-                    : 'text-[#6f8585]'
-                "
+                :class="activePanel === 'users' ? 'text-white/85' : 'text-[#6f8585]'"
               >
                 Kunden gesamt
               </p>
@@ -1008,27 +861,15 @@ onMounted(async () => {
 
             <div
               class="mt-auto grid grid-cols-2 gap-2 border-t pt-5"
-              :class="
-                activePanel === 'users'
-                  ? 'border-white/20'
-                  : 'border-[#edf2f1]'
-              "
+              :class="activePanel === 'users' ? 'border-white/20' : 'border-[#edf2f1]'"
             >
               <div
                 class="rounded-[13px] px-3 py-2.5"
-                :class="
-                  activePanel === 'users'
-                    ? 'bg-white/10'
-                    : 'bg-[#f4f7f6]'
-                "
+                :class="activePanel === 'users' ? 'bg-white/10' : 'bg-[#f4f7f6]'"
               >
                 <p
                   class="text-[10px] font-bold uppercase tracking-[0.05em]"
-                  :class="
-                    activePanel === 'users'
-                      ? 'text-white/55'
-                      : 'text-[#9bb0af]'
-                  "
+                  :class="activePanel === 'users' ? 'text-white/55' : 'text-[#9bb0af]'"
                 >
                   Firmenkunden
                 </p>
@@ -1040,19 +881,11 @@ onMounted(async () => {
 
               <div
                 class="rounded-[13px] px-3 py-2.5"
-                :class="
-                  activePanel === 'users'
-                    ? 'bg-white/10'
-                    : 'bg-[#f4f7f6]'
-                "
+                :class="activePanel === 'users' ? 'bg-white/10' : 'bg-[#f4f7f6]'"
               >
                 <p
                   class="text-[10px] font-bold uppercase tracking-[0.05em]"
-                  :class="
-                    activePanel === 'users'
-                      ? 'text-white/55'
-                      : 'text-[#9bb0af]'
-                  "
+                  :class="activePanel === 'users' ? 'text-white/55' : 'text-[#9bb0af]'"
                 >
                   Privatkunden
                 </p>
@@ -1076,15 +909,13 @@ onMounted(async () => {
         >
           <div
             v-if="activePanel === 'vehicles'"
-            class="absolute -right-20 -top-24 h-64 w-64
-                   rounded-full bg-white/15 blur-2xl"
+            class="absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/15 blur-2xl"
           ></div>
 
           <div class="relative z-10 flex h-full flex-col">
             <div class="flex items-start justify-between gap-4">
               <div
-                class="flex h-14 w-14 shrink-0 items-center justify-center
-                       rounded-[17px] border"
+                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-[17px] border"
                 :class="
                   activePanel === 'vehicles'
                     ? 'border-white/25 bg-white/20 text-white'
@@ -1103,14 +934,13 @@ onMounted(async () => {
                     d="M5 17H3a2 2 0 01-2-2V5a2 2 0
                        012-2h11l5 5v9a2 2 0 01-2 2h-1"
                   />
-                  <circle cx="9" cy="17" r="2"/>
-                  <circle cx="17" cy="17" r="2"/>
+                  <circle cx="9" cy="17" r="2" />
+                  <circle cx="17" cy="17" r="2" />
                 </svg>
               </div>
 
               <span
-                class="rounded-full px-3 py-1.5 text-[11px]
-                       font-extrabold"
+                class="rounded-full px-3 py-1.5 text-[11px] font-extrabold"
                 :class="
                   activePanel === 'vehicles'
                     ? 'bg-white/20 text-white'
@@ -1124,11 +954,7 @@ onMounted(async () => {
             <div class="mt-6">
               <p
                 class="text-[12px] font-bold uppercase tracking-[0.08em]"
-                :class="
-                  activePanel === 'vehicles'
-                    ? 'text-white/65'
-                    : 'text-[#9bb0af]'
-                "
+                :class="activePanel === 'vehicles' ? 'text-white/65' : 'text-[#9bb0af]'"
               >
                 Fahrzeuge
               </p>
@@ -1136,28 +962,16 @@ onMounted(async () => {
               <div
                 v-if="adminStore.summaryLoading"
                 class="mt-2 h-12 w-28 animate-pulse rounded-xl"
-                :class="
-                  activePanel === 'vehicles'
-                    ? 'bg-white/15'
-                    : 'bg-[#f1f5f4]'
-                "
+                :class="activePanel === 'vehicles' ? 'bg-white/15' : 'bg-[#f1f5f4]'"
               ></div>
 
-              <p
-                v-else
-                class="mt-2 text-[48px] font-extrabold leading-none
-                       tracking-[-2px]"
-              >
-                {{ adminStore.totalVehicles.toLocaleString('de-DE') }}
+              <p v-else class="mt-2 text-[48px] font-extrabold leading-none tracking-[-2px]">
+                {{ adminStore.totalVehicles.toLocaleString("de-DE") }}
               </p>
 
               <p
                 class="mt-2 text-[14px] font-bold"
-                :class="
-                  activePanel === 'vehicles'
-                    ? 'text-white/85'
-                    : 'text-[#6f8585]'
-                "
+                :class="activePanel === 'vehicles' ? 'text-white/85' : 'text-[#6f8585]'"
               >
                 Fahrzeuge gesamt
               </p>
@@ -1165,35 +979,20 @@ onMounted(async () => {
 
             <div
               class="mt-auto border-t pt-5"
-              :class="
-                activePanel === 'vehicles'
-                  ? 'border-white/20'
-                  : 'border-[#edf2f1]'
-              "
+              :class="activePanel === 'vehicles' ? 'border-white/20' : 'border-[#edf2f1]'"
             >
               <div
-                class="flex items-center justify-between rounded-[13px]
-                       px-3 py-3"
-                :class="
-                  activePanel === 'vehicles'
-                    ? 'bg-white/10'
-                    : 'bg-[#f4f7f6]'
-                "
+                class="flex items-center justify-between rounded-[13px] px-3 py-3"
+                :class="activePanel === 'vehicles' ? 'bg-white/10' : 'bg-[#f4f7f6]'"
               >
                 <span
                   class="text-[11px] font-bold"
-                  :class="
-                    activePanel === 'vehicles'
-                      ? 'text-white/65'
-                      : 'text-[#9bb0af]'
-                  "
+                  :class="activePanel === 'vehicles' ? 'text-white/65' : 'text-[#9bb0af]'"
                 >
                   Fahrzeugliste öffnen
                 </span>
 
-                <span class="text-[15px] font-extrabold">
-                  →
-                </span>
+                <span class="text-[15px] font-extrabold"> → </span>
               </div>
             </div>
           </div>
@@ -1201,45 +1000,27 @@ onMounted(async () => {
       </section>
 
       <!-- Dynamic list and sidebar -->
-      <section
-        class="grid grid-cols-[1.65fr_1fr] items-start gap-4
-               max-[1180px]:grid-cols-1"
-      >
+      <section class="grid grid-cols-[1.65fr_1fr] items-start gap-4 max-[1180px]:grid-cols-1">
         <Transition name="panel" mode="out-in">
           <!-- Users panel -->
-          <section
-            v-if="activePanel === 'users'"
-            key="users"
-            class="content-card"
-          >
+          <section v-if="activePanel === 'users'" key="users" class="content-card">
             <div
-              class="mb-4 flex items-center justify-between gap-4
-                     max-[720px]:items-start max-[720px]:flex-col"
+              class="mb-4 flex items-center justify-between gap-4 max-[720px]:items-start max-[720px]:flex-col"
             >
               <div>
-                <h2
-                  class="text-[18px] font-extrabold tracking-[-0.3px]
-                         text-[#10393b]"
-                >
-                  Kunden
-                </h2>
+                <h2 class="text-[18px] font-extrabold tracking-[-0.3px] text-[#10393b]">Kunden</h2>
 
-                <p
-                  class="mt-0.5 text-[12px] font-medium text-[#9bb0af]"
-                >
+                <p class="mt-0.5 text-[12px] font-medium text-[#9bb0af]">
                   {{ panelUsersTotal }} Kunden insgesamt
                 </p>
               </div>
 
-              <div
-                class="flex gap-0.5 rounded-[12px] bg-[#f4f7f6] p-[3px]"
-              >
+              <div class="flex gap-0.5 rounded-[12px] bg-[#f4f7f6] p-[3px]">
                 <button
                   type="button"
                   class="segment-button"
                   :class="{
-                    'segment-button-active':
-                      panelUsersType === 'B2C',
+                    'segment-button-active': panelUsersType === 'B2C',
                   }"
                   @click="panelUsersType = 'B2C'"
                 >
@@ -1250,8 +1031,7 @@ onMounted(async () => {
                   type="button"
                   class="segment-button"
                   :class="{
-                    'segment-button-active':
-                      panelUsersType === 'B2B',
+                    'segment-button-active': panelUsersType === 'B2B',
                   }"
                   @click="panelUsersType = 'B2B'"
                 >
@@ -1269,8 +1049,8 @@ onMounted(async () => {
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <circle cx="11" cy="11" r="8"/>
-                <path d="M21 21l-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
 
               <input
@@ -1280,25 +1060,16 @@ onMounted(async () => {
                 class="panel-search-input"
               />
 
-              <button
-                v-if="search"
-                type="button"
-                class="search-clear"
-                @click="search = ''"
-              >
+              <button v-if="search" type="button" class="search-clear" @click="search = ''">
                 ×
               </button>
             </div>
 
-            <div
-              v-if="panelUsersLoading"
-              class="flex flex-col gap-2"
-            >
+            <div v-if="panelUsersLoading" class="flex flex-col gap-2">
               <div
                 v-for="item in 6"
                 :key="item"
-                class="h-[58px] animate-pulse rounded-[15px]
-                       bg-[#f4f7f6]"
+                class="h-[58px] animate-pulse rounded-[15px] bg-[#f4f7f6]"
               ></div>
             </div>
 
@@ -1314,59 +1085,44 @@ onMounted(async () => {
                 v-for="user in filteredPanelUsers"
                 :key="user.user_id"
                 type="button"
-                class="group flex w-full items-center gap-3 rounded-[13px]
-                       px-3 py-2.5 text-left transition-colors
-                       hover:bg-[#f6f9f8]"
+                class="group flex w-full items-center gap-3 rounded-[13px] px-3 py-2.5 text-left transition-colors hover:bg-[#f6f9f8]"
                 @click="openUserModal(user)"
               >
                 <div
-                  class="flex h-10 w-10 shrink-0 items-center justify-center
-                         rounded-[11px] text-[11px] font-extrabold text-white"
-                  style="
-                    background:
-                      linear-gradient(150deg, #01b990, #10393b);
-                  "
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] text-[11px] font-extrabold text-white"
+                  style="background: linear-gradient(150deg, #01b990, #10393b)"
                 >
                   {{ userInitials(user) }}
                 </div>
 
                 <div class="min-w-0 flex-1">
-                  <p
-                    class="truncate text-[13px] font-bold text-[#10393b]"
-                  >
+                  <p class="truncate text-[13px] font-bold text-[#10393b]">
                     {{ user.salutation }}
                     {{ user.first_name }}
                     {{ user.last_name }}
                   </p>
 
-                  <p
-                    class="truncate text-[11.5px] text-[#6f8585]"
-                  >
+                  <p class="truncate text-[11.5px] text-[#6f8585]">
                     {{ user.user_email }}
                   </p>
                 </div>
 
                 <div class="flex shrink-0 items-center gap-2">
                   <span
-                    class="inline-flex items-center gap-1 rounded-full
-                           px-2 py-0.5 text-[10.5px] font-bold"
+                    class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-bold"
                     :class="
                       user.is_active
                         ? 'bg-[#01B990]/10 text-[#00856a]'
                         : 'bg-[#ef8450]/10 text-[#c0622e]'
                     "
                   >
-                    <span
-                      class="h-[4px] w-[4px] rounded-full bg-current"
-                    ></span>
+                    <span class="h-[4px] w-[4px] rounded-full bg-current"></span>
 
-                    {{ user.is_active ? 'Aktiv' : 'Inaktiv' }}
+                    {{ user.is_active ? "Aktiv" : "Inaktiv" }}
                   </span>
 
                   <span
-                    class="flex h-7 w-7 items-center justify-center
-                           rounded-[8px] text-[#bcccca] transition-all
-                           group-hover:bg-[#10393b] group-hover:text-white"
+                    class="flex h-7 w-7 items-center justify-center rounded-[8px] text-[#bcccca] transition-all group-hover:bg-[#10393b] group-hover:text-white"
                   >
                     <svg
                       width="13"
@@ -1376,7 +1132,7 @@ onMounted(async () => {
                       stroke="currentColor"
                       stroke-width="2"
                     >
-                      <path d="M7 17L17 7M17 7H8M17 7v9"/>
+                      <path d="M7 17L17 7M17 7H8M17 7v9" />
                     </svg>
                   </span>
                 </div>
@@ -1400,10 +1156,7 @@ onMounted(async () => {
                 </button>
 
                 <button
-                  v-for="page in pageRange(
-                    panelUsersPage,
-                    panelUsersTotalPages,
-                  )"
+                  v-for="page in pageRange(panelUsersPage, panelUsersTotalPages)"
                   :key="String(page)"
                   type="button"
                   class="lb-pg"
@@ -1411,10 +1164,7 @@ onMounted(async () => {
                     'lb-pg-active': page === panelUsersPage,
                     'lb-pg-dot': page === '…',
                   }"
-                  @click="
-                    typeof page === 'number' &&
-                      (panelUsersPage = page)
-                  "
+                  @click="typeof page === 'number' && (panelUsersPage = page)"
                 >
                   {{ page }}
                 </button>
@@ -1422,9 +1172,7 @@ onMounted(async () => {
                 <button
                   type="button"
                   class="lb-pg"
-                  :disabled="
-                    panelUsersPage >= panelUsersTotalPages
-                  "
+                  :disabled="panelUsersPage >= panelUsersTotalPages"
                   @click="panelUsersPage += 1"
                 >
                   →
@@ -1434,22 +1182,11 @@ onMounted(async () => {
           </section>
 
           <!-- Vehicles panel -->
-          <section
-            v-else-if="activePanel === 'vehicles'"
-            key="vehicles"
-            class="content-card"
-          >
+          <section v-else-if="activePanel === 'vehicles'" key="vehicles" class="content-card">
             <div class="mb-4">
-              <h2
-                class="text-[18px] font-extrabold tracking-[-0.3px]
-                       text-[#10393b]"
-              >
-                Fahrzeuge
-              </h2>
+              <h2 class="text-[18px] font-extrabold tracking-[-0.3px] text-[#10393b]">Fahrzeuge</h2>
 
-              <p
-                class="mt-0.5 text-[12px] font-medium text-[#9bb0af]"
-              >
+              <p class="mt-0.5 text-[12px] font-medium text-[#9bb0af]">
                 {{ panelVehiclesTotal }} Fahrzeuge insgesamt
               </p>
             </div>
@@ -1463,8 +1200,8 @@ onMounted(async () => {
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <circle cx="11" cy="11" r="8"/>
-                <path d="M21 21l-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
 
               <input
@@ -1474,25 +1211,16 @@ onMounted(async () => {
                 class="panel-search-input"
               />
 
-              <button
-                v-if="search"
-                type="button"
-                class="search-clear"
-                @click="search = ''"
-              >
+              <button v-if="search" type="button" class="search-clear" @click="search = ''">
                 ×
               </button>
             </div>
 
-            <div
-              v-if="panelVehiclesLoading"
-              class="flex flex-col gap-2"
-            >
+            <div v-if="panelVehiclesLoading" class="flex flex-col gap-2">
               <div
                 v-for="item in 6"
                 :key="item"
-                class="h-[58px] animate-pulse rounded-[15px]
-                       bg-[#f4f7f6]"
+                class="h-[58px] animate-pulse rounded-[15px] bg-[#f4f7f6]"
               ></div>
             </div>
 
@@ -1507,13 +1235,10 @@ onMounted(async () => {
               <div
                 v-for="vehicle in filteredPanelVehicles"
                 :key="vehicle.vehicle_id"
-                class="flex items-center gap-3 rounded-[13px]
-                       px-3 py-2.5 transition-colors
-                       hover:bg-[#f6f9f8]"
+                class="flex items-center gap-3 rounded-[13px] px-3 py-2.5 transition-colors hover:bg-[#f6f9f8]"
               >
                 <div
-                  class="flex h-10 w-10 shrink-0 items-center justify-center
-                         rounded-[11px] bg-[#ef8450]/10 text-[#ef8450]"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-[#ef8450]/10 text-[#ef8450]"
                 >
                   <svg
                     width="17"
@@ -1527,47 +1252,32 @@ onMounted(async () => {
                       d="M5 17H3a2 2 0 01-2-2V5a2 2 0
                          012-2h11l5 5v9a2 2 0 01-2 2h-1"
                     />
-                    <circle cx="9" cy="17" r="2"/>
-                    <circle cx="17" cy="17" r="2"/>
+                    <circle cx="9" cy="17" r="2" />
+                    <circle cx="17" cy="17" r="2" />
                   </svg>
                 </div>
 
                 <div class="min-w-0 flex-1">
-                  <p
-                    class="truncate text-[13px] font-bold
-                           text-[#10393b]"
-                  >
+                  <p class="truncate text-[13px] font-bold text-[#10393b]">
                     {{ vehicle.make }} {{ vehicle.model }}
                   </p>
 
-                  <p
-                    class="truncate font-mono text-[11.5px]
-                           text-[#6f8585]"
-                  >
+                  <p class="truncate font-mono text-[11.5px] text-[#6f8585]">
                     {{ vehicle.license_plate }} · {{ vehicle.vin }}
                   </p>
                 </div>
 
                 <span
                   v-if="vehicle.current_order_status"
-                  class="inline-flex shrink-0 items-center gap-1
-                         rounded-full px-2 py-0.5 text-[10.5px]
-                         font-bold"
+                  class="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-bold"
                   :style="{
-                    background:
-                      getStatus(vehicle.current_order_status)
-                        .background,
-                    color:
-                      getStatus(vehicle.current_order_status).color,
+                    background: getStatus(vehicle.current_order_status).background,
+                    color: getStatus(vehicle.current_order_status).color,
                   }"
                 >
-                  <span
-                    class="h-[4px] w-[4px] rounded-full bg-current"
-                  ></span>
+                  <span class="h-[4px] w-[4px] rounded-full bg-current"></span>
 
-                  {{
-                    getStatus(vehicle.current_order_status).label
-                  }}
+                  {{ getStatus(vehicle.current_order_status).label }}
                 </span>
               </div>
             </div>
@@ -1589,22 +1299,15 @@ onMounted(async () => {
                 </button>
 
                 <button
-                  v-for="page in pageRange(
-                    panelVehiclesPage,
-                    panelVehiclesTotalPages,
-                  )"
+                  v-for="page in pageRange(panelVehiclesPage, panelVehiclesTotalPages)"
                   :key="String(page)"
                   type="button"
                   class="lb-pg"
                   :class="{
-                    'lb-pg-active':
-                      page === panelVehiclesPage,
+                    'lb-pg-active': page === panelVehiclesPage,
                     'lb-pg-dot': page === '…',
                   }"
-                  @click="
-                    typeof page === 'number' &&
-                      (panelVehiclesPage = page)
-                  "
+                  @click="typeof page === 'number' && (panelVehiclesPage = page)"
                 >
                   {{ page }}
                 </button>
@@ -1612,9 +1315,7 @@ onMounted(async () => {
                 <button
                   type="button"
                   class="lb-pg"
-                  :disabled="
-                    panelVehiclesPage >= panelVehiclesTotalPages
-                  "
+                  :disabled="panelVehiclesPage >= panelVehiclesTotalPages"
                   @click="panelVehiclesPage += 1"
                 >
                   →
@@ -1624,42 +1325,28 @@ onMounted(async () => {
           </section>
 
           <!-- Orders panel -->
-          <section
-            v-else
-            key="orders"
-            class="content-card"
-          >
+          <section v-else key="orders" class="content-card">
             <div
-              class="mb-4 flex items-center justify-between gap-4
-                     max-[720px]:items-start max-[720px]:flex-col"
+              class="mb-4 flex items-center justify-between gap-4 max-[720px]:items-start max-[720px]:flex-col"
             >
               <div>
-                <h2
-                  class="text-[18px] font-extrabold tracking-[-0.3px]
-                         text-[#10393b]"
-                >
+                <h2 class="text-[18px] font-extrabold tracking-[-0.3px] text-[#10393b]">
                   Letzte Aufträge
                 </h2>
 
-                <p
-                  class="mt-0.5 text-[12px] font-medium text-[#9bb0af]"
-                >
+                <p class="mt-0.5 text-[12px] font-medium text-[#9bb0af]">
                   {{ panelOrdersTotal }} Aufträge insgesamt
                 </p>
               </div>
 
-              <div
-                class="flex gap-0.5 rounded-[12px]
-                       bg-[#f4f7f6] p-[3px]"
-              >
+              <div class="flex gap-0.5 rounded-[12px] bg-[#f4f7f6] p-[3px]">
                 <button
                   v-for="filter in panelOrdersFilters"
                   :key="filter"
                   type="button"
                   class="segment-button"
                   :class="{
-                    'segment-button-active':
-                      panelOrdersFilter === filter,
+                    'segment-button-active': panelOrdersFilter === filter,
                   }"
                   @click="panelOrdersFilter = filter"
                 >
@@ -1677,8 +1364,8 @@ onMounted(async () => {
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <circle cx="11" cy="11" r="8"/>
-                <path d="M21 21l-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
 
               <input
@@ -1688,25 +1375,16 @@ onMounted(async () => {
                 class="panel-search-input"
               />
 
-              <button
-                v-if="search"
-                type="button"
-                class="search-clear"
-                @click="search = ''"
-              >
+              <button v-if="search" type="button" class="search-clear" @click="search = ''">
                 ×
               </button>
             </div>
 
-            <div
-              v-if="panelOrdersLoading"
-              class="flex flex-col gap-2"
-            >
+            <div v-if="panelOrdersLoading" class="flex flex-col gap-2">
               <div
                 v-for="item in 6"
                 :key="item"
-                class="h-[58px] animate-pulse rounded-[15px]
-                       bg-[#f4f7f6]"
+                class="h-[58px] animate-pulse rounded-[15px] bg-[#f4f7f6]"
               ></div>
             </div>
 
@@ -1721,13 +1399,10 @@ onMounted(async () => {
               <div
                 v-for="order in filteredPanelOrders"
                 :key="order.id"
-                class="flex items-center gap-3 rounded-[13px]
-                       px-3 py-2.5 transition-colors
-                       hover:bg-[#f6f9f8]"
+                class="flex items-center gap-3 rounded-[13px] px-3 py-2.5 transition-colors hover:bg-[#f6f9f8]"
               >
                 <div
-                  class="flex h-10 w-10 shrink-0 items-center justify-center
-                         rounded-[11px] bg-[#6366f1]/10 text-[#6366f1]"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] bg-[#6366f1]/10 text-[#6366f1]"
                 >
                   <svg
                     width="16"
@@ -1741,18 +1416,13 @@ onMounted(async () => {
                       d="M14 2H6a2 2 0 00-2 2v16a2 2 0
                          002 2h12a2 2 0 002-2V8z"
                     />
-                    <path d="M14 2v6h6M16 13H8M16 17H8"/>
+                    <path d="M14 2v6h6M16 13H8M16 17H8" />
                   </svg>
                 </div>
 
                 <div class="min-w-0 flex-1">
-                  <div
-                    class="mb-0.5 flex flex-wrap items-center gap-2"
-                  >
-                    <span
-                      class="font-mono text-[13px] font-bold
-                             text-[#10393b]"
-                    >
+                  <div class="mb-0.5 flex flex-wrap items-center gap-2">
+                    <span class="font-mono text-[13px] font-bold text-[#10393b]">
                       {{ order.auftragsnummer }}
                     </span>
 
@@ -1761,35 +1431,25 @@ onMounted(async () => {
                     </span>
                   </div>
 
-                  <p
-                    class="truncate text-[11.5px] text-[#6f8585]"
-                  >
+                  <p class="truncate text-[11.5px] text-[#6f8585]">
                     {{ order.company_name ?? order.user_email }}
                   </p>
                 </div>
 
                 <div class="flex shrink-0 items-center gap-2">
                   <span
-                    class="inline-flex items-center gap-1 rounded-full
-                           px-2 py-0.5 text-[10.5px] font-bold"
+                    class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-bold"
                     :style="{
-                      background:
-                        getStatus(order.order_status).background,
-                      color:
-                        getStatus(order.order_status).color,
+                      background: getStatus(order.order_status).background,
+                      color: getStatus(order.order_status).color,
                     }"
                   >
-                    <span
-                      class="h-[4px] w-[4px] rounded-full bg-current"
-                    ></span>
+                    <span class="h-[4px] w-[4px] rounded-full bg-current"></span>
 
                     {{ getStatus(order.order_status).label }}
                   </span>
 
-                  <span
-                    class="hidden text-[11px] tabular-nums
-                           text-[#9bb0af] lg:block"
-                  >
+                  <span class="hidden text-[11px] tabular-nums text-[#9bb0af] lg:block">
                     {{ formatGermanDate(order.created_at) }}
                   </span>
                 </div>
@@ -1813,10 +1473,7 @@ onMounted(async () => {
                 </button>
 
                 <button
-                  v-for="page in pageRange(
-                    panelOrdersPage,
-                    panelOrdersTotalPages,
-                  )"
+                  v-for="page in pageRange(panelOrdersPage, panelOrdersTotalPages)"
                   :key="String(page)"
                   type="button"
                   class="lb-pg"
@@ -1824,10 +1481,7 @@ onMounted(async () => {
                     'lb-pg-active': page === panelOrdersPage,
                     'lb-pg-dot': page === '…',
                   }"
-                  @click="
-                    typeof page === 'number' &&
-                      (panelOrdersPage = page)
-                  "
+                  @click="typeof page === 'number' && (panelOrdersPage = page)"
                 >
                   {{ page }}
                 </button>
@@ -1835,9 +1489,7 @@ onMounted(async () => {
                 <button
                   type="button"
                   class="lb-pg"
-                  :disabled="
-                    panelOrdersPage >= panelOrdersTotalPages
-                  "
+                  :disabled="panelOrdersPage >= panelOrdersTotalPages"
                   @click="panelOrdersPage += 1"
                 >
                   →
@@ -1851,25 +1503,18 @@ onMounted(async () => {
         <aside class="flex flex-col gap-4">
           <section
             v-if="adminStore.pendingInspections > 0"
-            class="flex items-center gap-3 rounded-[20px] border
-                   border-[#ef8450]/20 p-4"
+            class="flex items-center gap-3 rounded-[20px] border border-[#ef8450]/20 p-4"
             style="
-              background:
-                linear-gradient(
-                  135deg,
-                  rgba(239, 132, 80, 0.11),
-                  rgba(239, 132, 80, 0.03)
-                );
+              background: linear-gradient(
+                135deg,
+                rgba(239, 132, 80, 0.11),
+                rgba(239, 132, 80, 0.03)
+              );
             "
           >
             <div
-              class="lb-pulse flex h-[42px] w-[42px] shrink-0
-                     items-center justify-center rounded-[13px]
-                     text-white"
-              style="
-                background:
-                  linear-gradient(140deg, #f59b6c, #ef8450);
-              "
+              class="lb-pulse flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[13px] text-white"
+              style="background: linear-gradient(140deg, #f59b6c, #ef8450)"
             >
               <svg
                 width="17"
@@ -1888,33 +1533,20 @@ onMounted(async () => {
             </div>
 
             <div class="min-w-0 flex-1">
-              <strong
-                class="block text-[13px] font-extrabold
-                       text-[#10393b]"
-              >
+              <strong class="block text-[13px] font-extrabold text-[#10393b]">
                 {{ adminStore.pendingInspections }}
-                ausstehende
-                Inspektion{{
-                  adminStore.pendingInspections === 1 ? '' : 'en'
-                }}
+                ausstehende Inspektion{{ adminStore.pendingInspections === 1 ? "" : "en" }}
               </strong>
 
-              <span
-                class="text-[11.5px] font-semibold text-[#b06c44]"
-              >
+              <span class="text-[11.5px] font-semibold text-[#b06c44]">
                 Warten auf Bearbeitung
               </span>
             </div>
 
             <button
               type="button"
-              class="flex shrink-0 items-center gap-1 rounded-[10px]
-                     px-3 py-2 text-[12px] font-bold text-white
-                     transition-transform hover:translate-x-px"
-              style="
-                background:
-                  linear-gradient(140deg, #f59b6c, #ef8450);
-              "
+              class="flex shrink-0 items-center gap-1 rounded-[10px] px-3 py-2 text-[12px] font-bold text-white transition-transform hover:translate-x-px"
+              style="background: linear-gradient(140deg, #f59b6c, #ef8450)"
               @click="activatePanel('orders')"
             >
               Anzeigen
@@ -1923,45 +1555,27 @@ onMounted(async () => {
           </section>
 
           <section class="content-card">
-            <h2
-              class="mb-5 text-[17px] font-extrabold
-                     tracking-[-0.3px] text-[#10393b]"
-            >
+            <h2 class="mb-5 text-[17px] font-extrabold tracking-[-0.3px] text-[#10393b]">
               Auftragsstatus
             </h2>
 
-            <div
-              v-if="adminStore.summaryLoading"
-              class="flex items-center gap-5"
-            >
+            <div v-if="adminStore.summaryLoading" class="flex items-center gap-5">
               <div
-                class="h-[120px] w-[120px] shrink-0 animate-pulse
-                       rounded-full bg-[#f4f7f6]"
+                class="h-[120px] w-[120px] shrink-0 animate-pulse rounded-full bg-[#f4f7f6]"
               ></div>
 
               <div class="flex flex-1 flex-col gap-3">
                 <div
                   v-for="item in 3"
                   :key="item"
-                  class="h-5 animate-pulse rounded-lg
-                         bg-[#f4f7f6]"
+                  class="h-5 animate-pulse rounded-lg bg-[#f4f7f6]"
                 ></div>
               </div>
             </div>
 
             <div v-else class="flex items-center gap-4">
-              <svg
-                class="h-[120px] w-[120px] shrink-0"
-                viewBox="0 0 120 120"
-              >
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="48"
-                  fill="none"
-                  stroke="#f0f4f3"
-                  stroke-width="14"
-                />
+              <svg class="h-[120px] w-[120px] shrink-0" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="48" fill="none" stroke="#f0f4f3" stroke-width="14" />
 
                 <circle
                   v-for="segment in donutSegments"
@@ -1978,23 +1592,11 @@ onMounted(async () => {
                   transform="rotate(-90 60 60)"
                 />
 
-                <text
-                  x="60"
-                  y="55"
-                  text-anchor="middle"
-                  class="donut-total"
-                >
+                <text x="60" y="55" text-anchor="middle" class="donut-total">
                   {{ donutTotal }}
                 </text>
 
-                <text
-                  x="60"
-                  y="72"
-                  text-anchor="middle"
-                  class="donut-label"
-                >
-                  AUFTRÄGE
-                </text>
+                <text x="60" y="72" text-anchor="middle" class="donut-label">AUFTRÄGE</text>
               </svg>
 
               <div class="flex flex-1 flex-col gap-3">
@@ -2008,17 +1610,11 @@ onMounted(async () => {
                     :style="{ background: item.color }"
                   ></span>
 
-                  <span
-                    class="flex-1 text-[12px] font-semibold
-                           text-[#6f8585]"
-                  >
+                  <span class="flex-1 text-[12px] font-semibold text-[#6f8585]">
                     {{ item.label }}
                   </span>
 
-                  <span
-                    class="text-[13px] font-extrabold tabular-nums
-                           text-[#10393b]"
-                  >
+                  <span class="text-[13px] font-extrabold tabular-nums text-[#10393b]">
                     {{ item.count }}
                   </span>
                 </div>
@@ -2028,16 +1624,12 @@ onMounted(async () => {
 
           <section class="content-card">
             <div class="mb-5 flex items-center justify-between">
-              <h2
-                class="text-[17px] font-extrabold tracking-[-0.3px]
-                       text-[#10393b]"
-              >
+              <h2 class="text-[17px] font-extrabold tracking-[-0.3px] text-[#10393b]">
                 Systemstatus
               </h2>
 
               <span
-                class="rounded-full bg-[#01B990]/10 px-2.5 py-1
-                       text-[11px] font-bold text-[#00856a]"
+                class="rounded-full bg-[#01B990]/10 px-2.5 py-1 text-[11px] font-bold text-[#00856a]"
               >
                 3 / 4 aktiv
               </span>
@@ -2058,16 +1650,12 @@ onMounted(async () => {
                   "
                 ></span>
 
-                <span
-                  class="flex-1 text-[13px] font-semibold
-                         text-[#1a2e2f]"
-                >
+                <span class="flex-1 text-[13px] font-semibold text-[#1a2e2f]">
                   {{ service.name }}
                 </span>
 
                 <span
-                  class="rounded-full px-2.5 py-0.5 text-[11px]
-                         font-bold"
+                  class="rounded-full px-2.5 py-0.5 text-[11px] font-bold"
                   :class="
                     service.status === 'ok'
                       ? 'bg-[#01B990]/10 text-[#00856a]'
@@ -2084,11 +1672,7 @@ onMounted(async () => {
     </main>
   </div>
 
-  <UserDetailModal
-    :user="selectedUser"
-    :open="modalOpen"
-    @close="closeUserModal"
-  />
+  <UserDetailModal :user="selectedUser" :open="modalOpen" @close="closeUserModal" />
 </template>
 
 <style scoped>

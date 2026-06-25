@@ -26,10 +26,7 @@ const SEARCH_TEXT_URL = "https://places.googleapis.com/v1/places:searchText";
  */
 const DE_BOUNDS = { latMin: 47, latMax: 56, lngMin: 5, lngMax: 16 };
 
-export const isValidDeCoord = (
-  lat: unknown,
-  lng: unknown,
-): lat is number =>
+export const isValidDeCoord = (lat: unknown, lng: unknown): lat is number =>
   typeof lat === "number" &&
   typeof lng === "number" &&
   Number.isFinite(lat) &&
@@ -88,9 +85,7 @@ export function useGooglePlaces() {
   };
 
   /** Fetch address predictions for the user's partial input. */
-  const autocomplete = async (
-    input: string,
-  ): Promise<PlaceSuggestion[]> => {
+  const autocomplete = async (input: string): Promise<PlaceSuggestion[]> => {
     error.value = null;
     if (!API_KEY) {
       error.value = "Google Places API-Schlüssel fehlt.";
@@ -134,9 +129,7 @@ export function useGooglePlaces() {
   };
 
   /** Resolve a chosen prediction into coordinates + structured address. */
-  const getPlaceDetails = async (
-    placeId: string,
-  ): Promise<ResolvedPlaceAddress | null> => {
+  const getPlaceDetails = async (placeId: string): Promise<ResolvedPlaceAddress | null> => {
     error.value = null;
     if (!API_KEY) return null;
 
@@ -162,12 +155,7 @@ export function useGooglePlaces() {
         street: findComponent(components, "route"),
         number: findComponent(components, "street_number"),
         zip_code: findComponent(components, "postal_code"),
-        city: findComponent(
-          components,
-          "locality",
-          "postal_town",
-          "administrative_area_level_2",
-        ),
+        city: findComponent(components, "locality", "postal_town", "administrative_area_level_2"),
         latitude: data.location?.latitude,
         longitude: data.location?.longitude,
       };

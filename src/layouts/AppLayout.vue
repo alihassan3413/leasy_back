@@ -95,11 +95,7 @@ const handleLogout = () => {
           :key="item.name"
           @click="navigateTo(item.name)"
           class="flex flex-col items-center gap-1 px-2 py-1 rounded-lg transition-all"
-          :class="
-            isActive(item.name)
-              ? 'text-[#01B990]'
-              : 'text-white/55 hover:text-white'
-          "
+          :class="isActive(item.name) ? 'text-[#01B990]' : 'text-white/55 hover:text-white'"
         >
           <Icon :icon="item.icon" :style="{ width: '24px', height: '24px' }" />
         </button>

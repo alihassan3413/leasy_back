@@ -1,4 +1,4 @@
-import * as yup from 'yup'
+import * as yup from "yup";
 
 export const companySchema = yup.object({
   firmenname: yup.string(),
@@ -10,7 +10,7 @@ export const companySchema = yup.object({
     plz: yup.string(),
     ort: yup.string(),
   }),
-})
+});
 
 export const adminSchema = yup.object({
   anrede: yup.string(),
@@ -19,9 +19,9 @@ export const adminSchema = yup.object({
   email: yup.string(),
   prefix: yup.string(),
   phone: yup.string(),
-})
+});
 
 export const b2bSchema = yup.object({
   company: companySchema,
   admin: adminSchema,
-})
+});

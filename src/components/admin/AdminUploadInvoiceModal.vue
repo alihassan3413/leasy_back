@@ -103,9 +103,7 @@ async function uploadDocument() {
       props.auftragsnummer,
       props.vehicleId,
       documentType.value,
-      documentTitle.value ||
-        titleForType(documentType.value) ||
-        selectedFile.value.name,
+      documentTitle.value || titleForType(documentType.value) || selectedFile.value.name,
       selectedFile.value,
       false,
     );
@@ -205,14 +203,10 @@ watch(
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
           <div class="px-6 pt-6 mb-6">
-            <h2 class="text-[20px] font-bold leading-normal text-black">
-              Rechnung hochladen
-            </h2>
-            <p
-              class="mt-1 mx-2 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]"
-            >
-              Laden Sie ein neues Dokument hoch – ziehen Sie die Datei dazu auf
-              die Fläche oder wählen Sie sie von Ihrem Rechner aus.
+            <h2 class="text-[20px] font-bold leading-normal text-black">Rechnung hochladen</h2>
+            <p class="mt-1 mx-2 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]">
+              Laden Sie ein neues Dokument hoch – ziehen Sie die Datei dazu auf die Fläche oder
+              wählen Sie sie von Ihrem Rechner aus.
             </p>
           </div>
 
@@ -220,18 +214,12 @@ watch(
           <div class="flex flex-col gap-3 px-6 pb-6">
             <!-- Document Type -->
             <div class="flex flex-col gap-2">
-              <span class="text-sm font-semibold text-black"
-                >Dokumententyp</span
-              >
+              <span class="text-sm font-semibold text-black">Dokumententyp</span>
               <select
                 v-model="documentType"
                 class="h-9 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
               >
-                <option
-                  v-for="opt in documentTypeOptions"
-                  :key="opt.value"
-                  :value="opt.value"
-                >
+                <option v-for="opt in documentTypeOptions" :key="opt.value" :value="opt.value">
                   {{ opt.label }}
                 </option>
               </select>
@@ -263,26 +251,15 @@ watch(
                 />
 
                 <template v-if="selectedFile">
-                  <Icon
-                    icon="mdi:file-check-outline"
-                    class="mb-1 size-8"
-                    style="color: #01b990"
-                  />
-                  <span class="text-center text-sm text-gray-800">{{
-                    selectedFile.name
-                  }}</span>
+                  <Icon icon="mdi:file-check-outline" class="mb-1 size-8" style="color: #01b990" />
+                  <span class="text-center text-sm text-gray-800">{{ selectedFile.name }}</span>
                 </template>
                 <template v-else>
-                  <Icon
-                    icon="mdi:upload-outline"
-                    class="size-8 mb-2 text-gray-500"
-                  />
+                  <Icon icon="mdi:upload-outline" class="size-8 mb-2 text-gray-500" />
                   <p class="text-center text-sm text-gray-600">
                     Zum Hochladen klicken oder Datei hierher ziehen
                   </p>
-                  <p class="mt-1 text-xs text-gray-400">
-                    .pdf, .jpg oder .png
-                  </p>
+                  <p class="mt-1 text-xs text-gray-400">.pdf, .jpg oder .png</p>
                 </template>
               </div>
 
@@ -292,9 +269,7 @@ watch(
                 class="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3"
               >
                 <div class="flex flex-col">
-                  <span class="text-sm font-medium text-gray-800">{{
-                    selectedFile.name
-                  }}</span>
+                  <span class="text-sm font-medium text-gray-800">{{ selectedFile.name }}</span>
                   <span class="text-xs text-gray-500"
                     >{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB
                   </span>
@@ -341,8 +316,7 @@ watch(
 }
 
 .inverted-corner-top-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 0%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 0%);
   --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 

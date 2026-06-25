@@ -181,24 +181,16 @@ function close() {
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
           <div class="px-3 pt-2 mb-2">
-            <h2 class="text-[20px] font-bold leading-normal text-black">
-              Auftrag erstellen
-            </h2>
-            <p
-              class="mt-1 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]"
-            >
+            <h2 class="text-[20px] font-bold leading-normal text-black">Auftrag erstellen</h2>
+            <p class="mt-1 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]">
               Bitte füllen Sie alle Details im unten stehenden Formular aus.
             </p>
           </div>
 
-          <div
-            class="grid grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1"
-          >
+          <div class="grid grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
             <!-- Service switches -->
             <div class="flex flex-col gap-1 col-span-2">
-              <label class="text-sm font-semibold text-black">
-                Service wählen
-              </label>
+              <label class="text-sm font-semibold text-black"> Service wählen </label>
               <div class="flex flex-col gap-2">
                 <!-- TÜV SÜD -->
                 <label class="flex items-center gap-2 cursor-pointer">
@@ -228,9 +220,7 @@ function close() {
             <!-- Station dropdown -->
             <div class="relative flex flex-col gap-1 col-span-2">
               <div class="flex items-center justify-between">
-                <label class="text-sm font-semibold text-black">
-                  Station
-                </label>
+                <label class="text-sm font-semibold text-black"> Station </label>
                 <button
                   class="text-sm font-semibold px-2 py-1 rounded-full transition-colors hover:bg-gray-100"
                   style="color: #ef8450"
@@ -244,10 +234,7 @@ function close() {
                 tabindex="0"
                 @click="stationOpen = !stationOpen"
               >
-                <span
-                  class="text-sm"
-                  :class="selectedStation ? 'text-gray-800' : 'text-gray-400'"
-                >
+                <span class="text-sm" :class="selectedStation ? 'text-gray-800' : 'text-gray-400'">
                   {{
                     selectedStation
                       ? `${selectedStation.name} — ${selectedStation.ort}`
@@ -267,16 +254,8 @@ function close() {
                 v-if="stationOpen"
                 class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
               >
-                <div
-                  v-if="stationsLoading"
-                  class="px-4 py-2 text-sm text-gray-400"
-                >
-                  Laden...
-                </div>
-                <div
-                  v-else-if="!stations.length"
-                  class="px-4 py-2 text-sm text-gray-400"
-                >
+                <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">Laden...</div>
+                <div v-else-if="!stations.length" class="px-4 py-2 text-sm text-gray-400">
                   Keine Stationen gefunden
                 </div>
                 <div
@@ -299,20 +278,14 @@ function close() {
             <div
               class="h-[140px] shrink-0 w-full overflow-hidden rounded-2xl border border-gray-300 col-span-2"
             >
-              <AppMapPicker
-                :latitude="mapLat"
-                :longitude="mapLng"
-                :interactive="false"
-              />
+              <AppMapPicker :latitude="mapLat" :longitude="mapLng" :interactive="false" />
             </div>
 
             <!-- Termin row -->
             <div class="flex flex-col gap-1 col-span-2">
               <div class="grid grid-cols-2 gap-x-4">
                 <div class="flex flex-col gap-1">
-                  <label class="text-sm font-semibold text-black">
-                    Datum
-                  </label>
+                  <label class="text-sm font-semibold text-black"> Datum </label>
                   <CalendarDateField
                     name="terminDate"
                     :minDaysAhead="3"
@@ -335,9 +308,7 @@ function close() {
             <div class="flex flex-col gap-1 col-span-2">
               <label class="text-sm font-semibold text-black">
                 Bemerkungen
-                <span class="text-xs font-normal text-gray-400 ml-1"
-                  >(optional)</span
-                >
+                <span class="text-xs font-normal text-gray-400 ml-1">(optional)</span>
               </label>
               <div
                 class="relative flex items-start rounded-4xl border border-gray-300 px-4 py-2 focus-within:border-emerald-500"
@@ -355,9 +326,7 @@ function close() {
             <div class="mt-2 flex justify-center col-span-2">
               <button
                 class="h-9 px-6 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
-                :style="
-                  canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'
-                "
+                :style="canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'"
                 :disabled="!canSubmit || isSubmitting"
                 @click="handleSubmit"
               >
@@ -387,8 +356,7 @@ function close() {
 }
 
 .inverted-corner-top-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 0%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 0%);
   --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 
@@ -403,24 +371,22 @@ function close() {
 }
 
 .inverted-corner-top-left {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 72%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
   --_g: conic-gradient(at var(--r) var(--r), #000 75%, #0000 0);
   --_d: (var(--s) + var(--r));
 
   mask:
     calc(var(--_d) + var(--x)) 0 var(--_m),
     0 calc(var(--_d) + var(--y)) var(--_m),
-    radial-gradient(var(--s) at 0 0, #0000 99%, #000 calc(100% + 1px))
-      calc(var(--r) + var(--x)) calc(var(--r) + var(--y)),
+    radial-gradient(var(--s) at 0 0, #0000 99%, #000 calc(100% + 1px)) calc(var(--r) + var(--x))
+      calc(var(--r) + var(--y)),
     var(--_g) calc(var(--_d) + var(--x)) 0,
     var(--_g) 0 calc(var(--_d) + var(--y));
   mask-repeat: no-repeat;
 }
 
 .inverted-corner-bottom-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 72%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
   --_g: conic-gradient(
     from 90deg at calc(100% - var(--r)) calc(100% - var(--r)),
     #0000 25%,
@@ -439,20 +405,15 @@ function close() {
 }
 
 .inverted-corner-bottom-left {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 72%);
-  --_g: conic-gradient(
-    from 180deg at var(--r) calc(100% - var(--r)),
-    #0000 25%,
-    #000 0
-  );
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
+  --_g: conic-gradient(from 180deg at var(--r) calc(100% - var(--r)), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 
   mask:
     calc(var(--_d) + var(--x)) 100% var(--_m),
     0 calc(100% - var(--_d) - var(--y)) var(--_m),
-    radial-gradient(var(--s) at 0 100%, #0000 99%, #000 calc(100% + 1px))
-      calc(var(--r) + var(--x)) calc(-1 * var(--r) - var(--y)),
+    radial-gradient(var(--s) at 0 100%, #0000 99%, #000 calc(100% + 1px)) calc(var(--r) + var(--x))
+      calc(-1 * var(--r) - var(--y)),
     var(--_g) calc(var(--_d) + var(--x)) 0,
     var(--_g) 0 calc(-1 * var(--_d) - var(--y));
   mask-repeat: no-repeat;

@@ -36,11 +36,7 @@ export interface AuthResponse {
 // AUTH API TYPES
 // ─────────────────────────────────────────────
 
-export type RegisterUserType =
-  | "Privatkunde"
-  | "Firmenkunde"
-  | "Werkstatt"
-  | "Admin";
+export type RegisterUserType = "Privatkunde" | "Firmenkunde" | "Werkstatt" | "Admin";
 
 export interface LoginPayload {
   user_email: string;
@@ -429,11 +425,7 @@ export interface ReturnProcess {
   createdAt: string;
 }
 
-export type ReturnStatus =
-  | "DRAFT"
-  | "SUBMITTED"
-  | "APPOINTMENT_BOOKED"
-  | "COMPLETED";
+export type ReturnStatus = "DRAFT" | "SUBMITTED" | "APPOINTMENT_BOOKED" | "COMPLETED";
 
 export interface DamageReport {
   id: string;

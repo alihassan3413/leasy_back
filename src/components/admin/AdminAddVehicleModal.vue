@@ -69,11 +69,7 @@ watch(
     if (!opened) {
       city.value = district.value = number.value = "";
       marke.value = modell.value = leasingende.value = "";
-      fin.value =
-        rueckgabestart.value =
-        status.value =
-        fahrzeugnutzer.value =
-          "";
+      fin.value = rueckgabestart.value = status.value = fahrzeugnutzer.value = "";
     }
   },
 );
@@ -122,9 +118,7 @@ function close() {
 
 async function handleSubmit() {
   const payload: any = {
-    license_plate: `${city.value} ${district.value} ${number.value}`
-      .trim()
-      .toUpperCase(),
+    license_plate: `${city.value} ${district.value} ${number.value}`.trim().toUpperCase(),
     make: marke.value,
     model: modell.value,
     leasing_end_date: leasingende.value,
@@ -133,8 +127,7 @@ async function handleSubmit() {
   };
 
   if (props.targetUser) {
-    payload.vehicle_belongs =
-      props.targetUser.user_type === "Firmenkunde" ? "B2B" : "B2C";
+    payload.vehicle_belongs = props.targetUser.user_type === "Firmenkunde" ? "B2B" : "B2C";
     if (payload.vehicle_belongs === "B2B") {
       payload.b2b_id = props.targetUser.b2b_id;
     } else {
@@ -177,14 +170,10 @@ async function handleSubmit() {
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
           <div class="px-2 pt-2 mb-2">
-            <h2 class="text-[24px] font-bold leading-normal text-black">
-              Neues Fahrzeug
-            </h2>
-            <p
-              class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]"
-            >
-              Legen Sie ganz einfach ein neues Fahrzeug an – bitte füllen Sie
-              dafür alle Angaben im Formular unten aus
+            <h2 class="text-[24px] font-bold leading-normal text-black">Neues Fahrzeug</h2>
+            <p class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]">
+              Legen Sie ganz einfach ein neues Fahrzeug an – bitte füllen Sie dafür alle Angaben im
+              Formular unten aus
             </p>
           </div>
 
@@ -202,13 +191,8 @@ async function handleSubmit() {
                 <div
                   class="ml-1 flex h-7 w-4 shrink-0 flex-col items-center justify-center rounded-[50px] bg-[#00339b]"
                 >
-                  <Icon
-                    icon="tabler:circle-dotted"
-                    class="size-3 text-[#FECD00]"
-                  />
-                  <span class="text-[10px] font-bold text-white leading-none"
-                    >D</span
-                  >
+                  <Icon icon="tabler:circle-dotted" class="size-3 text-[#FECD00]" />
+                  <span class="text-[10px] font-bold text-white leading-none">D</span>
                 </div>
                 <div class="flex flex-1 h-full py-0.5 items-center px-1.5">
                   <input
@@ -218,9 +202,7 @@ async function handleSubmit() {
                     maxlength="3"
                   />
                 </div>
-                <div
-                  class="flex flex-col items-center gap-0.5 px-1 text-gray-300"
-                >
+                <div class="flex flex-col items-center gap-0.5 px-1 text-gray-300">
                   <Icon icon="cib:circle" class="w-2 h-2" />
                   <Icon icon="mdi:badge-outline" class="w-2.5 h-2.5" />
                 </div>
@@ -274,11 +256,9 @@ async function handleSubmit() {
                   nutzerOpen = false;
                 "
               >
-                <span
-                  class="text-sm"
-                  :class="marke ? 'text-gray-800' : 'text-gray-400'"
-                  >{{ marke || "Marke wählen" }}</span
-                >
+                <span class="text-sm" :class="marke ? 'text-gray-800' : 'text-gray-400'">{{
+                  marke || "Marke wählen"
+                }}</span>
                 <Icon icon="mdi:chevron-down" :class="markeIconClasses" />
               </div>
               <div
@@ -309,9 +289,7 @@ async function handleSubmit() {
             </div>
 
             <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black">
-                Leasingende
-              </label>
+              <label class="text-sm font-semibold text-black"> Leasingende </label>
               <div
                 class="relative flex h-10 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
               >
@@ -328,9 +306,7 @@ async function handleSubmit() {
             </div>
 
             <div class="relative flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black">
-                Fahrzeugnutzer
-              </label>
+              <label class="text-sm font-semibold text-black"> Fahrzeugnutzer </label>
               <div
                 class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
                 tabindex="0"
@@ -339,20 +315,16 @@ async function handleSubmit() {
                   markeOpen = false;
                 "
               >
-                <span
-                  class="text-sm"
-                  :class="fahrzeugnutzer ? 'text-gray-800' : 'text-gray-400'"
-                  >{{ fahrzeugnutzer || "Fahrzeugnutzer wählen" }}</span
-                >
+                <span class="text-sm" :class="fahrzeugnutzer ? 'text-gray-800' : 'text-gray-400'">{{
+                  fahrzeugnutzer || "Fahrzeugnutzer wählen"
+                }}</span>
                 <Icon icon="mdi:chevron-down" :class="nutzerIconClasses" />
               </div>
               <div
                 v-if="nutzerOpen"
                 class="absolute top-full z-50 mt-1 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
               >
-                <span class="block px-4 py-2 text-sm text-gray-400"
-                  >— Unbekannt —</span
-                >
+                <span class="block px-4 py-2 text-sm text-gray-400">— Unbekannt —</span>
                 <div
                   v-for="opt in nutzerOptions"
                   :key="opt"
@@ -368,9 +340,7 @@ async function handleSubmit() {
             </div>
 
             <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black">
-                Rückgabestart
-              </label>
+              <label class="text-sm font-semibold text-black"> Rückgabestart </label>
               <div
                 class="relative flex h-10 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
               >
@@ -379,10 +349,7 @@ async function handleSubmit() {
                   type="date"
                   class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
                 />
-                <Icon
-                  icon="mdi:calendar-outline"
-                  class="absolute right-4 text-gray-400"
-                />
+                <Icon icon="mdi:calendar-outline" class="absolute right-4 text-gray-400" />
               </div>
             </div>
 
@@ -391,11 +358,9 @@ async function handleSubmit() {
               <div
                 class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
               >
-                <span
-                  class="text-sm"
-                  :class="status ? 'text-gray-800' : 'text-gray-400'"
-                  >{{ status || "Status wählen" }}</span
-                >
+                <span class="text-sm" :class="status ? 'text-gray-800' : 'text-gray-400'">{{
+                  status || "Status wählen"
+                }}</span>
                 <Icon icon="mdi:chevron-down" class="text-gray-400" />
               </div>
             </div>
@@ -404,9 +369,7 @@ async function handleSubmit() {
           <div class="mt-8 flex justify-center">
             <button
               class="h-10 px-6 rounded-full text-base font-semibold text-white transition-all duration-200 shadow-lg"
-              :style="
-                buttonActive ? 'background: #EF8450;' : 'background: #D9D9D9;'
-              "
+              :style="buttonActive ? 'background: #EF8450;' : 'background: #D9D9D9;'"
               :disabled="!buttonActive || isLoading"
               @click="handleSubmit"
             >
@@ -429,8 +392,7 @@ async function handleSubmit() {
 }
 
 .inverted-corner-top-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 0%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 0%);
   --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 
@@ -445,24 +407,22 @@ async function handleSubmit() {
 }
 
 .inverted-corner-top-left {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 72%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
   --_g: conic-gradient(at var(--r) var(--r), #000 75%, #0000 0);
   --_d: (var(--s) + var(--r));
 
   mask:
     calc(var(--_d) + var(--x)) 0 var(--_m),
     0 calc(var(--_d) + var(--y)) var(--_m),
-    radial-gradient(var(--s) at 0 0, #0000 99%, #000 calc(100% + 1px))
-      calc(var(--r) + var(--x)) calc(var(--r) + var(--y)),
+    radial-gradient(var(--s) at 0 0, #0000 99%, #000 calc(100% + 1px)) calc(var(--r) + var(--x))
+      calc(var(--r) + var(--y)),
     var(--_g) calc(var(--_d) + var(--x)) 0,
     var(--_g) 0 calc(var(--_d) + var(--y));
   mask-repeat: no-repeat;
 }
 
 .inverted-corner-bottom-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 72%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
   --_g: conic-gradient(
     from 90deg at calc(100% - var(--r)) calc(100% - var(--r)),
     #0000 25%,
@@ -481,20 +441,15 @@ async function handleSubmit() {
 }
 
 .inverted-corner-bottom-left {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 72%);
-  --_g: conic-gradient(
-    from 180deg at var(--r) calc(100% - var(--r)),
-    #0000 25%,
-    #000 0
-  );
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
+  --_g: conic-gradient(from 180deg at var(--r) calc(100% - var(--r)), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 
   mask:
     calc(var(--_d) + var(--x)) 100% var(--_m),
     0 calc(100% - var(--_d) - var(--y)) var(--_m),
-    radial-gradient(var(--s) at 0 100%, #0000 99%, #000 calc(100% + 1px))
-      calc(var(--r) + var(--x)) calc(-1 * var(--r) - var(--y)),
+    radial-gradient(var(--s) at 0 100%, #0000 99%, #000 calc(100% + 1px)) calc(var(--r) + var(--x))
+      calc(-1 * var(--r) - var(--y)),
     var(--_g) calc(var(--_d) + var(--x)) 0,
     var(--_g) 0 calc(-1 * var(--_d) - var(--y));
   mask-repeat: no-repeat;
