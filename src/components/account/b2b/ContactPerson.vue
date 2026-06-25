@@ -7,6 +7,7 @@ import FormTextField from "@/components/ui/form/FormTextField.vue";
 import FormSelectField from "@/components/ui/form/FormSelectField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import { adminSchema } from "@/validations/b2b.validation";
+import { dialingCodeOptions } from "@/config/dialingCodes";
 import type { B2BProfileUpdatePayload } from "@/types";
 
 const b2bStore = useB2BStore();
@@ -18,11 +19,7 @@ const anredeOptions = [
   { label: "Divers", value: "Divers" },
 ];
 
-const prefixOptions = [
-  { label: "Deutschland +49", value: "+49" },
-  { label: "Österreich +43", value: "+43" },
-  { label: "Schweiz +41", value: "+41" },
-];
+const prefixOptions = dialingCodeOptions;
 
 const { handleSubmit, resetForm, isSubmitting } = useForm({
   validationSchema: adminSchema,
@@ -53,6 +50,15 @@ const syncFromProfile = () => {
 };
 
 watch(() => b2bStore.profile, syncFromProfile, { immediate: true });
+
+// Re-populate the form from the current profile every time edit mode opens.
+// vee-validate drops field values when the inputs unmount (read mode), and the
+// profile watcher only fires on a profile change — so without this the second
+// edit-open would show empty fields.
+const enterEditMode = () => {
+  syncFromProfile();
+  isEditMode.value = true;
+};
 
 const onSubmit = handleSubmit(async (formValues) => {
   const profile = b2bStore.profile;
@@ -112,7 +118,7 @@ const cancelEdit = () => {
       <button
         v-if="!isEditMode"
         type="button"
-        @click="isEditMode = true"
+        @click="enterEditMode"
         class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3.5 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green"
       >
         <Icon icon="mdi:pencil-outline" class="size-4" />

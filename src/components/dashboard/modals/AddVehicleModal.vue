@@ -309,7 +309,7 @@ async function handleSubmit() {
               <label class="text-sm font-semibold text-black">
                 Kennzeichen
                 <span class="text-[10px] font-medium text-gray-500 ml-2">
-                  *(Format: ABC DE 1234)
+                  *(Format: ABC DE 12H)
                 </span>
               </label>
               <div class="flex h-9 items-center overflow-hidden rounded-full border border-gray-300 bg-gray-100">

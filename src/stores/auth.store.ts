@@ -3,7 +3,12 @@ import { defineStore } from "pinia";
 import { authApi } from "@/api";
 import { configureClientAuth } from "@/api/client/auth";
 import { normalizeApiError, type ApiError } from "@/api/client/error";
-import type { AuthResponse, LoginPayload, RegisterPayload } from "@/types";
+import type {
+  AuthResponse,
+  ChangePasswordPayload,
+  LoginPayload,
+  RegisterPayload,
+} from "@/types";
 
 type AuthStatus = "idle" | "loading" | "success" | "error";
 
@@ -99,6 +104,18 @@ export const useAuthStore = defineStore(
       }
     }
 
+    async function changePassword(
+      payload: ChangePasswordPayload,
+    ): Promise<void> {
+      // Self-contained: does not touch the shared login `status`/`error`,
+      // callers surface their own feedback. Throws a normalized ApiError.
+      try {
+        await authApi.changePassword(payload);
+      } catch (err) {
+        throw normalizeApiError(err);
+      }
+    }
+
     function logout(): void {
       resetState();
     }
@@ -119,6 +136,7 @@ export const useAuthStore = defineStore(
       isAuthenticated,
       login,
       register,
+      changePassword,
       logout,
       clearError,
       initAuthClient,

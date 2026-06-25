@@ -56,17 +56,11 @@ const { handleSubmit } = useForm<FormValues>({
       vorname: "",
       nachname: "",
       email: authStore.user && authStore.user.email ? authStore.user.email : "",
-      vorwahl: "de",
+      vorwahl: "+49",
       telefon: "",
     },
   },
 });
-
-const prefixMap: Record<string, string> = {
-  de: "+49",
-  at: "+43",
-  ch: "+41",
-};
 
 const onSubmit = handleSubmit(async (formValues) => {
   b2bStore.error = "";
@@ -95,7 +89,7 @@ const onSubmit = handleSubmit(async (formValues) => {
         salutation: formValues.admin.anrede,
         first_name: formValues.admin.vorname,
         last_name: formValues.admin.nachname,
-        international_prefix: prefixMap[formValues.admin.vorwahl],
+        international_prefix: formValues.admin.vorwahl,
         primary_phone_number: formValues.admin.telefon,
       },
     };

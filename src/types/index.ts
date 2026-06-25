@@ -83,6 +83,15 @@ export interface ResetPasswordPayload {
   password: string;
 }
 
+export interface ChangePasswordPayload {
+  current_password: string;
+  new_password: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+}
+
 export interface AdminSummaryResponse {
   total_b2c_customers: number;
   total_b2b_customers: number;

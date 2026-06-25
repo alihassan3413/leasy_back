@@ -32,7 +32,7 @@ const {
       Kennzeichen
 
       <span class="ml-1 text-[10px] font-normal text-green-gray">
-        *(Format: ABC DE 1234)
+        *(Format: ABC DE 12H)
       </span>
     </p>
 

@@ -5,11 +5,18 @@ import { Icon } from "@iconify/vue";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import Button from "@/components/ui/button/Button.vue";
 import { useB2BStore } from "@/stores/b2b.store";
+import { useAuthStore } from "@/stores/auth.store";
+import { changePasswordSchema } from "@/validations/password.validation";
+import type { ApiError } from "@/api/client/error";
 
 const b2bStore = useB2BStore();
+const authStore = useAuthStore();
 const isEditMode = ref(false);
+const errorMessage = ref("");
+const successMessage = ref("");
 
 const { handleSubmit, resetForm, isSubmitting } = useForm({
+  validationSchema: changePasswordSchema,
   initialValues: {
     oldPassword: "",
     newPassword: "",
@@ -17,14 +24,30 @@ const { handleSubmit, resetForm, isSubmitting } = useForm({
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  // TODO: wire to store action, e.g. await b2bStore.changePassword(values)
-  console.log("Password change submitted:", values);
-  resetForm();
-  isEditMode.value = false;
+  errorMessage.value = "";
+  successMessage.value = "";
+  try {
+    await authStore.changePassword({
+      current_password: values.oldPassword,
+      new_password: values.newPassword,
+    });
+    successMessage.value = "Passwort erfolgreich geändert.";
+    resetForm();
+    isEditMode.value = false;
+  } catch (err) {
+    const status = (err as ApiError)?.status;
+    errorMessage.value =
+      status === 401 || status === 406 || status === 400
+        ? "Das alte Passwort ist nicht korrekt."
+        : (err as ApiError)?.message ||
+          "Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut.";
+  }
 });
 
 const cancelEdit = () => {
   resetForm();
+  errorMessage.value = "";
+  successMessage.value = "";
   isEditMode.value = false;
 };
 </script>
@@ -62,6 +85,12 @@ const cancelEdit = () => {
 
     <!-- READ MODE -->
     <div v-if="!isEditMode" class="px-8 py-8">
+      <p
+        v-if="successMessage"
+        class="mb-5 rounded-lg bg-[#F0FBF8] px-4 py-2.5 text-[13px] font-semibold text-custom-green"
+      >
+        {{ successMessage }}
+      </p>
       <dl class="grid grid-cols-1 gap-x-10 gap-y-7 sm:grid-cols-2">
         <div>
           <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
@@ -110,6 +139,12 @@ const cancelEdit = () => {
         />
         <p class="text-[13px] text-[#7A9699]">
           Mindestens 8 Zeichen, mit Groß- und Kleinbuchstaben sowie einer Zahl.
+        </p>
+        <p
+          v-if="errorMessage"
+          class="rounded-lg bg-[#FDECEC] px-4 py-2.5 text-[13px] font-semibold text-[#D14343]"
+        >
+          {{ errorMessage }}
         </p>
       </div>
 

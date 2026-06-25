@@ -32,7 +32,7 @@ const { handleSubmit, isSubmitting } = useForm({
       anrede: "Herr",
       vorname: "",
       nachname: "",
-      vorwahl: "de",
+      vorwahl: "+49",
       telefon: "",
     },
     account: {
@@ -81,12 +81,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       salutation: values.contact.anrede,
       first_name: values.contact.vorname,
       last_name: values.contact.nachname,
-      international_prefix:
-        values.contact.vorwahl === "de"
-          ? "+49"
-          : values.contact.vorwahl === "at"
-            ? "+43"
-            : "+41",
+      international_prefix: values.contact.vorwahl,
       primary_phone_number: values.contact.telefon,
       phone_numbers: [],
     },

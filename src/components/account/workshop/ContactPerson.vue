@@ -5,6 +5,7 @@ import { useWorkshopStore } from "@/stores/workshop.store";
 import { contactSchema } from "@/validations/workshop.validation";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
 import FormSelectField from "@/components/ui/form/FormSelectField.vue";
+import { dialingCodeOptions } from "@/config/dialingCodes";
 
 const workshopStore = useWorkshopStore();
 
@@ -15,11 +16,7 @@ const anredeOptions = [
   { label: "Divers", value: "Divers" },
 ];
 
-const prefixOptions = [
-  { label: "Deutschland + (49)", value: "+49" },
-  { label: "Österreich + (43)", value: "+43" },
-  { label: "Schweiz + (41)", value: "+41" },
-];
+const prefixOptions = dialingCodeOptions;
 
 const { setValues } = useForm({
   validationSchema: contactSchema,
