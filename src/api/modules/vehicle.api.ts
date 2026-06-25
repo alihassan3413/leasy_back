@@ -93,7 +93,8 @@ export const vehicleApi = {
     payload: CreateOrderPayload,
     userId?: string,
   ): Promise<CreateOrderResponse> {
-    let url = `/order/${provider}/create/${vehicleId}`;
+    const urlProvider = provider === "dekra" ? "other" : provider;
+    let url = `/order/${urlProvider}/create/${vehicleId}`;
     return post<CreateOrderResponse, CreateOrderPayload>(url, payload);
   },
 };

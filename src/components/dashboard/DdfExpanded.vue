@@ -137,28 +137,30 @@ const timelineData = computed(() => {
     });
 
     // Add Partner step
-    itemsWithDates.push({
-      date: new Date(firstOrder.request_payload.besichtigungsort.termin),
-      label: firstOrder.leasyback_partner,
-      sublabel: `${firstOrder.request_payload.besichtigungsort.strasse}, ${firstOrder.request_payload.besichtigungsort.plz} ${firstOrder.request_payload.besichtigungsort.ort}`,
-      datetime:
-        new Date(
-          firstOrder.request_payload.besichtigungsort.termin,
-        ).toLocaleDateString("de-DE", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }) +
-        "\n" +
-        new Date(
-          firstOrder.request_payload.besichtigungsort.termin,
-        ).toLocaleTimeString("de-DE", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }) +
-        " Uhr",
-      completed: firstOrder.order_status !== "order_placed",
-    });
+    if (firstOrder.request_payload?.besichtigungsort?.termin) {
+      itemsWithDates.push({
+        date: new Date(firstOrder.request_payload.besichtigungsort.termin),
+        label: firstOrder.leasyback_partner || "",
+        sublabel: `${firstOrder.request_payload.besichtigungsort.strasse || ""}, ${firstOrder.request_payload.besichtigungsort.plz || ""} ${firstOrder.request_payload.besichtigungsort.ort || ""}`,
+        datetime:
+          new Date(
+            firstOrder.request_payload.besichtigungsort.termin,
+          ).toLocaleDateString("de-DE", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          }) +
+          "\n" +
+          new Date(
+            firstOrder.request_payload.besichtigungsort.termin,
+          ).toLocaleTimeString("de-DE", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }) +
+          " Uhr",
+        completed: firstOrder.order_status !== "order_placed",
+      });
+    }
 
     // Add report documents
     props.vehicle.orders.forEach((order) => {
@@ -167,12 +169,16 @@ const timelineData = computed(() => {
           if (doc.document_title.toLowerCase() === "gutachten") {
             // Backend sends an s3:// URI — convert it to a browser-openable
             // https URL: s3://bucket/key -> https://bucket.s3.amazonaws.com/key
-            const docUrl = doc.s3_url
-              ? doc.s3_url.replace(
+            // Also clean up any extra backticks or spaces
+            const cleanS3Url = doc.s3_url?.trim().replace(/^`|`$/g, "");
+            const docUrl = cleanS3Url
+              ? cleanS3Url.replace(
                   /^s3:\/\/([^/]+)\//,
                   "https://$1.s3.amazonaws.com/",
                 )
-              : `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`;
+              : doc.s3_bucket && doc.s3_key
+                ? `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`
+                : "";
             itemsWithDates.push({
               date: new Date(doc.created_at),
               datetime:
@@ -241,17 +247,17 @@ async function loadOffers() {
     realOffers.value = (res.offers || [])
       .filter((offer) => offer.offer_status !== "cancelled")
       .map((offer) => ({
-      id: offer.offer_sequence.toString().padStart(2, "0"),
-      name: `Angebot ${offer.offer_sequence}`,
-      cost: parseFloat(offer.final_total_gross),
-      saving: 0,
-      address: "",
-      distance: "",
-      recommended: false,
-      accepted: offer.offer_status === "selected",
-      offer_id: offer.offer_id,
-      status: offer.offer_status,
-    }));
+        id: offer.offer_sequence.toString().padStart(2, "0"),
+        name: `Angebot ${offer.offer_sequence}`,
+        cost: parseFloat(offer.final_total_gross),
+        saving: 0,
+        address: "",
+        distance: "",
+        recommended: false,
+        accepted: offer.offer_status === "selected",
+        offer_id: offer.offer_id,
+        status: offer.offer_status,
+      }));
   } catch (err) {
     console.error("Failed to load customer offers:", err);
     realOffers.value = [];
@@ -315,14 +321,17 @@ async function loadDocuments() {
       props.vehicle.orders.forEach((order) => {
         if (order.report_documents) {
           order.report_documents.forEach((doc) => {
+            const cleanS3Url = doc.s3_url?.trim().replace(/^`|`$/g, "");
             allDocuments.push({
               id: doc.id,
               document_type: doc.document_type,
               file_name: doc.document_title,
               created_at: doc.created_at,
               url:
-                doc.s3_url ||
-                `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`,
+                cleanS3Url ||
+                (doc.s3_bucket && doc.s3_key
+                  ? `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`
+                  : ""),
             });
           });
         }
@@ -747,16 +756,19 @@ watch(
                   style="background-color: #d9d9d9; color: #2e3e3f"
                 >
                   {{
-                    vehicle.orders[0].request_payload.ansprechpartner.name
-                      ? vehicle.orders[0].request_payload.ansprechpartner
-                          .name[0]
+                    vehicle.orders[0].request_payload?.ansprechpartner?.name
+                      ? vehicle.orders[0].request_payload?.ansprechpartner
+                          ?.name[0]
                       : "M"
                   }}
                 </AvatarFallback>
               </Avatar>
               <div class="flex flex-col gap-2 pt-2">
                 <p class="text-[16px] font-bold" style="color: #2e3e3f">
-                  {{ vehicle.orders[0].request_payload.ansprechpartner.name }}
+                  {{
+                    vehicle.orders[0].request_payload?.ansprechpartner?.name ||
+                    "Marcus Dietrich"
+                  }}
                 </p>
                 <p class="text-[12px] font-semibold" style="color: #01b990">
                   Primärer Fahrer
@@ -808,7 +820,9 @@ watch(
                   · Auftrag erstellt
                 </p>
                 <p class="text-[14px] font-bold" style="color: #2e3e3f">
-                  {{ getOrderStatusLabel(vehicle.orders[0].order_status).label }}
+                  {{
+                    getOrderStatusLabel(vehicle.orders[0].order_status).label
+                  }}
                 </p>
               </div>
               <div class="flex items-center justify-between pt-2" v-else>
@@ -831,7 +845,8 @@ watch(
                 />
                 <span class="text-[14px] font-normal" style="color: #2e3e3f">
                   {{
-                    vehicle.orders[0].request_payload.ansprechpartner.telefon
+                    vehicle.orders[0].request_payload?.ansprechpartner
+                      ?.telefon || "17655874354"
                   }}
                 </span>
               </div>
@@ -843,10 +858,17 @@ watch(
                 />
                 <span class="text-[14px] font-normal" style="color: #2e3e3f">
                   {{
-                    vehicle.orders[0].request_payload.besichtigungsort.strasse
+                    vehicle.orders[0].request_payload?.besichtigungsort
+                      ?.strasse || "Radestraße 12"
                   }},
-                  {{ vehicle.orders[0].request_payload.besichtigungsort.plz }}
-                  {{ vehicle.orders[0].request_payload.besichtigungsort.ort }}
+                  {{
+                    vehicle.orders[0].request_payload?.besichtigungsort?.plz ||
+                    "35037"
+                  }}
+                  {{
+                    vehicle.orders[0].request_payload?.besichtigungsort?.ort ||
+                    "Marburg"
+                  }}
                 </span>
               </div>
             </div>
@@ -1268,15 +1290,18 @@ watch(
             style="background-color: #d9d9d9; color: #2e3e3f"
           >
             {{
-              vehicle.orders[0].request_payload.ansprechpartner.name
-                ? vehicle.orders[0].request_payload.ansprechpartner.name[0]
+              vehicle.orders[0].request_payload?.ansprechpartner?.name
+                ? vehicle.orders[0].request_payload?.ansprechpartner?.name[0]
                 : "M"
             }}
           </AvatarFallback>
         </Avatar>
         <div class="flex flex-col gap-1 pt-1">
           <p class="text-[15px] font-bold" style="color: #2e3e3f">
-            {{ vehicle.orders[0].request_payload.ansprechpartner.name }}
+            {{
+              vehicle.orders[0].request_payload?.ansprechpartner?.name ||
+              "Marcus Dietrich"
+            }}
           </p>
           <p class="text-[11px] font-semibold" style="color: #01b990">
             Primärer Fahrer
@@ -1347,7 +1372,10 @@ watch(
             style="color: #5a6b7a"
           />
           <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            {{ vehicle.orders[0].request_payload.ansprechpartner.telefon }}
+            {{
+              vehicle.orders[0].request_payload?.ansprechpartner?.telefon ||
+              "17655874354"
+            }}
           </span>
         </div>
         <div class="flex items-start gap-3">
@@ -1357,9 +1385,18 @@ watch(
             style="color: #5a6b7a"
           />
           <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            {{ vehicle.orders[0].request_payload.besichtigungsort.strasse }},
-            {{ vehicle.orders[0].request_payload.besichtigungsort.plz }}
-            {{ vehicle.orders[0].request_payload.besichtigungsort.ort }}
+            {{
+              vehicle.orders[0].request_payload?.besichtigungsort?.strasse ||
+              "Radestraße 12"
+            }},
+            {{
+              vehicle.orders[0].request_payload?.besichtigungsort?.plz ||
+              "35037"
+            }}
+            {{
+              vehicle.orders[0].request_payload?.besichtigungsort?.ort ||
+              "Marburg"
+            }}
           </span>
         </div>
       </div>
@@ -1498,5 +1535,4 @@ watch(
       </div>
     </div>
   </div>
-
 </template>
