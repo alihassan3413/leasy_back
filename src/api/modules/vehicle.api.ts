@@ -1,4 +1,4 @@
-import { get, post, put, del } from "../client/request";
+import { get, post, put, patch, del } from "../client/request";
 import type {
   VehicleStatusResponse,
   CreateVehiclePayload,
@@ -23,6 +23,17 @@ export const vehicleApi = {
 
   createVehicle(payload: CreateVehiclePayload): Promise<any> {
     return post<any, CreateVehiclePayload>("/vehicle/create", payload);
+  },
+
+  // PATCH /vehicle/{vehicle_id} — update editable vehicle details
+  updateVehicle(
+    vehicleId: string,
+    payload: Partial<CreateVehiclePayload>,
+  ): Promise<any> {
+    return patch<any, Partial<CreateVehiclePayload>>(
+      `/vehicle/${vehicleId}`,
+      payload,
+    );
   },
 
   async getVehicleDocuments(vehicleId: string): Promise<VehicleDocument[]> {

@@ -3,6 +3,7 @@ import { ref, watch, computed } from "vue";
 import { Icon } from "@iconify/vue";
 import { useRouter } from "vue-router";
 import type { Vehicle } from "../vehicle.types";
+import { vehicleApi } from "@/api";
 import { useVehicleStore } from "@/stores/vehicle.store";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useB2BStore } from "@/stores/b2b.store";
@@ -65,6 +66,17 @@ const nutzerOptions = ["Christin Mechtild", "Thorsten Jung", "Marcus Dietrich"];
 
 const isEditMode = computed(() => !!props.vehicle);
 
+// Normalise any incoming date (ISO datetime, "YYYY-MM-DD", or German
+// "DD.MM.YYYY") into the "YYYY-MM-DD" format required by <input type="date">
+// and by the backend.
+function toIsoDate(value?: string): string {
+  if (!value) return "";
+  const s = String(value).trim();
+  const de = s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+  if (de) return `${de[3]}-${de[2]}-${de[1]}`;
+  return s.slice(0, 10);
+}
+
 const markeIconClasses = computed(() => [
   "text-[24px] text-gray-500 transition-transform duration-200",
   markeOpen.value ? "rotate-180" : "rotate-0",
@@ -79,16 +91,22 @@ watch(
   async (opened) => {
     if (!opened) return;
     if (props.vehicle) {
-      const parts = props.vehicle.licensePlate?.split(" ") ?? [];
+      const v = props.vehicle as any;
+      const plate = v.license_plate ?? v.licensePlate ?? "";
+      const parts = plate.split(" ");
       city.value = parts[0] ?? "";
       district.value = parts[1] ?? "";
       number.value = parts[2] ?? "";
-      marke.value = props.vehicle.brand ?? "";
-      modell.value = props.vehicle.model ?? "";
-      leasingende.value = props.vehicle.leaseEnd ?? "";
-      fin.value = props.vehicle.fin ?? "";
-      rueckgabestart.value = props.vehicle.returnStart ?? "";
-      fahrzeugnutzer.value = props.vehicle.driver ?? "";
+      marke.value = v.make ?? v.brand ?? "";
+      modell.value = v.model ?? "";
+      // Prefer the raw ISO snake_case fields (the camelCase ones are German-
+      // formatted display strings and must not be used here).
+      leasingende.value = toIsoDate(v.leasing_end_date ?? v.leaseEnd);
+      fin.value = v.vin ?? v.fin ?? "";
+      rueckgabestart.value = toIsoDate(
+        v.first_registration_date ?? v.returnStart,
+      );
+      fahrzeugnutzer.value = v.driver ?? "";
     } else {
       city.value = district.value = number.value = "";
       marke.value = modell.value = leasingende.value = "";
@@ -187,13 +205,14 @@ async function handleSubmit() {
 
   const payload = {
     license_plate: `${city.value} ${district.value} ${number.value}`
+      .replace(/\s+/g, " ")
       .trim()
       .toUpperCase(),
     make: marke.value,
     model: modell.value,
-    leasing_end_date: leasingende.value,
+    leasing_end_date: toIsoDate(leasingende.value),
     vin: fin.value.trim().toUpperCase(),
-    first_registration_date: rueckgabestart.value,
+    first_registration_date: toIsoDate(rueckgabestart.value),
   };
 
   console.log("Submitting Vehicle Payload:", payload);
@@ -209,6 +228,18 @@ async function handleSubmit() {
         }
       }
     } else {
+      const vehicleId =
+        (props.vehicle as any)?.vehicle_id ?? (props.vehicle as any)?.id;
+      if (vehicleId) {
+        await vehicleApi.updateVehicle(vehicleId, payload);
+        // Refresh whichever list this vehicle belongs to
+        if (authStore.user?.id) {
+          await Promise.allSettled([
+            vehicleStore.fetchVehicles(authStore.user.id),
+            b2bVehicleStore.fetchVehicles(authStore.user.id),
+          ]);
+        }
+      }
       emit("submit", {
         licensePlate: payload.license_plate,
         brand: marke.value,
@@ -288,8 +319,8 @@ async function handleSubmit() {
                   <span class="text-[9px] font-bold text-white leading-none">D</span>
                 </div>
                 <div class="flex flex-1 h-full py-0.5 items-center px-1.5">
-                  <input v-model="city"
-                    class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400"
+                  <input v-model="city" :disabled="isEditMode"
+                    class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                     placeholder="ABC" maxlength="3" />
                 </div>
                 <div class="flex flex-col items-center gap-0.5 px-1 text-gray-300">
@@ -297,13 +328,13 @@ async function handleSubmit() {
                   <Icon icon="mdi:badge-outline" class="w-2 h-2" />
                 </div>
                 <div class="flex flex-1 h-full py-0.5 items-center px-1.5">
-                  <input v-model="district"
-                    class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400"
+                  <input v-model="district" :disabled="isEditMode"
+                    class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                     placeholder="DE" maxlength="2" />
                 </div>
                 <div class="flex flex-[1.4] h-full py-0.5 items-center px-1.5">
-                  <input v-model="number"
-                    class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400"
+                  <input v-model="number" :disabled="isEditMode"
+                    class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                     placeholder="12H" maxlength="3" />
                 </div>
               </div>

@@ -14,7 +14,6 @@ const props = defineProps<{ vehicle: Vehicle }>();
 const editVehicleOpen = ref(false);
 const uploadDocsOpen = ref(false);
 const documents = ref<any[]>([]);
-const viewDocUrl = ref<string | null>(null);
 
 // Computed properties
 const timelineData = computed(() => {
@@ -138,21 +137,6 @@ const timelineData = computed(() => {
     },
   ];
 });
-
-function openDocument(url: string) {
-  viewDocUrl.value = url;
-}
-
-function downloadDocument(url: string, event: Event) {
-  event.stopPropagation();
-  const link = document.createElement("a");
-  link.href = url;
-  link.target = "_blank";
-  link.download = "report.pdf";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
 
 // Published offers fetched from the customer offers endpoint
 const realOffers = ref<Offer[]>([]);
@@ -405,11 +389,10 @@ watch(
                         v-if="entry.isReport && entry.docUrl"
                         class="flex items-center gap-2"
                       >
-                        <button
-                          @click="
-                            entry.docUrl &&
-                            downloadDocument(entry.docUrl, $event)
-                          "
+                        <a
+                          :href="entry.docUrl"
+                          target="_blank"
+                          rel="noopener"
                           class="text-[#01b990] hover:opacity-70"
                           title="Download"
                         >
@@ -417,9 +400,11 @@ watch(
                             icon="material-symbols:download"
                             class="size-[18.5px] shrink-0"
                           />
-                        </button>
-                        <button
-                          @click="entry.docUrl && openDocument(entry.docUrl)"
+                        </a>
+                        <a
+                          :href="entry.docUrl"
+                          target="_blank"
+                          rel="noopener"
                           class="text-[#01b990] hover:opacity-70"
                           title="Open"
                         >
@@ -427,7 +412,7 @@ watch(
                             icon="mdi:open-in-new"
                             class="size-[18.5px] shrink-0"
                           />
-                        </button>
+                        </a>
                       </div>
                     </div>
                   </template>
@@ -960,10 +945,10 @@ watch(
                   v-if="entry.isReport && entry.docUrl"
                   class="flex items-center gap-2"
                 >
-                  <button
-                    @click="
-                      entry.docUrl && downloadDocument(entry.docUrl, $event)
-                    "
+                  <a
+                    :href="entry.docUrl"
+                    target="_blank"
+                    rel="noopener"
                     class="text-[#01b990] hover:opacity-70"
                     title="Download"
                   >
@@ -971,9 +956,11 @@ watch(
                       icon="material-symbols:download"
                       class="size-[18.5px] shrink-0"
                     />
-                  </button>
-                  <button
-                    @click="entry.docUrl && openDocument(entry.docUrl)"
+                  </a>
+                  <a
+                    :href="entry.docUrl"
+                    target="_blank"
+                    rel="noopener"
                     class="text-[#01b990] hover:opacity-70"
                     title="Open"
                   >
@@ -981,7 +968,7 @@ watch(
                       icon="mdi:open-in-new"
                       class="size-[18.5px] shrink-0"
                     />
-                  </button>
+                  </a>
                 </div>
               </div>
             </template>
@@ -1420,50 +1407,4 @@ watch(
     </div>
   </div>
 
-  <!-- Document Viewer Popup -->
-  <div
-    v-if="viewDocUrl"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
-    @click="viewDocUrl = null"
-  >
-    <div
-      class="relative bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden"
-      @click.stop
-    >
-      <div
-        class="flex items-center justify-between p-4 border-b border-gray-200"
-      >
-        <h3 class="text-lg font-semibold text-gray-800">Dokument anzeigen</h3>
-        <button
-          @click="viewDocUrl = null"
-          class="text-gray-500 hover:text-gray-700"
-        >
-          <Icon icon="mdi:close" class="size-6" />
-        </button>
-      </div>
-      <div class="p-4">
-        <iframe
-          :src="viewDocUrl"
-          class="w-full h-[70vh] rounded-lg border border-gray-200"
-          title="Document Viewer"
-        ></iframe>
-      </div>
-      <div class="flex justify-end gap-3 p-4 border-t border-gray-200">
-        <a
-          :href="viewDocUrl"
-          target="_blank"
-          class="px-4 py-2 rounded-full text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50"
-        >
-          In neuem Tab öffnen
-        </a>
-        <button
-          @click="viewDocUrl && downloadDocument(viewDocUrl, $event)"
-          class="px-4 py-2 rounded-full text-sm font-medium text-white"
-          style="background-color: #01b990"
-        >
-          Herunterladen
-        </button>
-      </div>
-    </div>
-  </div>
 </template>
