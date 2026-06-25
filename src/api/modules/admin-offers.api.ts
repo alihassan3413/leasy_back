@@ -1,4 +1,4 @@
-import { post, get, patch, del } from "../client/request";
+import { post, get } from "../client/request";
 import type { OffersListResponse } from "@/types";
 
 interface CreateOfferDraftPayload {
@@ -36,7 +36,10 @@ export const adminOffersApi = {
     });
   },
 
-  deleteOffer(offerId: string): Promise<unknown> {
-    return del(`/admin/offers/${encodeURIComponent(offerId)}`);
+  // POST /admin/offers/cancel/{offer_id}
+  // Cancels an offer. Cancelled offers stay visible to the admin but are
+  // hidden from B2B/B2C customers.
+  cancelOffer(offerId: string): Promise<unknown> {
+    return post(`/admin/offers/cancel/${encodeURIComponent(offerId)}`);
   },
 };

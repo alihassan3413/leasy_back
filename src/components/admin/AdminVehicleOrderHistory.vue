@@ -113,14 +113,14 @@ async function publishOffer(offerId: string) {
   }
 }
 
-async function deleteOffer(offerId: string) {
+async function cancelOffer(offerId: string) {
   try {
-    await adminOffersApi.deleteOffer(offerId);
+    await adminOffersApi.cancelOffer(offerId);
     if (firstOrder.value?.auftragsnummer) {
       await fetchOffers(firstOrder.value.auftragsnummer);
     }
   } catch (err) {
-    console.error("Failed to delete offer:", err);
+    console.error("Failed to cancel offer:", err);
   }
 }
 
@@ -693,21 +693,28 @@ async function publishDocument(documentId: string) {
                           Update
                         </span>
                       </button> -->
-                      <!-- Delete -->
+                      <!-- Cancel -->
                       <div class="h-px bg-[#ececec] my-1"></div>
                       <button
-                        v-if="offer.originalOffer"
+                        v-if="offer.originalOffer && offer.status !== 'cancelled'"
                         @click.stop="
-                          deleteOffer(offer.originalOffer.offer_id);
+                          cancelOffer(offer.originalOffer.offer_id);
                           openOfferMenu = null;
                         "
                         class="w-full text-left px-4 py-2 text-sm text-[#EF4444] hover:bg-[#f6f9f8] transition-colors"
                       >
                         <span class="flex items-center gap-2">
-                          <Icon icon="mdi:delete-outline" class="size-4" />
-                          Delete
+                          <Icon icon="mdi:cancel" class="size-4" />
+                          Cancel
                         </span>
                       </button>
+                      <div
+                        v-else-if="offer.status === 'cancelled'"
+                        class="px-4 py-2 text-sm text-[#B7C2C2] flex items-center gap-2"
+                      >
+                        <Icon icon="mdi:cancel" class="size-4" />
+                        Cancelled
+                      </div>
                     </div>
                   </div>
                 </div>

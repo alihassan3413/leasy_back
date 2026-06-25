@@ -59,7 +59,9 @@ async function loadOffers() {
   }
   try {
     const res = await customerOffersApi.list(auftragsnummer);
-    realOffers.value = (res.offers || []).map((offer) => ({
+    realOffers.value = (res.offers || [])
+      .filter((offer) => offer.offer_status !== "cancelled")
+      .map((offer) => ({
       id: offer.offer_sequence.toString().padStart(2, "0"),
       name: `Angebot ${offer.offer_sequence}`,
       cost: parseFloat(offer.final_total_gross),
@@ -82,6 +84,8 @@ const pendingOfferId = ref<string | null>(null);
 
 function requestSelect(offerId?: string) {
   if (!offerId) return;
+  // An offer was already selected — selection is final, do nothing.
+  if (acceptedOffer.value) return;
   pendingOfferId.value = offerId;
 }
 
@@ -287,7 +291,7 @@ watch(
                   <!-- Radio circle / select offer -->
                   <button type="button"
                     @click.stop="hasRealOffers && requestSelect(offer.offer_id)"
-                    :disabled="!hasRealOffers || selectingOfferId === offer.offer_id"
+                    :disabled="!hasRealOffers || !!acceptedOffer || selectingOfferId === offer.offer_id"
                     class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
                     :style="offer.accepted
                       ? 'border-color: #EF8450; background: #EF8450'
@@ -492,7 +496,7 @@ watch(
 
   <!-- Select offer confirmation -->
   <div v-if="pendingOfferId"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4" @click="cancelSelect">
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/5 p-4" @click="cancelSelect">
     <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" @click.stop>
       <h3 class="text-[18px] font-bold text-[#2e3e3f]">Angebot auswählen</h3>
       <p class="mt-3 text-[14px] text-[#5a6b7a] leading-relaxed">

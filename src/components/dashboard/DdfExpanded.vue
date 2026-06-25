@@ -205,7 +205,9 @@ async function loadOffers() {
   }
   try {
     const res = await customerOffersApi.list(auftragsnummer.value);
-    realOffers.value = (res.offers || []).map((offer) => ({
+    realOffers.value = (res.offers || [])
+      .filter((offer) => offer.offer_status !== "cancelled")
+      .map((offer) => ({
       id: offer.offer_sequence.toString().padStart(2, "0"),
       name: `Angebot ${offer.offer_sequence}`,
       cost: parseFloat(offer.final_total_gross),
@@ -228,6 +230,8 @@ const pendingOfferId = ref<string | null>(null);
 
 function requestSelect(offerId?: string) {
   if (!offerId) return;
+  // An offer was already selected — selection is final, do nothing.
+  if (acceptedOffer.value) return;
   pendingOfferId.value = offerId;
 }
 
@@ -572,7 +576,9 @@ watch(
                     type="button"
                     @click.stop="hasRealOffers && requestSelect(offer.offer_id)"
                     :disabled="
-                      !hasRealOffers || selectingOfferId === offer.offer_id
+                      !hasRealOffers ||
+                      !!acceptedOffer ||
+                      selectingOfferId === offer.offer_id
                     "
                     class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
                     :style="
@@ -1113,7 +1119,9 @@ watch(
               type="button"
               @click.stop="hasRealOffers && requestSelect(offer.offer_id)"
               :disabled="
-                !hasRealOffers || selectingOfferId === offer.offer_id
+                !hasRealOffers ||
+                !!acceptedOffer ||
+                selectingOfferId === offer.offer_id
               "
               class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
               :style="
@@ -1418,7 +1426,7 @@ watch(
   <!-- Select offer confirmation -->
   <div
     v-if="pendingOfferId"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/5 p-4"
     @click="cancelSelect"
   >
     <div
