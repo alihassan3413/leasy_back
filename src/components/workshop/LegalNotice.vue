@@ -17,21 +17,15 @@ const placeholder = `Impressumsangaben\n\n• Name, Anschrift, Kontaktdaten\n•
         Impressumsdaten
       </h2>
 
-      <p
-        class="text-black text-[15px] font-normal leading-normal not-italic mt-4 mb-8"
-      >
-        Als Werkstatt müssen Sie auf Ihrer Homepage bei LeasyBack.com
-        zusätzliche Impressumsangaben machen. Geben Sie nur Ihre Daten an, die
-        vorhanden sind, da Sie für deren Richtigkeit verantwortlich sind.
-        Unvollständige Angaben können zu kostenpflichtigen Abmahnungen durch
+      <p class="text-black text-[15px] font-normal leading-normal not-italic mt-4 mb-8">
+        Als Werkstatt müssen Sie auf Ihrer Homepage bei LeasyBack.com zusätzliche Impressumsangaben
+        machen. Geben Sie nur Ihre Daten an, die vorhanden sind, da Sie für deren Richtigkeit
+        verantwortlich sind. Unvollständige Angaben können zu kostenpflichtigen Abmahnungen durch
         Mitbewerber oder Verbraucherschutzverbände führen.
       </p>
 
       <div class="w-full flex flex-col gap-2">
-        <Label
-          for="impressum"
-          class="text-sm font-bold text-black leading-normal not-italic"
-        >
+        <Label for="impressum" class="text-sm font-bold text-black leading-normal not-italic">
           Impressum<span class="text-custom-orange">*</span>
         </Label>
         <Textarea

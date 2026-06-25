@@ -23,14 +23,8 @@ onMounted(() => {
   console.log("Full vehicle object:", props.vehicle);
   console.log("vehicle.orders:", props.vehicle.orders);
   console.log("vehicle.order_history:", props.vehicle.order_history);
-  console.log(
-    "vehicle.current_request_payload:",
-    props.vehicle.current_request_payload,
-  );
-  console.log(
-    "expandedVehicleDetails:",
-    props.expandedVehicleDetails[props.vehicle.vehicle_id],
-  );
+  console.log("vehicle.current_request_payload:", props.vehicle.current_request_payload);
+  console.log("expandedVehicleDetails:", props.expandedVehicleDetails[props.vehicle.vehicle_id]);
 
   // Fetch offers after component is mounted
   if (firstOrder.value?.auftragsnummer) {
@@ -183,22 +177,16 @@ const timelineData = computed(() => {
           ? `${payload.besichtigungsort.strasse}, ${payload.besichtigungsort.plz} ${payload.besichtigungsort.ort}`
           : "",
         datetime: payload?.besichtigungsort?.termin
-          ? new Date(payload.besichtigungsort.termin).toLocaleDateString(
-              "de-DE",
-              {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              },
-            ) +
+          ? new Date(payload.besichtigungsort.termin).toLocaleDateString("de-DE", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }) +
             "\n" +
-            new Date(payload.besichtigungsort.termin).toLocaleTimeString(
-              "de-DE",
-              {
-                hour: "2-digit",
-                minute: "2-digit",
-              },
-            ) +
+            new Date(payload.besichtigungsort.termin).toLocaleTimeString("de-DE", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }) +
             " Uhr"
           : "",
         completed: order.order_status !== "order_placed",
@@ -248,9 +236,7 @@ const offersData = computed(() => {
       recommended: false,
       accepted: offer.offer_status === "selected",
       status: offer.offer_status,
-      published:
-        offer.offer_status === "published" ||
-        offer.offer_status === "selected",
+      published: offer.offer_status === "published" || offer.offer_status === "selected",
       originalOffer: offer,
     }));
   }
@@ -267,9 +253,7 @@ const primaryDriverName = computed(() => {
   if (orderPayload.value?.ansprechpartner?.name) {
     return orderPayload.value.ansprechpartner.name;
   }
-  return (
-    props.vehicle.company_name || props.vehicle.user_name || "Marcus Dietrich"
-  );
+  return props.vehicle.company_name || props.vehicle.user_name || "Marcus Dietrich";
 });
 
 const primaryDriverInitial = computed(() => {
@@ -309,9 +293,7 @@ const lastActivityStatus = computed(() => {
 });
 
 const fullVehicleDetails = computed(() => {
-  return (
-    props.expandedVehicleDetails[props.vehicle.vehicle_id] || props.vehicle
-  );
+  return props.expandedVehicleDetails[props.vehicle.vehicle_id] || props.vehicle;
 });
 
 // Get current documents for this vehicle
@@ -365,10 +347,7 @@ const groupedDocuments = computed(() => {
 async function deleteDocument(documentId: string) {
   try {
     if (!props.vehicle?.vehicle_id) return;
-    await vehicleApi.deleteVehicleDocument(
-      props.vehicle.vehicle_id,
-      documentId,
-    );
+    await vehicleApi.deleteVehicleDocument(props.vehicle.vehicle_id, documentId);
     emit("refreshDocs");
   } catch (err) {
     console.error("Failed to delete vehicle document:", err);
@@ -398,9 +377,7 @@ async function publishDocument(documentId: string) {
             style="border-color: #ececec"
           >
             <div class="px-6 py-5 flex items-center justify-between">
-              <p
-                class="text-[16px] font-bold text-[#000000] leading-tight uppercase"
-              >
+              <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
                 {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
               </p>
               <button class="text-[#01b990] hover:opacity-70">
@@ -419,21 +396,13 @@ async function publishDocument(documentId: string) {
                 <div
                   v-if="i < timelineData.slice(1).length - 1"
                   class="absolute left-2 top-5 w-0.5 h-full"
-                  :style="
-                    entry.completed
-                      ? 'background:#01B990'
-                      : 'background:#B7C2C2'
-                  "
+                  :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
                 />
 
                 <!-- Dot -->
                 <div
                   class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
-                  :style="
-                    entry.completed
-                      ? 'background:#01B990'
-                      : 'background:#B7C2C2'
-                  "
+                  :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
                 />
 
                 <!-- Content -->
@@ -444,13 +413,8 @@ async function publishDocument(documentId: string) {
                   </p>
 
                   <!-- Label -->
-                  <template
-                    v-if="entry.label === 'DEKRA' || entry.label === 'TUVSUD'"
-                  >
-                    <p
-                      class="text-[16px] font-bold mb-1"
-                      style="color: #01b990"
-                    >
+                  <template v-if="entry.label === 'DEKRA' || entry.label === 'TUVSUD'">
+                    <p class="text-[16px] font-bold mb-1" style="color: #01b990">
                       {{ entry.label }}
                     </p>
                     <p
@@ -486,29 +450,17 @@ async function publishDocument(documentId: string) {
                 @click="uploadDocsOpen = true"
                 class="absolute right-5 top-5 transition-opacity hover:opacity-60"
               >
-                <Icon
-                  icon="mdi:pencil"
-                  class="size-[18.5px] shrink-0"
-                  style="color: #01b990"
-                />
+                <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
               </button>
               <div class="p-6">
-                <p class="text-[16px] font-semibold uppercase text-[#000000]">
-                  Vehicle Docs
-                </p>
+                <p class="text-[16px] font-semibold uppercase text-[#000000]">Vehicle Docs</p>
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
               <div class="flex flex-col gap-4 p-6 pt-0">
-                <div
-                  v-for="group in groupedDocuments"
-                  :key="group.key"
-                  class="flex flex-col gap-3"
-                >
+                <div v-for="group in groupedDocuments" :key="group.key" class="flex flex-col gap-3">
                   <div v-if="group.key !== 'gutachten'">
-                    <p
-                      class="text-[16px] font-semibold uppercase text-[#000000]"
-                    >
+                    <p class="text-[16px] font-semibold uppercase text-[#000000]">
                       {{ group.title }}
                     </p>
                     <div class="h-px bg-gray-200 mt-2"></div>
@@ -539,10 +491,7 @@ async function publishDocument(documentId: string) {
                         target="_blank"
                         class="text-[#01b990] hover:opacity-70 flex-shrink-0"
                       >
-                        <Icon
-                          icon="material-symbols:download"
-                          class="size-[18.5px] shrink-0"
-                        />
+                        <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
                       </a>
                       <button
                         v-if="doc.is_report && !doc.published"
@@ -550,27 +499,18 @@ async function publishDocument(documentId: string) {
                         class="text-[#01b990] hover:opacity-70 flex-shrink-0"
                         title="Publish"
                       >
-                        <Icon
-                          icon="mdi:eye-outline"
-                          class="size-[18.5px] shrink-0"
-                        />
+                        <Icon icon="mdi:eye-outline" class="size-[18.5px] shrink-0" />
                       </button>
                       <button
                         @click="deleteDocument(doc.id)"
                         class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
                       >
-                        <Icon
-                          icon="mdi:delete-outline"
-                          class="size-[18.5px] shrink-0"
-                        />
+                        <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
                       </button>
                     </div>
                   </div>
                 </div>
-                <div
-                  v-if="currentDocuments.length === 0"
-                  class="text-[14px] text-[#b7c2c2]"
-                >
+                <div v-if="currentDocuments.length === 0" class="text-[14px] text-[#b7c2c2]">
                   Keine Dokumente gefunden
                 </div>
               </div>
@@ -585,9 +525,7 @@ async function publishDocument(documentId: string) {
               style="border-color: #ececec"
             >
               <div class="px-6 py-6">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">
-                  Angebote
-                </p>
+                <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
               </div>
 
               <!-- Empty state -->
@@ -595,14 +533,8 @@ async function publishDocument(documentId: string) {
                 v-if="!hasOffers"
                 class="flex flex-col items-center justify-center gap-2 px-6 py-8 text-center"
               >
-                <Icon
-                  icon="mdi:file-document-outline"
-                  class="size-8"
-                  style="color: #cbd5e1"
-                />
-                <p class="text-[14px] font-semibold" style="color: #2e3e3f">
-                  Keine Angebote
-                </p>
+                <Icon icon="mdi:file-document-outline" class="size-8" style="color: #cbd5e1" />
+                <p class="text-[14px] font-semibold" style="color: #2e3e3f">Keine Angebote</p>
                 <p class="text-[12px]" style="color: #b7c2c2">
                   Bitte zuerst ein Angebot erstellen.
                 </p>
@@ -623,25 +555,15 @@ async function publishDocument(documentId: string) {
                   <!-- Publish toggle (minimal button in front of each offer) -->
                   <button
                     v-if="offer.originalOffer"
-                    @click.stop="
-                      !offer.published &&
-                        publishOffer(offer.originalOffer.offer_id)
-                    "
-                    :disabled="
-                      offer.published ||
-                      publishingId === offer.originalOffer.offer_id
-                    "
+                    @click.stop="!offer.published && publishOffer(offer.originalOffer.offer_id)"
+                    :disabled="offer.published || publishingId === offer.originalOffer.offer_id"
                     class="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition-colors disabled:cursor-default"
                     :style="
                       offer.published
                         ? 'background:#01B990;color:#fff'
                         : 'background:#F0F4F4;color:#01B990'
                     "
-                    :title="
-                      offer.published
-                        ? 'Veröffentlicht'
-                        : 'Angebot veröffentlichen'
-                    "
+                    :title="offer.published ? 'Veröffentlicht' : 'Angebot veröffentlichen'"
                   >
                     <Icon
                       :icon="
@@ -653,8 +575,7 @@ async function publishDocument(documentId: string) {
                       "
                       class="size-4"
                       :class="{
-                        'animate-spin':
-                          publishingId === offer.originalOffer.offer_id,
+                        'animate-spin': publishingId === offer.originalOffer.offer_id,
                       }"
                     />
                   </button>
@@ -670,40 +591,28 @@ async function publishDocument(documentId: string) {
                     "
                     :title="offer.accepted ? 'Vom Kunden ausgewählt' : ''"
                   >
-                    <div
-                      v-if="offer.accepted"
-                      class="w-4.5 h-4.5 rounded-full bg-white"
-                    ></div>
+                    <div v-if="offer.accepted" class="w-4.5 h-4.5 rounded-full bg-white"></div>
                   </div>
 
                   <!-- Content -->
-                  <div
-                    class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden"
-                  >
+                  <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
                     <div class="flex justify-between items-start gap-3">
                       <p
                         class="text-[14px] font-bold flex-1 min-w-0 truncate"
-                        :style="
-                          offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
-                        "
+                        :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
                         :title="`${offer.id} - ${offer.name}`"
                       >
                         {{ offer.id }} - {{ offer.name }}
                       </p>
                       <p
                         class="text-[16px] font-normal flex-shrink-0"
-                        :style="
-                          offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'
-                        "
+                        :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
                       >
                         {{ offer.cost.toLocaleString("de-DE") }} €
                       </p>
                     </div>
                     <div class="flex justify-between items-center gap-3">
-                      <p
-                        class="text-[12px] flex-1 truncate"
-                        style="color: #b7c2c2"
-                      >
+                      <p class="text-[12px] flex-1 truncate" style="color: #b7c2c2">
                         {{ offer.distance || "227km distance" }}
                       </p>
                       <p
@@ -719,10 +628,7 @@ async function publishDocument(documentId: string) {
                   <!-- 3-dot menu -->
                   <div class="relative">
                     <button
-                      @click.stop="
-                        openOfferMenu =
-                          openOfferMenu === offer.id ? null : offer.id
-                      "
+                      @click.stop="openOfferMenu = openOfferMenu === offer.id ? null : offer.id"
                       class="text-[#B7C2C2] hover:text-[#2e3e3f] transition-colors"
                     >
                       <Icon icon="mdi:dots-vertical" class="size-5" />
@@ -830,12 +736,7 @@ async function publishDocument(documentId: string) {
             style="border-color: #ececec"
           >
             <div class="pb-6">
-              <p
-                class="text-[16px] font-normal uppercase"
-                style="color: #2e3e3f"
-              >
-                Zugewiesen an
-              </p>
+              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Zugewiesen an</p>
             </div>
 
             <!-- Avatar + Name row -->
@@ -852,9 +753,7 @@ async function publishDocument(documentId: string) {
                 <p class="text-[16px] font-bold" style="color: #2e3e3f">
                   {{ primaryDriverName }}
                 </p>
-                <p class="text-[12px] font-semibold" style="color: #01b990">
-                  Primärer Fahrer
-                </p>
+                <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
               </div>
             </div>
             <div class="flex items-start gap-6 pb-6" v-else>
@@ -867,12 +766,8 @@ async function publishDocument(documentId: string) {
                 </AvatarFallback>
               </Avatar>
               <div class="flex flex-col gap-2 pt-2">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">
-                  Marcus Dietrich
-                </p>
-                <p class="text-[12px] font-semibold" style="color: #01b990">
-                  Primärer Fahrer
-                </p>
+                <p class="text-[16px] font-bold" style="color: #2e3e3f">Marcus Dietrich</p>
+                <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
               </div>
             </div>
 
@@ -884,10 +779,7 @@ async function publishDocument(documentId: string) {
               >
                 Letzte Aktivität
               </p>
-              <div
-                class="flex items-center justify-between pt-2"
-                v-if="lastActivityDate"
-              >
+              <div class="flex items-center justify-between pt-2" v-if="lastActivityDate">
                 <p class="text-[14px] font-normal" style="color: #2e3e3f">
                   {{ lastActivityDate }}
                   · Auftrag erstellt
@@ -897,9 +789,7 @@ async function publishDocument(documentId: string) {
                 </p>
               </div>
               <div class="flex items-center justify-between pt-2" v-else>
-                <p class="text-[14px] font-normal" style="color: #2e3e3f">
-                  Keine Aktivität
-                </p>
+                <p class="text-[14px] font-normal" style="color: #2e3e3f">Keine Aktivität</p>
               </div>
             </div>
 
@@ -936,9 +826,7 @@ async function publishDocument(documentId: string) {
                   class="size-[18px] shrink-0"
                   style="color: #5a6b7a"
                 />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  17655874354
-                </span>
+                <span class="text-[14px] font-normal" style="color: #2e3e3f"> 17655874354 </span>
               </div>
               <div class="flex items-center gap-4">
                 <Icon
@@ -962,73 +850,45 @@ async function publishDocument(documentId: string) {
               @click="editVehicleOpen = true"
               class="absolute right-6 top-6 transition-opacity hover:opacity-60"
             >
-              <Icon
-                icon="mdi:pencil"
-                class="size-5 shrink-0"
-                style="color: #01b990"
-              />
+              <Icon icon="mdi:pencil" class="size-5 shrink-0" style="color: #01b990" />
             </button>
             <div class="px-6 pt-6">
-              <p class="text-[18px] font-bold" style="color: #000">
-                FAHRZEUGDATEN
-              </p>
+              <p class="text-[18px] font-bold" style="color: #000">FAHRZEUGDATEN</p>
             </div>
 
             <div class="flex flex-col gap-0 px-6 pt-4 pb-6">
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Kennzeichen
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Kennzeichen </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.license_plate }}
                 </span>
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Modell
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Modell </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.make }} {{ vehicle.model }}
                 </span>
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Kilometerstand
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Kilometerstand </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
-                  {{
-                    fullVehicleDetails.kilometerstand ||
-                    vehicle.kilometerstand ||
-                    "N/A"
-                  }}
+                  {{ fullVehicleDetails.kilometerstand || vehicle.kilometerstand || "N/A" }}
                 </span>
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Leasinggeber
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Leasinggeber </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
-                  {{
-                    fullVehicleDetails.leasinggeber ||
-                    vehicle.leasinggeber ||
-                    "N/A"
-                  }}
+                  {{ fullVehicleDetails.leasinggeber || vehicle.leasinggeber || "N/A" }}
                 </span>
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Rückgabetermin
-                </span>
+                <span class="text-[16px] font-normal" style="color: #64748b"> Rückgabetermin </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
-                  {{
-                    new Date(vehicle.leasing_end_date).toLocaleDateString(
-                      "de-DE",
-                    )
-                  }}
+                  {{ new Date(vehicle.leasing_end_date).toLocaleDateString("de-DE") }}
                 </span>
               </div>
             </div>
@@ -1053,10 +913,7 @@ async function publishDocument(documentId: string) {
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/5 p-4"
     @click="closeCancel"
   >
-    <div
-      class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
-      @click.stop
-    >
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" @click.stop>
       <h3 class="text-[18px] font-bold text-[#2e3e3f]">Angebot stornieren</h3>
       <p class="mt-2 text-[14px] text-[#5a6b7a]">
         Bitte geben Sie einen Grund für die Stornierung an.

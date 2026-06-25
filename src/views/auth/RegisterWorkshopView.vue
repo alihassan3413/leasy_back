@@ -6,7 +6,7 @@ import AccountDetail from "@/components/Workshop/AccountDetail.vue";
 import LegalNotice from "@/components/Workshop/LegalNotice.vue";
 import GeneralTerms from "@/components/Workshop/GeneralTerms.vue";
 import { useWorkshopStore } from "@/stores/workshop.store";
-import { useAuthStore } from '@/stores/auth.store'
+import { useAuthStore } from "@/stores/auth.store";
 import { useForm } from "vee-validate";
 import { workshopSchema } from "@/validations/workshop.validation";
 import { useRouter } from "vue-router";
@@ -90,7 +90,7 @@ const onSubmit = handleSubmit(async (values: any) => {
   try {
     await workshopStore.create(payload);
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
 });
 </script>
@@ -110,9 +110,7 @@ const onSubmit = handleSubmit(async (values: any) => {
       style="left: -19vw; top: -4vw; width: 105vw; height: auto"
     />
 
-    <div
-      class="relative z-10 flex items-center justify-center min-h-screen pt-16"
-    >
+    <div class="relative z-10 flex items-center justify-center min-h-screen pt-16">
       <div class="w-full max-w-200 flex flex-col items-start min-h-screen">
         <h1 class="text-white text-[32px] font-bold leading-normal not-italic">
           Registrierung - Werkstattpartner

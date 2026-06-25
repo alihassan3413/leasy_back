@@ -62,17 +62,9 @@ async function onSuccessOk(): Promise<void> {
       @next="onStep1Next"
     />
 
-    <Step2VehicleData
-      v-if="store.currentStep === 2"
-      @next="onNext"
-      @back="onBack"
-    />
+    <Step2VehicleData v-if="store.currentStep === 2" @next="onNext" @back="onBack" />
 
-    <Step3Appointment
-      v-if="store.currentStep === 3"
-      @next="onNext"
-      @back="onBack"
-    />
+    <Step3Appointment v-if="store.currentStep === 3" @next="onNext" @back="onBack" />
 
     <!-- Step4PaymentMethod is hidden for now -->
     <!-- <Step4PaymentMethod

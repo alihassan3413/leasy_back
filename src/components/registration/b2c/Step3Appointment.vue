@@ -125,9 +125,7 @@ const onSubmit = handleSubmit(async (values) => {
     return;
   }
   if (!store.vehicleId) {
-    toast.error(
-      "Fahrzeug-ID fehlt. Bitte gehen Sie zurück und erstellen Sie das Fahrzeug erneut.",
-    );
+    toast.error("Fahrzeug-ID fehlt. Bitte gehen Sie zurück und erstellen Sie das Fahrzeug erneut.");
     return;
   }
   if (!authStore.user?.id) {
@@ -171,37 +169,23 @@ const onSubmit = handleSubmit(async (values) => {
     <div
       class="w-full rounded-[10px] bg-white px-6 py-5 shadow-[0_4px_4px_rgba(0,0,0,0.25)] md:px-8 md:py-6"
     >
-      <h2 class="text-[20px] font-bold text-primary">
-        Suchen Sie Ihre Filiale aus
-      </h2>
+      <h2 class="text-[20px] font-bold text-primary">Suchen Sie Ihre Filiale aus</h2>
 
       <div class="mt-2 mb-4 h-px w-full bg-green-gray" />
 
       <div class="space-y-4">
         <!-- Service selection -->
         <div class="flex flex-col gap-3">
-          <p class="text-[16px] font-bold" style="color: #10393b">
-            Service wählen
-          </p>
+          <p class="text-[16px] font-bold" style="color: #10393b">Service wählen</p>
           <div class="flex flex-col gap-2">
             <!-- TÜV SÜD -->
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value="tuvsud"
-                v-model="service"
-                class="accent-primary size-4"
-              />
+              <input type="radio" value="tuvsud" v-model="service" class="accent-primary size-4" />
               <span class="text-base text-custom-black">TÜV SÜD</span>
             </label>
             <!-- DEKRA -->
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value="dekra"
-                v-model="service"
-                class="accent-primary size-4"
-              />
+              <input type="radio" value="dekra" v-model="service" class="accent-primary size-4" />
               <span class="text-base text-custom-black">DEKRA</span>
             </label>
           </div>
@@ -209,9 +193,7 @@ const onSubmit = handleSubmit(async (values) => {
 
         <!-- Station dropdown -->
         <div class="relative flex flex-col gap-1">
-          <label class="text-[16px] font-bold" style="color: #10393b">
-            Station
-          </label>
+          <label class="text-[16px] font-bold" style="color: #10393b"> Station </label>
           <div
             class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
             style="border-color: #b7c2c2"
@@ -241,18 +223,10 @@ const onSubmit = handleSubmit(async (values) => {
             class="absolute top-full mt-1 max-h-[180px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
             style="border-color: #b7c2c2; z-index: 9999"
           >
-            <div
-              v-if="stationsLoading"
-              class="px-3 py-2 text-[14px]"
-              style="color: #b7c2c2"
-            >
+            <div v-if="stationsLoading" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
               Laden...
             </div>
-            <div
-              v-else-if="!stations.length"
-              class="px-3 py-2 text-[14px]"
-              style="color: #b7c2c2"
-            >
+            <div v-else-if="!stations.length" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
               Keine Stationen gefunden
             </div>
             <div
@@ -276,11 +250,7 @@ const onSubmit = handleSubmit(async (values) => {
           class="h-[220px] shrink-0 w-full overflow-hidden rounded-[5px] border"
           style="border-color: #b7c2c2"
         >
-          <AppMapPicker
-            :latitude="mapLat"
-            :longitude="mapLng"
-            :interactive="false"
-          />
+          <AppMapPicker :latitude="mapLat" :longitude="mapLng" :interactive="false" />
         </div>
       </div>
     </div>
@@ -288,9 +258,7 @@ const onSubmit = handleSubmit(async (values) => {
     <div
       class="w-full rounded-[10px] bg-white px-6 py-5 shadow-[0_4px_4px_rgba(0,0,0,0.25)] md:px-8 md:py-6"
     >
-      <h2 class="text-[20px] font-bold text-primary">
-        Hier können Sie Termine buchen
-      </h2>
+      <h2 class="text-[20px] font-bold text-primary">Hier können Sie Termine buchen</h2>
 
       <div class="mt-2 mb-4 h-px w-full bg-green-gray" />
 
@@ -298,16 +266,10 @@ const onSubmit = handleSubmit(async (values) => {
         <div class="max-w-85 space-y-3">
           <CalendarDateField name="datum" label="Datum" :minDaysAhead="3" />
 
-          <FormSelectField
-            name="uhrzeit"
-            label="Uhrzeit"
-            :options="uhrzeitOptions"
-          />
+          <FormSelectField name="uhrzeit" label="Uhrzeit" :options="uhrzeitOptions" />
         </div>
 
-        <p class="pt-2 text-xs text-custom-black">
-          Frühester Termin am 26.02.2025 um 11:00 Uhr.
-        </p>
+        <p class="pt-2 text-xs text-custom-black">Frühester Termin am 26.02.2025 um 11:00 Uhr.</p>
 
         <div class="flex justify-end gap-3 pt-2">
           <Button

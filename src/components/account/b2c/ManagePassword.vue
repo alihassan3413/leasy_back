@@ -55,9 +55,13 @@ const cancelEdit = () => {
 <template>
   <div class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm">
     <!-- Header -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[#EDF2F2] px-4 py-4 sm:px-8 sm:py-5">
+    <div
+      class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[#EDF2F2] px-4 py-4 sm:px-8 sm:py-5"
+    >
       <div>
-        <h2 class="text-[16px] sm:text-[17px] font-bold text-[#10393B]">Passwort &amp; Anmeldung</h2>
+        <h2 class="text-[16px] sm:text-[17px] font-bold text-[#10393B]">
+          Passwort &amp; Anmeldung
+        </h2>
         <p class="mt-0.5 text-[12px] sm:text-[13px] text-[#7A9699]">
           E-Mail-Adresse und Passwort Ihres Kontos
         </p>
@@ -95,7 +99,9 @@ const cancelEdit = () => {
       </p>
       <dl class="grid grid-cols-1 gap-x-6 gap-y-5 sm:gap-x-10 sm:gap-y-7 sm:grid-cols-2">
         <div>
-          <dt class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+          <dt
+            class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+          >
             E-Mail-Adresse
           </dt>
           <dd class="mt-1.5 text-[14px] sm:text-[15px] font-semibold text-[#10393B] break-all">
@@ -103,12 +109,12 @@ const cancelEdit = () => {
           </dd>
         </div>
         <div>
-          <dt class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+          <dt
+            class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+          >
             Passwort
           </dt>
-          <dd class="mt-1.5 text-lg sm:text-xl tracking-[0.3em] text-[#9CB3B4]">
-            ••••••••••
-          </dd>
+          <dd class="mt-1.5 text-lg sm:text-xl tracking-[0.3em] text-[#9CB3B4]">••••••••••</dd>
         </div>
       </dl>
     </div>
@@ -117,7 +123,9 @@ const cancelEdit = () => {
     <form v-else @submit.prevent="onSubmit">
       <div class="w-full max-w-[440px] space-y-5 px-4 py-6 sm:px-8 sm:py-7">
         <div>
-          <span class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+          <span
+            class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+          >
             Angemeldet als
           </span>
           <p class="mt-1.5 text-[14px] sm:text-[15px] font-semibold text-[#10393B] break-all">

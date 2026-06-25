@@ -6,11 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { adminVehiclesApi, vehicleApi, adminOrdersApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
-import {
-  orderStatusOptions,
-  orderStatusFilterOptions,
-  orderStatusLabels,
-} from "@/lib/status";
+import { orderStatusOptions, orderStatusFilterOptions, orderStatusLabels } from "@/lib/status";
 import type { AdminVehicle, AdminOrder } from "@/types";
 import AdminOrderCreationModal from "@/components/admin/AdminOrderCreationModal.vue";
 import AdminVehicleOrderHistory from "@/components/admin/AdminVehicleOrderHistory.vue";
@@ -196,17 +192,11 @@ async function loadDocuments(vehicleId: string) {
     }
     // If no reports in vehicle orders, fetch via API
     else if (vehicle?.user_id) {
-      const ordersRes = await adminOrdersApi.listByUser(
-        vehicle.user_id,
-        1,
-        100,
-      );
+      const ordersRes = await adminOrdersApi.listByUser(vehicle.user_id, 1, 100);
       const allOrders = ordersRes.data || [];
 
       // Find orders for this specific vehicle
-      const vehicleOrders = allOrders.filter(
-        (order: any) => order.vehicle_id === vehicleId,
-      );
+      const vehicleOrders = allOrders.filter((order: any) => order.vehicle_id === vehicleId);
 
       // Extract report_documents from vehicle orders and convert to VehicleDocument format
       reportDocs = vehicleOrders.flatMap((order: any) =>
@@ -368,13 +358,9 @@ onBeforeUnmount(() => {
       style="box-shadow: 0 6px 22px rgba(16, 57, 59, 0.04)"
     >
       <!-- Card header -->
-      <div
-        class="flex items-start justify-between mb-4 shrink-0 gap-4 flex-wrap"
-      >
+      <div class="flex items-start justify-between mb-4 shrink-0 gap-4 flex-wrap">
         <div>
-          <h2
-            class="text-[20px] font-extrabold text-[#10393b] tracking-[-0.4px]"
-          >
+          <h2 class="text-[20px] font-extrabold text-[#10393b] tracking-[-0.4px]">
             {{
               userType === "all"
                 ? "Alle Fahrzeuge"
@@ -383,9 +369,7 @@ onBeforeUnmount(() => {
                   : "Privatkunden Fahrzeuge"
             }}
           </h2>
-          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">
-            {{ total }} Fahrzeuge gesamt
-          </p>
+          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">{{ total }} Fahrzeuge gesamt</p>
         </div>
 
         <!-- Summary chips -->
@@ -439,9 +423,7 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Table -->
-      <div
-        class="flex-1 overflow-auto rounded-[18px] border border-[#eef3f2] min-h-0"
-      >
+      <div class="flex-1 overflow-auto rounded-[18px] border border-[#eef3f2] min-h-0">
         <table class="min-w-full border-collapse">
           <thead class="sticky top-0 z-10">
             <tr class="bg-[#f8faf9]">
@@ -488,10 +470,7 @@ onBeforeUnmount(() => {
 
             <!-- Empty -->
             <tr v-else-if="!vehicles.length">
-              <td
-                colspan="6"
-                class="py-16 text-center text-[13px] text-[#9bb0af]"
-              >
+              <td colspan="6" class="py-16 text-center text-[13px] text-[#9bb0af]">
                 Keine Fahrzeuge gefunden.
               </td>
             </tr>
@@ -563,18 +542,14 @@ onBeforeUnmount(() => {
                     class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full"
                     :style="`background: ${getStatus(v.current_order_status).bg}; color: ${getStatus(v.current_order_status).fg}`"
                   >
-                    <span
-                      class="w-[5px] h-[5px] rounded-full bg-current"
-                    ></span>
+                    <span class="w-[5px] h-[5px] rounded-full bg-current"></span>
                     {{ getStatus(v.current_order_status).label }}
                   </span>
                   <span v-else class="text-[12px] text-[#9bb0af]">—</span>
                 </td>
 
                 <!-- Leasing end -->
-                <td
-                  class="px-5 py-3.5 text-[12.5px] text-[#9bb0af] tabular-nums"
-                >
+                <td class="px-5 py-3.5 text-[12.5px] text-[#9bb0af] tabular-nums">
                   {{ formatGermanDate(v.leasing_end_date) }}
                 </td>
 
@@ -585,10 +560,7 @@ onBeforeUnmount(() => {
                     <div class="relative">
                       <button
                         class="w-8 h-8 flex items-center justify-center rounded-[9px] text-[#bcccca] hover:bg-[#10393b]/10 hover:text-[#10393b] transition-all"
-                        @click.stop="
-                          openMenuId =
-                            openMenuId === v.vehicle_id ? null : v.vehicle_id
-                        "
+                        @click.stop="openMenuId = openMenuId === v.vehicle_id ? null : v.vehicle_id"
                       >
                         <svg
                           width="18"
@@ -629,9 +601,7 @@ onBeforeUnmount(() => {
                               <path
                                 d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                               />
-                              <path
-                                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                              />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
                             Status aktualisieren
                           </span>
@@ -652,9 +622,7 @@ onBeforeUnmount(() => {
                               <path
                                 d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
                               />
-                              <path
-                                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                              />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
                             Kein Auftrag vorhanden
                           </span>
@@ -736,9 +704,7 @@ onBeforeUnmount(() => {
                               stroke-width="2"
                             >
                               <path d="M9 11l3 3L22 4" />
-                              <path
-                                d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
-                              />
+                              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                             </svg>
                             Auftrag erstellen
                           </span>
@@ -756,9 +722,7 @@ onBeforeUnmount(() => {
                               stroke="currentColor"
                               stroke-width="2"
                             >
-                              <path
-                                d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                              ></path>
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                               <circle cx="12" cy="12" r="3"></circle>
                             </svg>
                             Details anzeigen

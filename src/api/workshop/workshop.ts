@@ -8,18 +8,12 @@ import type {
 
 export const workshopApi = {
   create(payload: WorkshopCreatePayload) {
-    return post<WorkshopCreateResponse, WorkshopCreatePayload>(
-      "/workshop/create",
-      payload,
-    );
+    return post<WorkshopCreateResponse, WorkshopCreatePayload>("/workshop/create", payload);
   },
   getByUserId(userId: string) {
     return get<WorkshopResponse>(`/workshop/user_id/${userId}`);
   },
   update(workshopId: string, payload: WorkshopUpdatePayload) {
-    return patch<string, WorkshopUpdatePayload>(
-      `/workshop/${workshopId}`,
-      payload,
-    );
+    return patch<string, WorkshopUpdatePayload>(`/workshop/${workshopId}`, payload);
   },
 };

@@ -40,10 +40,7 @@ export const useVehicleStore = defineStore("vehicle", () => {
 
       // Try to get vehicle_id from different possible keys
       let vehicleId: string | undefined =
-        response.vehicle_id ||
-        response.id ||
-        response.data?.vehicle_id ||
-        response.data?.id;
+        response.vehicle_id || response.id || response.data?.vehicle_id || response.data?.id;
       console.log("Extracted vehicleId:", vehicleId);
 
       if (!vehicleId) {

@@ -65,10 +65,7 @@ onMounted(async () => {
       <p class="text-gray-500">Laden...</p>
     </div>
     <div v-else class="flex-1 overflow-auto">
-      <B2BVehicleTable
-        :vehicles="vehicles"
-        @select="selectedVehicle = $event"
-      />
+      <B2BVehicleTable :vehicles="vehicles" @select="selectedVehicle = $event" />
     </div>
 
     <!-- Modals -->

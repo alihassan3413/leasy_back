@@ -2,11 +2,7 @@
 import { Icon } from "@iconify/vue";
 import { useField } from "vee-validate";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { useAppointmentCalendar } from "@/composables/useAppointmentCalendar";
 
@@ -17,6 +13,7 @@ interface Props {
   helpText?: string;
   minDaysAhead?: number;
   allowPast?: boolean;
+  blockWeekends?: boolean;
   inputHeight?: string;
   inputRounded?: string;
   inputClass?: string;
@@ -27,6 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
   helpText: "",
   minDaysAhead: 0,
   allowPast: false,
+  blockWeekends: false,
   inputHeight: "h-8.5",
   inputRounded: "rounded-[5px]",
   inputClass: "",
@@ -52,6 +50,7 @@ const {
 } = useAppointmentCalendar(value, {
   minDaysAhead: props.minDaysAhead,
   allowPast: props.allowPast,
+  blockWeekends: props.blockWeekends,
 });
 </script>
 
@@ -60,10 +59,7 @@ const {
     <label class="text-sm font-bold text-primary">
       {{ label }}
 
-      <span
-        v-if="helpText"
-        class="ml-1 text-[10px] font-normal text-green-gray"
-      >
+      <span v-if="helpText" class="ml-1 text-[10px] font-normal text-green-gray">
         {{ helpText }}
       </span>
     </label>
@@ -80,18 +76,11 @@ const {
             errorMessage ? 'border-red-400 bg-red-50' : '',
           ]"
         >
-          <span
-            :class="
-              selectedDateDisplay ? 'text-custom-black' : 'text-green-gray'
-            "
-          >
+          <span :class="selectedDateDisplay ? 'text-custom-black' : 'text-green-gray'">
             {{ selectedDateDisplay || placeholder }}
           </span>
 
-          <Icon
-            icon="material-symbols-light:calendar-month-outline"
-            class="text-lg text-primary"
-          />
+          <Icon icon="material-symbols-light:calendar-month-outline" class="text-lg text-primary" />
         </button>
       </PopoverTrigger>
 
@@ -113,10 +102,7 @@ const {
                 class="leading-none text-green-gray hover:text-primary"
                 @click="previousMonth"
               >
-                <Icon
-                  icon="material-symbols-light:keyboard-arrow-up"
-                  class="text-xl"
-                />
+                <Icon icon="material-symbols-light:keyboard-arrow-up" class="text-xl" />
               </button>
 
               <button
@@ -124,10 +110,7 @@ const {
                 class="-mt-2 leading-none text-green-gray hover:text-primary"
                 @click="nextMonth"
               >
-                <Icon
-                  icon="material-symbols-light:keyboard-arrow-down"
-                  class="text-xl"
-                />
+                <Icon icon="material-symbols-light:keyboard-arrow-down" class="text-xl" />
               </button>
             </div>
           </div>
@@ -145,10 +128,7 @@ const {
                 class="leading-none text-green-gray hover:text-primary"
                 @click="previousYear"
               >
-                <Icon
-                  icon="material-symbols-light:keyboard-arrow-up"
-                  class="text-xl"
-                />
+                <Icon icon="material-symbols-light:keyboard-arrow-up" class="text-xl" />
               </button>
 
               <button
@@ -156,37 +136,23 @@ const {
                 class="-mt-2 leading-none text-green-gray hover:text-primary"
                 @click="nextYear"
               >
-                <Icon
-                  icon="material-symbols-light:keyboard-arrow-down"
-                  class="text-xl"
-                />
+                <Icon icon="material-symbols-light:keyboard-arrow-down" class="text-xl" />
               </button>
             </div>
           </div>
 
-          <button
-            type="button"
-            class="ml-1 text-green-gray hover:text-primary"
-            @click="nextMonth"
-          >
-            <Icon
-              icon="material-symbols-light:keyboard-arrow-right"
-              class="text-3xl"
-            />
+          <button type="button" class="ml-1 text-green-gray hover:text-primary" @click="nextMonth">
+            <Icon icon="material-symbols-light:keyboard-arrow-right" class="text-3xl" />
           </button>
         </div>
 
-        <div
-          class="grid grid-cols-7 text-center text-[13px] font-bold text-custom-black"
-        >
+        <div class="grid grid-cols-7 text-center text-[13px] font-bold text-custom-black">
           <div v-for="dayHeader in dayHeaders" :key="dayHeader" class="pb-3">
             {{ dayHeader }}
           </div>
         </div>
 
-        <div
-          class="grid grid-cols-7 gap-y-2 text-center text-[13px] font-bold text-custom-black"
-        >
+        <div class="grid grid-cols-7 gap-y-2 text-center text-[13px] font-bold text-custom-black">
           <button
             v-for="(calendarDay, index) in calendarDays"
             :key="index"
@@ -196,8 +162,7 @@ const {
               'bg-custom-green text-white': isSelectedDay(calendarDay),
               'text-custom-black hover:border hover:border-custom-green':
                 !isSelectedDay(calendarDay) && isSelectableDay(calendarDay),
-              'cursor-not-allowed opacity-40 text-green-gray':
-                !isSelectableDay(calendarDay),
+              'cursor-not-allowed opacity-40 text-green-gray': !isSelectableDay(calendarDay),
             }"
             :disabled="!isSelectableDay(calendarDay)"
             @click="selectDay(calendarDay)"

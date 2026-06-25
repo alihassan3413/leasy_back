@@ -115,11 +115,7 @@ const onSubmit = handleSubmit(async (values) => {
           ]"
         />
 
-        <FormTextField
-          name="modell"
-          label="Modell"
-          placeholder="z.B. 3er oder Sonstige"
-        />
+        <FormTextField name="modell" label="Modell" placeholder="z.B. 3er oder Sonstige" />
       </div>
 
       <div class="flex justify-end gap-3 pt-6">

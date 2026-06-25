@@ -1,24 +1,27 @@
 <script setup lang="ts">
-import { useField } from 'vee-validate'
-import SelectDropDown from '../../form/SelectDropDown.vue'
+import { useField } from "vee-validate";
+import SelectDropDown from "../../form/SelectDropDown.vue";
 
-const props = withDefaults(defineProps<{
-  name: string
-  label: string
-  options: { label: string; value: string | number }[]
-  placeholder?: string
-  required?: boolean
-  disabled?: boolean
-  width?: string
-}>(), {
-  placeholder: 'Bitte wählen',
-  required: false,
-  disabled: false,
-})
+const props = withDefaults(
+  defineProps<{
+    name: string;
+    label: string;
+    options: { label: string; value: string | number }[];
+    placeholder?: string;
+    required?: boolean;
+    disabled?: boolean;
+    width?: string;
+  }>(),
+  {
+    placeholder: "Bitte wählen",
+    required: false,
+    disabled: false,
+  },
+);
 
-// useField connects this specific component to the Vee-Validate form 
+// useField connects this specific component to the Vee-Validate form
 // using the 'name' prop (e.g., "admin.anrede")
-const { value, errorMessage, meta } = useField<string>(() => props.name)
+const { value, errorMessage, meta } = useField<string>(() => props.name);
 </script>
 
 <template>
@@ -31,11 +34,8 @@ const { value, errorMessage, meta } = useField<string>(() => props.name)
       :width="width"
       :disabled="disabled"
     />
-    
-    <span 
-      v-if="meta.touched && errorMessage" 
-      class="text-red-500 text-xs mt-1 ml-2"
-    >
+
+    <span v-if="meta.touched && errorMessage" class="text-red-500 text-xs mt-1 ml-2">
       {{ errorMessage }}
     </span>
   </div>

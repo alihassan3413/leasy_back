@@ -1,5 +1,4 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 
 @import "tailwindcss";
 
@@ -10,9 +9,9 @@
 @theme {
   --color-custom-orange: #ef8450;
   --color-primary: #10393b;
-  --color-green-gray: #B7C2C2;
+  --color-green-gray: #b7c2c2;
   --color-custom-black: #2e3e3f;
-  --color-custom-green: #01B990;
+  --color-custom-green: #01b990;
 }
 
 *,
@@ -23,7 +22,7 @@
 
 body {
   margin: 0;
-  font-family: 'Manrope', system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: "Manrope", system-ui, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -101,7 +100,7 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --custom-green: #01B990;
+  --custom-green: #01b990;
 }
 
 .dark {
@@ -146,4 +145,3 @@ body {
     @apply bg-background text-foreground;
   }
 }
-

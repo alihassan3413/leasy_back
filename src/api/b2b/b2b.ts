@@ -9,17 +9,13 @@ import type {
 
 export const b2bApi = {
   create(payload: B2BCreateComapnyPayload) {
-    return post<B2BCreateResponse, B2BCreateComapnyPayload>(
-      "/b2b/create",
-      payload,
-    );
+    return post<B2BCreateResponse, B2BCreateComapnyPayload>("/b2b/create", payload);
   },
 
   uploadLogo(file: File) {
     const formData = new FormData();
     formData.append("file", file);
-    return post<B2BLogoUploadResponse, FormData>(
-      "/image/logos/upload", formData, {
+    return post<B2BLogoUploadResponse, FormData>("/image/logos/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

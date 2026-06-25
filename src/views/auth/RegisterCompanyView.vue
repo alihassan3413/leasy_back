@@ -3,7 +3,7 @@ import CompanyRegister from "@/components/company/Register.vue";
 import CompanyAdminRegistration from "@/components/company/AdminRegistration.vue";
 import Button from "@/components/ui/Button.vue";
 import { useB2BStore } from "@/stores/b2b.store";
-import { useAuthStore } from '@/stores/auth.store'
+import { useAuthStore } from "@/stores/auth.store";
 import { useForm } from "vee-validate";
 import { b2bSchema } from "@/validations/b2b.validation";
 import RegisterLayout from "@/layouts/RegisterLayout.vue";
@@ -11,13 +11,13 @@ import RegisterLayout from "@/layouts/RegisterLayout.vue";
 const b2bStore = useB2BStore();
 const authStore = useAuthStore();
 const router = useRouter();
-const showSuccess = ref(false)
+const showSuccess = ref(false);
 
 const logoFile = ref<File | null>(null);
 
-  function onLogoChange(file: File | null): void {
-    logoFile.value = file;
-  }
+function onLogoChange(file: File | null): void {
+  logoFile.value = file;
+}
 
 interface FormValues {
   company: {
@@ -71,7 +71,7 @@ const onSubmit = handleSubmit(async (formValues) => {
 
     if (logoFile.value) {
       uploadedLogoUrl = await b2bStore.uploadLogo(logoFile.value);
-    }    
+    }
 
     const payload = {
       company_name: formValues.company.firmenname,
@@ -106,26 +106,24 @@ const onSubmit = handleSubmit(async (formValues) => {
 });
 
 function skipOnboarding(): void {
-  b2bStore.error = ''
-  b2bStore.status = 'idle'
-  void router.push({ name: 'dashboard-b2b' })
+  b2bStore.error = "";
+  b2bStore.status = "idle";
+  void router.push({ name: "dashboard-b2b" });
 }
 
 async function onSuccessOk(): Promise<void> {
-  showSuccess.value = false
-  await router.push({ name: 'dashboard-b2b' })
+  showSuccess.value = false;
+  await router.push({ name: "dashboard-b2b" });
 }
 </script>
 
 <template>
   <RegisterLayout>
-
     <h1 class="text-white text-[32px] font-bold leading-normal not-italic">
       Firmenkunden - Registration
     </h1>
 
     <div class="flex mt-10 gap-7">
-
       <p class="text-white text-sm leading-normal not-italic font-normal">
         Sie sind bereits LeasyBack Kunde?
       </p>
@@ -139,13 +137,10 @@ async function onSuccessOk(): Promise<void> {
     </div>
 
     <form @submit.prevent="onSubmit" class="w-full">
-
       <CompanyRegister @logo-change="onLogoChange" />
 
       <CompanyAdminRegistration>
-
         <template #submit-button>
-
           <Button
             type="button"
             variant="outline"
@@ -161,22 +156,17 @@ async function onSuccessOk(): Promise<void> {
           >
             Jetzt Registrieren
           </Button>
-
         </template>
-
       </CompanyAdminRegistration>
-
     </form>
-
   </RegisterLayout>
-    <AppModal
-        :open="showSuccess"
-        title="Vielen Dank!"
-        message="Ihre Registrierung war erfolgreich. Sie werden zum Dashboard weitergeleitet."
-        icon="material-symbols:check-circle-outline"
-        confirm-text="OK"
-        @confirm="onSuccessOk"
-        @close="onSuccessOk"
-      />
-
+  <AppModal
+    :open="showSuccess"
+    title="Vielen Dank!"
+    message="Ihre Registrierung war erfolgreich. Sie werden zum Dashboard weitergeleitet."
+    icon="material-symbols:check-circle-outline"
+    confirm-text="OK"
+    @confirm="onSuccessOk"
+    @close="onSuccessOk"
+  />
 </template>

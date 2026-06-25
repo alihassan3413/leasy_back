@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import ProgressBar from '@/components/registration/b2c/ProgressBar.vue'
+import ProgressBar from "@/components/registration/b2c/ProgressBar.vue";
 
 defineProps<{
-  title: string
-  currentStep: number
-  totalSteps?: number
-}>()
+  title: string;
+  currentStep: number;
+  totalSteps?: number;
+}>();
 </script>
 
 <template>
@@ -37,7 +37,9 @@ defineProps<{
     />
 
     <!-- Content column -->
-    <div class="relative z-10 mx-auto flex min-h-screen max-w-[720px] flex-col items-stretch px-6 pt-16 pb-10">
+    <div
+      class="relative z-10 mx-auto flex min-h-screen max-w-[720px] flex-col items-stretch px-6 pt-16 pb-10"
+    >
       <h1 class="text-[28px] font-bold leading-tight text-white md:text-[32px]">
         {{ title }}
       </h1>

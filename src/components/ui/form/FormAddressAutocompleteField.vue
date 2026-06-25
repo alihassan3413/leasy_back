@@ -29,8 +29,7 @@ const emit = defineEmits<{
   resolved: [address: ResolvedPlaceAddress];
 }>();
 
-const { value, errorMessage, meta, handleChange, handleBlur } =
-  useField<string>(() => props.name);
+const { value, errorMessage, meta, handleChange, handleBlur } = useField<string>(() => props.name);
 
 const { autocomplete, getPlaceDetails } = useGooglePlaces();
 
@@ -82,8 +81,7 @@ const onKeydown = (e: KeyboardEvent) => {
   } else if (e.key === "ArrowUp") {
     e.preventDefault();
     activeIndex.value =
-      (activeIndex.value - 1 + suggestions.value.length) %
-      suggestions.value.length;
+      (activeIndex.value - 1 + suggestions.value.length) % suggestions.value.length;
   } else if (e.key === "Enter") {
     if (activeIndex.value >= 0) {
       e.preventDefault();
@@ -115,9 +113,7 @@ onBeforeUnmount(() => {
       class="text-sm font-bold leading-normal text-black not-italic"
     >
       {{ label }}
-      <span
-        v-if="required"
-        class="text-sm font-bold leading-normal text-custom-orange not-italic"
+      <span v-if="required" class="text-sm font-bold leading-normal text-custom-orange not-italic"
         >*</span
       >
     </Label>
@@ -162,10 +158,7 @@ onBeforeUnmount(() => {
           @mouseenter="activeIndex = i"
         >
           <div class="flex items-start gap-2">
-            <Icon
-              icon="mdi:map-marker-outline"
-              class="mt-0.5 size-4 shrink-0 text-custom-green"
-            />
+            <Icon icon="mdi:map-marker-outline" class="mt-0.5 size-4 shrink-0 text-custom-green" />
             <div class="min-w-0">
               <p class="truncate font-semibold text-[#10393B]">
                 {{ s.mainText }}

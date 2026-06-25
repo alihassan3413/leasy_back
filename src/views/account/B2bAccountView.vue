@@ -43,9 +43,7 @@ const scrollTo = (id: string) => {
             Einstellungen
           </p>
         </div>
-        <h1 class="text-[26px] font-bold leading-tight text-[#10393B]">
-          Mein Konto
-        </h1>
+        <h1 class="text-[26px] font-bold leading-tight text-[#10393B]">Mein Konto</h1>
       </header>
 
       <div class="flex items-start gap-8">
@@ -99,7 +97,11 @@ const scrollTo = (id: string) => {
               <Icon
                 :icon="s.icon"
                 class="size-[18px] shrink-0 transition-colors"
-                :class="activeSection === s.id ? 'text-custom-green' : 'text-[#9CB3B4] group-hover:text-custom-green'"
+                :class="
+                  activeSection === s.id
+                    ? 'text-custom-green'
+                    : 'text-[#9CB3B4] group-hover:text-custom-green'
+                "
               />
               {{ s.label }}
             </button>

@@ -22,9 +22,7 @@ const fullName = computed(() => {
 const initials = computed(() => {
   const c = b2cStore.profile?.contact;
   if (!c) return "•";
-  return (
-    ((c.first_name?.[0] ?? "") + (c.last_name?.[0] ?? "")).toUpperCase() || "•"
-  );
+  return ((c.first_name?.[0] ?? "") + (c.last_name?.[0] ?? "")).toUpperCase() || "•";
 });
 
 const sections = [
@@ -46,9 +44,7 @@ const activeSection = ref("kontodaten");
 
 const scrollTo = (id: string) => {
   activeSection.value = id;
-  document
-    .getElementById(id)
-    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 </script>
 
@@ -59,30 +55,22 @@ const scrollTo = (id: string) => {
       <header class="mb-6 sm:mb-8">
         <div class="flex items-center gap-2 mb-1.5">
           <span class="h-px w-4 bg-custom-green"></span>
-          <p
-            class="text-[11px] font-bold uppercase tracking-[0.2em] text-custom-green"
-          >
+          <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-custom-green">
             Einstellungen
           </p>
         </div>
-        <h1
-          class="text-[22px] sm:text-[26px] font-bold leading-tight text-[#10393B]"
-        >
+        <h1 class="text-[22px] sm:text-[26px] font-bold leading-tight text-[#10393B]">
           Mein Konto
         </h1>
       </header>
 
       <!-- Mobile identity card + section nav -->
       <div class="mb-6 lg:hidden">
-        <div
-          class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm"
-        >
+        <div class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm">
           <div
             class="h-[60px] sm:h-[80px] bg-linear-to-br from-[#10393B] via-[#155254] to-[#1e6568]"
           />
-          <div
-            class="-mt-8 sm:-mt-10 flex flex-col items-center px-4 sm:px-5 pb-4 sm:pb-6"
-          >
+          <div class="-mt-8 sm:-mt-10 flex flex-col items-center px-4 sm:px-5 pb-4 sm:pb-6">
             <div
               class="flex size-[64px] sm:size-[76px] items-center justify-center overflow-hidden rounded-full border-[3px] border-white bg-custom-green text-lg sm:text-xl font-bold text-white shadow-lg"
             >
@@ -94,14 +82,10 @@ const scrollTo = (id: string) => {
               />
               <span v-else>{{ initials }}</span>
             </div>
-            <p
-              class="mt-3 max-w-full truncate text-[14px] sm:text-[15px] font-bold text-[#10393B]"
-            >
+            <p class="mt-3 max-w-full truncate text-[14px] sm:text-[15px] font-bold text-[#10393B]">
               {{ fullName || "—" }}
             </p>
-            <p
-              class="max-w-full truncate text-[11px] sm:text-[12px] text-[#7A9699]"
-            >
+            <p class="max-w-full truncate text-[11px] sm:text-[12px] text-[#7A9699]">
               {{ b2cStore.profile?.email }}
             </p>
           </div>
@@ -129,12 +113,8 @@ const scrollTo = (id: string) => {
       <div class="flex items-start gap-6 lg:gap-8">
         <!-- ── Identity rail (desktop only) ───────────────────────────── -->
         <aside class="sticky top-8 hidden w-[264px] shrink-0 lg:block">
-          <div
-            class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm"
-          >
-            <div
-              class="h-[80px] bg-linear-to-br from-[#10393B] via-[#155254] to-[#1e6568]"
-            />
+          <div class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm">
+            <div class="h-[80px] bg-linear-to-br from-[#10393B] via-[#155254] to-[#1e6568]" />
             <div class="-mt-10 flex flex-col items-center px-5 pb-6">
               <div
                 class="flex size-[76px] items-center justify-center overflow-hidden rounded-full border-[3px] border-white bg-custom-green text-xl font-bold text-white shadow-lg"
@@ -147,9 +127,7 @@ const scrollTo = (id: string) => {
                 />
                 <span v-else>{{ initials }}</span>
               </div>
-              <p
-                class="mt-3 max-w-full truncate text-[15px] font-bold text-[#10393B]"
-              >
+              <p class="mt-3 max-w-full truncate text-[15px] font-bold text-[#10393B]">
                 {{ fullName || "—" }}
               </p>
               <p class="max-w-full truncate text-[12px] text-[#7A9699]">

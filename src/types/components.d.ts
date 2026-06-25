@@ -126,6 +126,7 @@ declare module 'vue' {
     FormSelectField: typeof import('./../components/ui/form/FormSelectField.vue')['default']
     FormTextField: typeof import('./../components/ui/form/FormTextField.vue')['default']
     FormTextInput: typeof import('./../components/ui/form/TextInput.vue')['default']
+    FormTimePicker: typeof import('./../components/ui/form/TimePicker.vue')['default']
     Input: typeof import('./../components/ui/input/Input.vue')['default']
     Label: typeof import('./../components/ui/label/Label.vue')['default']
     NativeSelect: typeof import('./../components/ui/native-select/NativeSelect.vue')['default']

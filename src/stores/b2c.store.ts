@@ -35,9 +35,7 @@ export const useB2CStore = defineStore("b2c", () => {
       error.value = apiError.message;
       status.value = "error";
       // Don't rethrow 404 errors, only other errors
-      if (
-        !(err.status === 404 || (err.response && err.response.status === 404))
-      ) {
+      if (!(err.status === 404 || (err.response && err.response.status === 404))) {
         throw err;
       }
     }

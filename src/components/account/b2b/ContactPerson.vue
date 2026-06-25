@@ -84,7 +84,11 @@ const onSubmit = handleSubmit(async (formValues) => {
       international_prefix: formValues.prefix,
       primary_phone_number: formValues.phone,
       phone_numbers: [
-        { international_prefix: formValues.prefix, phone_number: formValues.phone, is_primary_contact: true },
+        {
+          international_prefix: formValues.prefix,
+          phone_number: formValues.phone,
+          is_primary_contact: true,
+        },
         ...nonPrimaryPhones,
       ],
     },
@@ -160,17 +164,23 @@ const cancelEdit = () => {
           </p>
           <div class="mt-3 grid grid-cols-1 gap-y-2 sm:grid-cols-2">
             <div>
-              <span class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">E-Mail</span>
+              <span class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+                >E-Mail</span
+              >
               <p class="mt-0.5 break-all text-[13px] font-medium text-[#10393B]">
                 {{ b2bStore.profile?.contact_email || "—" }}
               </p>
             </div>
             <div>
-              <span class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">Telefon</span>
+              <span class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+                >Telefon</span
+              >
               <p class="mt-0.5 text-[13px] font-medium text-[#10393B]">
                 {{
                   (() => {
-                    const p = b2bStore.profile?.contact?.phone_numbers?.find((n) => n.is_primary_contact);
+                    const p = b2bStore.profile?.contact?.phone_numbers?.find(
+                      (n) => n.is_primary_contact,
+                    );
                     return p ? `${p.international_prefix} ${p.phone_number}` : "—";
                   })()
                 }}

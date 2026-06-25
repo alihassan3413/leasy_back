@@ -1,48 +1,48 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { Icon } from "@iconify/vue";
 
 interface Props {
-  open: boolean
-  title?: string
-  message?: string
-  icon?: string
-  confirmText?: string
-  cancelText?: string
-  showCancel?: boolean
-  confirmButtonClass?: string
-  cancelButtonClass?: string
+  open: boolean;
+  title?: string;
+  message?: string;
+  icon?: string;
+  confirmText?: string;
+  cancelText?: string;
+  showCancel?: boolean;
+  confirmButtonClass?: string;
+  cancelButtonClass?: string;
 }
 
 withDefaults(defineProps<Props>(), {
-  title: '',
-  message: '',
-  icon: 'material-symbols-light:info-outline',
-  confirmText: 'OK',
-  cancelText: 'Abbrechen',
+  title: "",
+  message: "",
+  icon: "material-symbols-light:info-outline",
+  confirmText: "OK",
+  cancelText: "Abbrechen",
   showCancel: false,
   confirmButtonClass:
-    'rounded-[5px] px-10 py-2 text-sm font-bold !bg-custom-green text-white cursor-pointer',
+    "rounded-[5px] px-10 py-2 text-sm font-bold !bg-custom-green text-white cursor-pointer",
   cancelButtonClass:
-    'rounded-[5px] px-10 py-2 text-sm font-bold !bg-custom-orange text-white cursor-pointer',
-})
+    "rounded-[5px] px-10 py-2 text-sm font-bold !bg-custom-orange text-white cursor-pointer",
+});
 
 const emit = defineEmits<{
-  close: []
-  confirm: []
-  cancel: []
-}>()
+  close: [];
+  confirm: [];
+  cancel: [];
+}>();
 
 function handleConfirm(): void {
-  emit('confirm')
+  emit("confirm");
 }
 
 function handleCancel(): void {
-  emit('cancel')
-  emit('close')
+  emit("cancel");
+  emit("close");
 }
 
 function handleClose(): void {
-  emit('close')
+  emit("close");
 }
 </script>
 
@@ -55,23 +55,13 @@ function handleClose(): void {
         @click.self="handleClose"
       >
         <div class="w-full max-w-sm rounded-[5px] bg-[#ECECEC] p-6 text-center shadow-lg">
-          <Icon
-            v-if="icon"
-            :icon="icon"
-            class="mx-auto mb-2 text-4xl text-custom-green"
-          />
+          <Icon v-if="icon" :icon="icon" class="mx-auto mb-2 text-4xl text-custom-green" />
 
-          <h3
-            v-if="title"
-            class="mb-2 font-bold text-custom-black"
-          >
+          <h3 v-if="title" class="mb-2 font-bold text-custom-black">
             {{ title }}
           </h3>
 
-          <p
-            v-if="message"
-            class="mb-5 text-sm text-custom-black"
-          >
+          <p v-if="message" class="mb-5 text-sm text-custom-black">
             {{ message }}
           </p>
 
@@ -87,11 +77,7 @@ function handleClose(): void {
               {{ cancelText }}
             </button>
 
-            <button
-              type="button"
-              :class="confirmButtonClass"
-              @click="handleConfirm"
-            >
+            <button type="button" :class="confirmButtonClass" @click="handleConfirm">
               {{ confirmText }}
             </button>
           </div>

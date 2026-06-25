@@ -58,9 +58,7 @@ const cancelEdit = () => {
     <div class="flex items-center justify-between border-b border-[#EDF2F2] px-8 py-5">
       <div>
         <h2 class="text-[17px] font-bold text-[#10393B]">Passwort &amp; Anmeldung</h2>
-        <p class="mt-0.5 text-[13px] text-[#7A9699]">
-          E-Mail-Adresse und Passwort Ihres Kontos
-        </p>
+        <p class="mt-0.5 text-[13px] text-[#7A9699]">E-Mail-Adresse und Passwort Ihres Kontos</p>
       </div>
 
       <button
@@ -104,9 +102,7 @@ const cancelEdit = () => {
           <dt class="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
             Passwort
           </dt>
-          <dd class="mt-1.5 text-xl tracking-[0.3em] text-[#9CB3B4]">
-            ••••••••••
-          </dd>
+          <dd class="mt-1.5 text-xl tracking-[0.3em] text-[#9CB3B4]">••••••••••</dd>
         </div>
       </dl>
     </div>

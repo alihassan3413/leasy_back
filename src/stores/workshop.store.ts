@@ -1,19 +1,24 @@
-import { defineStore } from 'pinia'
-import { normalizeApiError } from '@/api/client/error'
-import type {WorkshopCreatePayload,WorkshopCreateResponse, WorkshopResponse,WorkshopUpdatePayload} from '@/types'
-import { workshopApi } from '@/api/workshop/workshop'
-import { ref } from 'vue'
+import { defineStore } from "pinia";
+import { normalizeApiError } from "@/api/client/error";
+import type {
+  WorkshopCreatePayload,
+  WorkshopCreateResponse,
+  WorkshopResponse,
+  WorkshopUpdatePayload,
+} from "@/types";
+import { workshopApi } from "@/api/workshop/workshop";
+import { ref } from "vue";
 
-type Status = 'idle' | 'loading' | 'success' | 'error'
+type Status = "idle" | "loading" | "success" | "error";
 
-export const useWorkshopStore = defineStore('workshop', () => {
-  const status = ref<Status>('idle')
-  const error = ref('')
-  const profile = ref<WorkshopCreateResponse | null>(null)
+export const useWorkshopStore = defineStore("workshop", () => {
+  const status = ref<Status>("idle");
+  const error = ref("");
+  const profile = ref<WorkshopCreateResponse | null>(null);
 
   async function create(payload: WorkshopCreatePayload) {
-    status.value = 'loading'
-    error.value = ''
+    status.value = "loading";
+    error.value = "";
 
     try {
       const res = await workshopApi.create(payload);
@@ -57,10 +62,7 @@ export const useWorkshopStore = defineStore('workshop', () => {
     }
   }
 
-  async function updateWorkshop(
-    workshopId: string,
-    payload: WorkshopUpdatePayload,
-  ) {
+  async function updateWorkshop(workshopId: string, payload: WorkshopUpdatePayload) {
     status.value = "loading";
     error.value = "";
 

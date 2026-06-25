@@ -84,9 +84,7 @@ const roleLabel = computed(() => {
 });
 
 const userName = computed(() => {
-  const fullName = [user.value?.firstName, user.value?.lastName]
-    .filter(Boolean)
-    .join(" ");
+  const fullName = [user.value?.firstName, user.value?.lastName].filter(Boolean).join(" ");
   if (fullName) return fullName;
   if (user.value?.email) return user.value.email;
   return "";
@@ -183,9 +181,7 @@ watch(
     </button>
 
     <!-- ── NAV — takes all remaining vertical space, scrolls if needed ── -->
-    <nav
-      class="flex-1 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden min-h-0 pr-0.5"
-    >
+    <nav class="flex-1 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden min-h-0 pr-0.5">
       <p
         v-if="!collapsed"
         class="text-[10px] font-bold text-white/25 uppercase tracking-[0.13em] px-3 mb-2 mt-1 shrink-0"
@@ -254,14 +250,10 @@ watch(
           stroke-width="2"
           class="shrink-0"
         >
-          <path
-            d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"
-          />
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
         </svg>
         <transition name="lb-fade">
-          <span v-if="!collapsed" class="text-[13px] font-medium"
-            >Ausloggen</span
-          >
+          <span v-if="!collapsed" class="text-[13px] font-medium">Ausloggen</span>
         </transition>
         <span
           v-if="collapsed"

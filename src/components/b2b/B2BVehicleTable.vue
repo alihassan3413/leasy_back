@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import B2BVehicleRow from './B2BVehicleRow.vue'
-import type { Vehicle } from '@/components/dashboard/vehicle.types'
+import B2BVehicleRow from "./B2BVehicleRow.vue";
+import type { Vehicle } from "@/components/dashboard/vehicle.types";
 
 defineProps<{
-  vehicles: Vehicle[]
-}>()
+  vehicles: Vehicle[];
+}>();
 
 const emit = defineEmits<{
-  select: [vehicle: Vehicle | null]
-}>()
+  select: [vehicle: Vehicle | null];
+}>();
 
-const expandedId = ref<string | null>(null)
+const expandedId = ref<string | null>(null);
 
 function handleToggle(vehicle: Vehicle) {
   if (expandedId.value === vehicle.id) {
-    expandedId.value = null
-    emit('select', null)
+    expandedId.value = null;
+    emit("select", null);
   } else {
-    expandedId.value = vehicle.id
-    emit('select', vehicle)
+    expandedId.value = vehicle.id;
+    emit("select", vehicle);
   }
 }
 </script>
@@ -27,9 +27,7 @@ function handleToggle(vehicle: Vehicle) {
   <div class="rounded-[12px] overflow-hidden border border-gray-100 shadow-sm">
     <Table>
       <TableHeader>
-        <TableRow
-          style="background-color: #01B990; height: 44px"
-        >
+        <TableRow style="background-color: #01b990; height: 44px">
           <TableHead class="px-4 text-[13px] font-medium text-white">Kennzeichen</TableHead>
           <TableHead class="px-4 text-[13px] font-medium text-white">Modell</TableHead>
           <TableHead class="px-4 text-[13px] font-medium text-white">Leasingende</TableHead>

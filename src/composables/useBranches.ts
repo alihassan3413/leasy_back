@@ -129,9 +129,7 @@ export function useBranches(
   const allBranches = computed(() => {
     const branchesList = Object.values(branches);
     if (!selectedService?.value) return branchesList;
-    return branchesList.filter(
-      (branch) => branch.service === selectedService.value,
-    );
+    return branchesList.filter((branch) => branch.service === selectedService.value);
   });
 
   const selectedBranch = computed(() => {

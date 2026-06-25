@@ -13,8 +13,6 @@ export const customerOffersApi = {
   // POST /vehicle/offers/customer/select/{offer_id}
   // Selects an offer. Only B2B/B2C customers select; admins only publish.
   select(offerId: string): Promise<unknown> {
-    return post(
-      `/vehicle/offers/customer/select/${encodeURIComponent(offerId)}`,
-    );
+    return post(`/vehicle/offers/customer/select/${encodeURIComponent(offerId)}`);
   },
 };
