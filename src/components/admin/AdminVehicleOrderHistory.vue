@@ -45,43 +45,6 @@ const realOffers = ref<Offer[]>([]);
 const offersLoading = ref(false);
 const openOfferMenu = ref<string | null>(null);
 
-// Mock data for offers if backend doesn't provide any
-const mockOffers: any[] = [
-  {
-    id: "01",
-    name: "Göhler Werkstatt",
-    cost: 1866,
-    saving: 36,
-    address: "Musterstraße 123, 12345 Berlin",
-    distance: "227km distance",
-    recommended: false,
-    accepted: false,
-    originalOffer: null,
-  },
-  {
-    id: "02",
-    name: "HanseMerkur",
-    cost: 2555,
-    saving: 85,
-    address: "Beispielstraße 456, 67890 Hamburg",
-    distance: "406km distance",
-    recommended: false,
-    accepted: false,
-    originalOffer: null,
-  },
-  {
-    id: "03",
-    name: "ATU Lüneburg",
-    cost: 1755,
-    saving: 59,
-    address: "Teststraße 789, 21337 Lüneburg",
-    distance: "405km distance",
-    recommended: true,
-    accepted: true,
-    originalOffer: null,
-  },
-];
-
 // Fetch offers when we have an order with auftragsnummer
 async function fetchOffers(auftragsnummer: string) {
   if (!auftragsnummer) return;
@@ -290,8 +253,10 @@ const offersData = computed(() => {
       originalOffer: offer,
     }));
   }
-  return mockOffers;
+  return [];
 });
+
+const hasOffers = computed(() => offersData.value.length > 0);
 
 const acceptedOffer = computed(() => {
   return offersData.value.find((o) => o.accepted);
@@ -567,8 +532,26 @@ async function publishDocument(documentId: string) {
                 </p>
               </div>
 
+              <!-- Empty state -->
+              <div
+                v-if="!hasOffers"
+                class="flex flex-col items-center justify-center gap-2 px-6 py-8 text-center"
+              >
+                <Icon
+                  icon="mdi:file-document-outline"
+                  class="size-8"
+                  style="color: #cbd5e1"
+                />
+                <p class="text-[14px] font-semibold" style="color: #2e3e3f">
+                  Keine Angebote
+                </p>
+                <p class="text-[12px]" style="color: #b7c2c2">
+                  Bitte zuerst ein Angebot erstellen.
+                </p>
+              </div>
+
               <!-- Offer rows -->
-              <div class="flex flex-col gap-5 px-6 overflow-visible">
+              <div v-else class="flex flex-col gap-5 px-6 overflow-visible">
                 <div
                   v-for="offer in offersData"
                   :key="offer.id"
@@ -753,7 +736,7 @@ async function publishDocument(documentId: string) {
               </div>
 
               <!-- Accept button -->
-              <div class="mt-6 px-6 pb-6">
+              <div v-if="hasOffers" class="mt-6 px-6 pb-6">
                 <button
                   class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
                   style="background: #e0e0e0; color: #9e9e9e"
