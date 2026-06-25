@@ -165,9 +165,14 @@ const timelineData = computed(() => {
       if (order.report_documents) {
         order.report_documents.forEach((doc) => {
           if (doc.document_title.toLowerCase() === "gutachten") {
-            const docUrl =
-              doc.s3_url ||
-              `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`;
+            // Backend sends an s3:// URI — convert it to a browser-openable
+            // https URL: s3://bucket/key -> https://bucket.s3.amazonaws.com/key
+            const docUrl = doc.s3_url
+              ? doc.s3_url.replace(
+                  /^s3:\/\/([^/]+)\//,
+                  "https://$1.s3.amazonaws.com/",
+                )
+              : `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`;
             itemsWithDates.push({
               date: new Date(doc.created_at),
               datetime:
