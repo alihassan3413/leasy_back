@@ -28,12 +28,22 @@ const documents = ref<VehicleDocument[]>([]);
 const documentType = ref("gutachten");
 const documentTitle = ref("Gutachten");
 
+// Canonical lowercase document_type values — these drive the grouping/heading in
+// the Vehicle Docs panel (AdminVehicleOrderHistory), so they must match the keys
+// in its DOCUMENT_TYPE_LABELS map.
 const documentTypeOptions = [
-  { label: "Leasingvertrag", value: "Leasingvertrag" },
+  { label: "Leasingvertrag", value: "leasingvertrag" },
   { label: "Vorschaden", value: "vorschaden" },
   { label: "Gutachten", value: "gutachten" },
-  { label: "Sonstiges", value: "Sonstiges" },
+  { label: "Rechnung", value: "rechnung" },
+  { label: "Sonstiges", value: "sonstiges" },
 ];
+
+// Title shown for the document must match the selected type, otherwise the row
+// label in the Vehicle Docs panel contradicts the section it lands under.
+function titleForType(type: string): string {
+  return documentTypeOptions.find((o) => o.value === type)?.label ?? "";
+}
 
 function close() {
   emit("update:open", false);
@@ -89,21 +99,16 @@ async function uploadDocument() {
   uploadError.value = "";
 
   try {
-    // Ensure correct title based on document type
-    let title = "Gutachten";
-    // if (documentType.value === "gutachten") {
-    //   title = "Gutachten";
-    // } else if (documentType.value === "Leasingvertrag") {
-    //   title = "Leasingvertrag";
-    // } else if (documentType.value === "vorschaden") {
-    //   title = "Vorschaden";
-    // }
+    const title =
+      documentTitle.value ||
+      titleForType(documentType.value) ||
+      selectedFile.value.name;
 
     const newDoc = await adminVehiclesApi.uploadReport(
       props.auftragsnummer,
       props.vehicleId,
       documentType.value,
-      title ,
+      title,
       selectedFile.value,
       false,
     );
@@ -165,18 +170,10 @@ async function deleteDocument(documentId: string) {
   }
 }
 
-// Auto-set title based on document type
-// watch(documentType, (newType) => {
-//   if (newType === "gutachten") {
-//     documentTitle.value = "Gutachten";
-//   } else if (newType === "Leasingvertrag") {
-//     documentTitle.value = "Leasingvertrag";
-//   } else if (newType === "vorschaden") {
-//     documentTitle.value = "Vorschaden";
-//   } else {
-//     documentTitle.value = "";
-//   }
-// });
+// Keep the title in sync with the selected document type.
+watch(documentType, (newType) => {
+  documentTitle.value = titleForType(newType);
+});
 
 watch(
   () => props.open,

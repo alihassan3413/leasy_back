@@ -25,15 +25,25 @@ const selectedFile = ref<File | null>(null);
 const uploadError = ref("");
 const isLoading = ref(false);
 const documents = ref<VehicleDocument[]>([]);
-const documentType = ref("Sonstiges");
+const documentType = ref("rechnung");
 const documentTitle = ref("Rechnung");
 
+// Canonical lowercase document_type values — these drive the grouping/heading in
+// the Vehicle Docs panel (AdminVehicleOrderHistory), so they must match the keys
+// in its DOCUMENT_TYPE_LABELS map.
 const documentTypeOptions = [
-  { label: "Leasingvertrag", value: "Leasingvertrag" },
+  { label: "Leasingvertrag", value: "leasingvertrag" },
   { label: "Vorschaden", value: "vorschaden" },
   { label: "Gutachten", value: "gutachten" },
-  { label: "Sonstiges", value: "Sonstiges" },
+  { label: "Rechnung", value: "rechnung" },
+  { label: "Sonstiges", value: "sonstiges" },
 ];
+
+// Title shown for the document must match the selected type, otherwise the row
+// label in the Vehicle Docs panel contradicts the section it lands under.
+function titleForType(type: string): string {
+  return documentTypeOptions.find((o) => o.value === type)?.label ?? "";
+}
 
 function close() {
   emit("update:open", false);
@@ -93,7 +103,9 @@ async function uploadDocument() {
       props.auftragsnummer,
       props.vehicleId,
       documentType.value,
-      documentTitle.value || selectedFile.value.name,
+      documentTitle.value ||
+        titleForType(documentType.value) ||
+        selectedFile.value.name,
       selectedFile.value,
       false,
     );
@@ -155,24 +167,16 @@ async function deleteDocument(documentId: string) {
   }
 }
 
-// Auto-set title based on document type
-// watch(documentType, (newType) => {
-//   if (newType === "gutachten") {
-//     documentTitle.value = "Gutachten";
-//   } else if (newType === "Leasingvertrag") {
-//     documentTitle.value = "Leasingvertrag";
-//   } else if (newType === "vorschaden") {
-//     documentTitle.value = "Vorschaden";
-//   } else {
-//     documentTitle.value = "Rechnung";
-//   }
-// });
+// Keep the title in sync with the selected document type.
+watch(documentType, (newType) => {
+  documentTitle.value = titleForType(newType);
+});
 
 watch(
   () => props.open,
   async (open) => {
     if (open) {
-      documentType.value = "Sonstiges";
+      documentType.value = "rechnung";
       documentTitle.value = "Rechnung";
       selectedFile.value = null;
       await fetchDocuments();
