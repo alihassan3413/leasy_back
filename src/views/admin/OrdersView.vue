@@ -2,6 +2,7 @@
 import { computed, ref, watch, onMounted } from "vue";
 import { adminOrdersApi, vehicleApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
+import { orderStatusOptions, orderStatusFilterOptions } from "@/lib/status";
 import type { AdminOrder } from "@/types";
 import { toast } from "vue-sonner";
 import AdminChangeOrderStatusModal from "@/components/admin/AdminChangeOrderStatusModal.vue";
@@ -29,22 +30,10 @@ const selectedConfirmOrder = ref<AdminOrder | null>(null);
 // ── Status config ─────────────────────────────────────────────────
 const statusFilterOptions = [
   { label: "Alle", value: "" },
-  { label: "Anfrage gesendet", value: "order_requested" },
-  { label: "Bestellt", value: "order_placed" },
-  { label: "Bestätigt", value: "confirmed" },
-  { label: "Geprüft", value: "inspected" },
-  { label: "Geliefert", value: "delivered" },
-  { label: "Abgeschlossen", value: "completed" },
+  ...orderStatusFilterOptions,
 ];
 
-const modalStatusOptions = [
-  { value: "order_requested", label: "Anfrage gesendet" },
-  { value: "order_placed", label: "Bestellt" },
-  { value: "confirmed", label: "Bestätigt" },
-  { value: "inspected", label: "Geprüft" },
-  { value: "delivered", label: "Geliefert" },
-  { value: "completed", label: "Abgeschlossen" },
-];
+const modalStatusOptions = orderStatusOptions;
 
 const statusStyle: Record<string, { bg: string; fg: string; label: string }> = {
   order_requested: {
@@ -59,12 +48,25 @@ const statusStyle: Record<string, { bg: string; fg: string; label: string }> = {
   },
   confirmed: { label: "Bestätigt", bg: "rgba(99,102,241,0.1)", fg: "#4f46e5" },
   inspected: { label: "Geprüft", bg: "rgba(1,185,144,0.1)", fg: "#00856a" },
+  workshop: { label: "In Werkstatt", bg: "rgba(245,158,11,0.12)", fg: "#b45309" },
+  reinspection: {
+    label: "Nachprüfung",
+    bg: "rgba(124,58,237,0.1)",
+    fg: "#6d28d9",
+  },
+  reworkshop: {
+    label: "Erneut in Werkstatt",
+    bg: "rgba(234,88,12,0.1)",
+    fg: "#c2410c",
+  },
   delivered: { label: "Geliefert", bg: "rgba(16,57,59,0.08)", fg: "#10393b" },
   completed: {
     label: "Abgeschlossen",
     bg: "rgba(16,57,59,0.08)",
     fg: "#10393b",
   },
+  discarded: { label: "Verworfen", bg: "rgba(107,114,128,0.12)", fg: "#374151" },
+  cancelled: { label: "Storniert", bg: "rgba(220,38,38,0.1)", fg: "#991b1b" },
 };
 
 function getStatus(s: string | null | undefined) {

@@ -5,6 +5,7 @@ import type { AdminOrder } from "@/types";
 import { adminOrdersApi } from "@/api/modules/admin-orders.api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "vue-sonner";
+import { orderStatusLabels } from "@/lib/status";
 
 const props = defineProps<{
   open: boolean;
@@ -19,19 +20,7 @@ const emit = defineEmits<{
 const isLoading = ref(false);
 
 function getStatus(s: string | null | undefined) {
-  const statusStyle: Record<string, { label: string }> = {
-    order_requested: { label: "Anfrage gesendet" },
-    order_placed: { label: "Bestellt" },
-    confirmed: { label: "Bestätigt" },
-    inspected: { label: "Geprüft" },
-    delivered: { label: "Geliefert" },
-    completed: { label: "Abgeschlossen" },
-  };
-  return (
-    statusStyle[s ?? ""] ?? {
-      label: s ?? "—",
-    }
-  );
+  return { label: orderStatusLabels[s ?? ""] ?? s ?? "—" };
 }
 
 function close() {

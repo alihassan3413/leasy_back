@@ -4,6 +4,7 @@ import { Icon } from "@iconify/vue";
 import type { AdminOrder } from "@/types";
 import { adminOrdersApi } from "@/api/modules/admin-orders.api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { orderStatusOptions, orderStatusLabels } from "@/lib/status";
 
 const props = defineProps<{
   open: boolean;
@@ -16,17 +17,8 @@ const emit = defineEmits<{
   orderStatusUpdated: [];
 }>();
 
-const defaultStatusOptions = [
-  // { value: "pending", label: "Pending" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "inspected", label: "Inspected" },
-  { value: "delivered", label: "Delivered" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-];
-
 const activeStatusOptions = computed(
-  () => props.statusOptions ?? defaultStatusOptions,
+  () => props.statusOptions ?? orderStatusOptions,
 );
 
 const isLoading = ref(false);
@@ -35,19 +27,7 @@ const statusOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
 
 function getStatus(s: string | null | undefined) {
-  const statusStyle: Record<string, { label: string }> = {
-    order_requested: { label: "Anfrage gesendet" },
-    order_placed: { label: "Bestellt" },
-    confirmed: { label: "Bestätigt" },
-    inspected: { label: "Geprüft" },
-    delivered: { label: "Geliefert" },
-    completed: { label: "Abgeschlossen" },
-  };
-  return (
-    statusStyle[s ?? ""] ?? {
-      label: s ?? "—",
-    }
-  );
+  return { label: orderStatusLabels[s ?? ""] ?? s ?? "—" };
 }
 
 function handleClickOutside(event: MouseEvent) {
@@ -71,7 +51,15 @@ watch(
       newStatus.value = "";
       statusOpen.value = false;
     } else if (props.order) {
-      newStatus.value = props.order.order_status;
+      // Only prefill when the current status is itself a selectable option;
+      // legacy/non-settable values (e.g. order_placed, completed) stay empty so
+      // the admin must choose a valid status instead of re-sending an invalid one.
+      const current = props.order.order_status;
+      newStatus.value = activeStatusOptions.value.some(
+        (o) => o.value === current,
+      )
+        ? current
+        : "";
     }
   },
 );

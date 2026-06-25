@@ -111,6 +111,21 @@ const statusStyles: Record<
     background: 'rgba(1, 185, 144, 0.12)',
     color: '#00856a',
   },
+  workshop: {
+    label: 'In Werkstatt',
+    background: 'rgba(245, 158, 11, 0.12)',
+    color: '#b45309',
+  },
+  reinspection: {
+    label: 'Nachprüfung',
+    background: 'rgba(124, 58, 237, 0.12)',
+    color: '#6d28d9',
+  },
+  reworkshop: {
+    label: 'Erneut in Werkstatt',
+    background: 'rgba(234, 88, 12, 0.12)',
+    color: '#c2410c',
+  },
   delivered: {
     label: 'Geliefert',
     background: 'rgba(16, 57, 59, 0.09)',
@@ -120,6 +135,16 @@ const statusStyles: Record<
     label: 'Abgeschlossen',
     background: 'rgba(1, 185, 144, 0.12)',
     color: '#00856a',
+  },
+  discarded: {
+    label: 'Verworfen',
+    background: 'rgba(107, 114, 128, 0.12)',
+    color: '#374151',
+  },
+  cancelled: {
+    label: 'Storniert',
+    background: 'rgba(220, 38, 38, 0.10)',
+    color: '#991b1b',
   },
 }
 

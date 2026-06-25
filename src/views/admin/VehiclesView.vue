@@ -6,6 +6,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { adminVehiclesApi, vehicleApi, adminOrdersApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
+import {
+  orderStatusOptions,
+  orderStatusFilterOptions,
+  orderStatusLabels,
+} from "@/lib/status";
 import type { AdminVehicle, AdminOrder } from "@/types";
 import AdminOrderCreationModal from "@/components/admin/AdminOrderCreationModal.vue";
 import AdminVehicleOrderHistory from "@/components/admin/AdminVehicleOrderHistory.vue";
@@ -59,14 +64,7 @@ const openMenuId = ref<string | null>(null);
 // Status update modal
 const statusModalOpen = ref(false);
 const selectedOrderForStatus = ref<AdminOrder | null>(null);
-const modalStatusOptions = [
-  { label: "Anfrage gesendet", value: "order_requested" },
-  { label: "Bestellt", value: "order_placed" },
-  { label: "Bestätigt", value: "confirmed" },
-  { label: "Geprüft", value: "inspected" },
-  { label: "Geliefert", value: "delivered" },
-  { label: "Abgeschlossen", value: "completed" },
-];
+const modalStatusOptions = orderStatusOptions;
 // Upload document modals
 const uploadReportOpen = ref(false);
 const uploadInvoiceOpen = ref(false);
@@ -235,26 +233,27 @@ async function loadDocuments(vehicleId: string) {
 // ── Status config ─────────────────────────────────────────────────
 const statusOptions: { label: string; value: string }[] = [
   { label: "Alle", value: "" },
-  { label: "Bestellt", value: "order_placed" },
-  { label: "Bestätigt", value: "confirmed" },
-  { label: "Geprüft", value: "inspected" },
-  { label: "Geliefert", value: "delivered" },
-  { label: "Abgeschlossen", value: "completed" },
+  ...orderStatusFilterOptions,
 ];
 
 const statusStyle: Record<string, { bg: string; fg: string }> = {
+  order_requested: { bg: "rgba(59,130,246,0.1)", fg: "#3b82f6" },
   order_placed: { bg: "rgba(239,132,80,0.1)", fg: "#c0622e" },
   confirmed: { bg: "rgba(99,102,241,0.1)", fg: "#4f46e5" },
   inspected: { bg: "rgba(1,185,144,0.1)", fg: "#00856a" },
+  workshop: { bg: "rgba(245,158,11,0.12)", fg: "#b45309" },
+  reinspection: { bg: "rgba(124,58,237,0.1)", fg: "#6d28d9" },
+  reworkshop: { bg: "rgba(234,88,12,0.1)", fg: "#c2410c" },
   delivered: { bg: "rgba(16,57,59,0.08)", fg: "#10393b" },
   completed: { bg: "rgba(16,57,59,0.08)", fg: "#10393b" },
+  discarded: { bg: "rgba(107,114,128,0.12)", fg: "#374151" },
+  cancelled: { bg: "rgba(220,38,38,0.1)", fg: "#991b1b" },
 };
 
 function getStatus(s: string | null | undefined) {
   const key = s ?? "";
   const style = statusStyle[key] ?? { bg: "rgba(0,0,0,0.05)", fg: "#6b7280" };
-  const opt = statusOptions.find((o) => o.value === key);
-  return { ...style, label: opt?.label ?? s ?? "—" };
+  return { ...style, label: orderStatusLabels[key] ?? s ?? "—" };
 }
 
 // ── Pagination ────────────────────────────────────────────────────
