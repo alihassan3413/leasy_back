@@ -12,40 +12,6 @@ const editVehicleOpen = ref(false);
 const uploadDocsOpen = ref(false);
 const documents = ref<any[]>([]);
 
-// Mock offers for B2B in case there are no published offers
-const mockOffers: Offer[] = [
-  {
-    id: "01",
-    name: "Göhler Werkstatt",
-    cost: 1866,
-    saving: 36,
-    address: "Musterstraße 123, 12345 Berlin",
-    distance: "227km distance",
-    recommended: false,
-    accepted: false,
-  },
-  {
-    id: "02",
-    name: "HanseMerkur",
-    cost: 2555,
-    saving: 85,
-    address: "Beispielstraße 456, 67890 Hamburg",
-    distance: "406km distance",
-    recommended: false,
-    accepted: false,
-  },
-  {
-    id: "03",
-    name: "ATU Lüneburg",
-    cost: 1755,
-    saving: 59,
-    address: "Teststraße 789, 21073 Lüneburg",
-    distance: "405km distance",
-    recommended: true,
-    accepted: true,
-  },
-];
-
 // Published offers fetched from the customer offers endpoint
 const realOffers = ref<Offer[]>([]);
 const selectingOfferId = ref<string | null>(null);
@@ -108,12 +74,8 @@ async function confirmSelect() {
   }
 }
 
-const offersData = computed(() => {
-  if (realOffers.value.length > 0) {
-    return realOffers.value;
-  }
-  return mockOffers;
-});
+// Only real published offers are shown; no placeholder offers.
+const offersData = computed(() => realOffers.value);
 
 const acceptedOffer = computed(() => {
   return offersData.value.find((o) => o.accepted);

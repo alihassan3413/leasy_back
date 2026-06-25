@@ -16,41 +16,7 @@ const uploadDocsOpen = ref(false);
 const documents = ref<any[]>([]);
 const viewDocUrl = ref<string | null>(null);
 
-// Mock data for offers if backend doesn't provide any
-const mockOffers: Offer[] = [
-  {
-    id: "01",
-    name: "Göhler Werkstatt",
-    cost: 1866,
-    saving: 36,
-    address: "Musterstraße 123, 12345 Berlin",
-    distance: "227km distance",
-    recommended: false,
-    accepted: false,
-  },
-  {
-    id: "02",
-    name: "HanseMerkur",
-    cost: 2555,
-    saving: 85,
-    address: "Beispielstraße 456, 67890 Hamburg",
-    distance: "406km distance",
-    recommended: false,
-    accepted: false,
-  },
-  {
-    id: "03",
-    name: "ATU Lüneburg",
-    cost: 1755,
-    saving: 59,
-    address: "Teststraße 789, 21073 Lüneburg",
-    distance: "405km distance",
-    recommended: true,
-    accepted: true,
-  },
-];
-
-// Computed properties with fallback to mock data
+// Computed properties
 const timelineData = computed(() => {
   // Generate timeline from orders
   if (props.vehicle.orders && props.vehicle.orders.length > 0) {
@@ -254,12 +220,8 @@ async function confirmSelect() {
   }
 }
 
-const offersData = computed(() => {
-  if (realOffers.value.length > 0) {
-    return realOffers.value;
-  }
-  return mockOffers;
-});
+// Only real published offers are shown; no placeholder offers.
+const offersData = computed(() => realOffers.value);
 
 const acceptedOffer = computed(() => {
   return offersData.value.find((o) => o.accepted);
