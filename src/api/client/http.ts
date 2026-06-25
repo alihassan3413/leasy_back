@@ -2,43 +2,43 @@ import axios, {
   type AxiosInstance,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
-} from 'axios'
+} from "axios";
 
-import { authConfig } from './auth'
+import { authConfig } from "./auth";
 
 const http: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: 15000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-})
+});
 
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  if (config.skipAuth) return config
+  if (config.skipAuth) return config;
 
-  const token = authConfig().getAccessToken()
+  const token = authConfig().getAccessToken();
 
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+    config.headers.Authorization = `Bearer ${token}`;
   }
 
-  return config
-})
+  return config;
+});
 
 http.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: unknown) => {
     if (!axios.isAxiosError(error)) {
-      throw error
+      throw error;
     }
 
     if (error.response?.status === 401 && !error.config?.skipAuth) {
-      authConfig().onAuthFailure()
+      authConfig().onAuthFailure();
     }
 
-    throw error
+    throw error;
   },
-)
+);
 
-export default http
+export default http;

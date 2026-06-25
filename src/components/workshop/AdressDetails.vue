@@ -35,20 +35,13 @@ const internatOptions = [
         </div>
 
         <div class="grid grid-cols-[2fr_100px] gap-3">
-          <FormTextField
-            name="address.strasse"
-            label="Straße (kein Postfach)"
-            required
-          />
+          <FormTextField name="address.strasse" label="Straße (kein Postfach)" required />
 
           <FormTextField name="address.nr" label="Nr." required />
         </div>
 
         <div>
-          <FormTextField
-            name="address.zusaetzlicheAnschrift"
-            label="Adresszusatz (z.B. Etage)"
-          />
+          <FormTextField name="address.zusaetzlicheAnschrift" label="Adresszusatz (z.B. Etage)" />
         </div>
 
         <div class="grid grid-cols-[100px_1fr_1fr] gap-3 items-end">
@@ -57,11 +50,7 @@ const internatOptions = [
           <FormTextField name="address.ort" label="Ort" required />
 
           <div class="flex flex-col gap-0.5">
-            <span
-              class="text-sm font-bold leading-normal not-italic text-black"
-            >
-              Land
-            </span>
+            <span class="text-sm font-bold leading-normal not-italic text-black"> Land </span>
             <span
               class="text-sm text-black font-normal leading-normal not-italic h-8 flex items-center"
             >
@@ -82,9 +71,7 @@ const internatOptions = [
             <input type="file" class="hidden" accept=".pdf,.jpg,.png" />
 
             <p class="text-center">
-              <span
-                class="text-primary text-sm font-bold leading-normal not-italic"
-              >
+              <span class="text-primary text-sm font-bold leading-normal not-italic">
                 Datei hierher ziehen oder zum <br />
                 Hochladen
                 <span

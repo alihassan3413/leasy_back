@@ -1,57 +1,57 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { Icon } from '@iconify/vue'
-import FormLabel from '@/components/ui/form/FormLabel.vue'
-import type { TextInputProps } from './text-input.types'
+import { computed, ref } from "vue";
+import { Icon } from "@iconify/vue";
+import FormLabel from "@/components/ui/form/FormLabel.vue";
+import type { TextInputProps } from "./text-input.types";
 
 const props = withDefaults(defineProps<TextInputProps>(), {
-  modelValue: '',
-  label: '',
-  forId: '',
+  modelValue: "",
+  label: "",
+  forId: "",
   required: false,
-  placeholder: '',
-  inputClasses: '',
-  labelClasses: '',
-  type: 'text',
+  placeholder: "",
+  inputClasses: "",
+  labelClasses: "",
+  type: "text",
   showPasswordToggle: false,
   disabled: false,
-  error: '',
-})
+  error: "",
+});
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+  "update:modelValue": [value: string];
+}>();
 
-const passwordVisible = ref(false)
+const passwordVisible = ref(false);
 
 const actualType = computed(() => {
-  if (props.type === 'password' && props.showPasswordToggle) {
-    return passwordVisible.value ? 'text' : 'password'
+  if (props.type === "password" && props.showPasswordToggle) {
+    return passwordVisible.value ? "text" : "password";
   }
 
-  return props.type
-})
+  return props.type;
+});
 
 const inputClasses = computed(() => {
   return [
-    'w-full rounded-[5px] border bg-white px-3 py-2.5 text-sm outline-none transition',
-    props.error ? 'border-red-400 bg-red-50' : 'border-green-gray',
-    props.showPasswordToggle && props.type === 'password' ? 'pr-10' : '',
-    props.disabled ? 'cursor-not-allowed opacity-60' : '',
+    "w-full rounded-[5px] border bg-white px-3 py-2.5 text-sm outline-none transition",
+    props.error ? "border-red-400 bg-red-50" : "border-green-gray",
+    props.showPasswordToggle && props.type === "password" ? "pr-10" : "",
+    props.disabled ? "cursor-not-allowed opacity-60" : "",
     props.inputClasses,
-  ]
-})
+  ];
+});
 
 const togglePasswordIcon = computed(() => {
   return passwordVisible.value
-    ? 'material-symbols-light:visibility-off-outline-rounded'
-    : 'material-symbols-light:visibility-outline-rounded'
-})
+    ? "material-symbols-light:visibility-off-outline-rounded"
+    : "material-symbols-light:visibility-outline-rounded";
+});
 
 const onInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  emit('update:modelValue', target.value)
-}
+  const target = event.target as HTMLInputElement;
+  emit("update:modelValue", target.value);
+};
 </script>
 
 <template>
@@ -72,7 +72,7 @@ const onInput = (event: Event) => {
         :value="props.modelValue"
         :disabled="props.disabled"
         @input="onInput"
-      >
+      />
 
       <button
         v-if="props.type === 'password' && props.showPasswordToggle"

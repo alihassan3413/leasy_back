@@ -3,9 +3,7 @@ import type { AdminVehicleListResponse, VehicleDocument } from "@/types";
 
 export const adminVehiclesApi = {
   listAll(page = 1, limit = 20): Promise<AdminVehicleListResponse> {
-    return get<AdminVehicleListResponse>(
-      `/admin/list/vehicles?page=${page}&limit=${limit}`,
-    );
+    return get<AdminVehicleListResponse>(`/admin/list/vehicles?page=${page}&limit=${limit}`);
   },
 
   listByUserType(
@@ -57,22 +55,15 @@ export const adminVehiclesApi = {
     return {
       id: resp?.document_id ?? resp?.id,
       document_type: resp?.document_type ?? resp?.documentType,
-      file_name:
-        resp?.original_file_name ?? resp?.file_name ?? resp?.originalFileName,
+      file_name: resp?.original_file_name ?? resp?.file_name ?? resp?.originalFileName,
       created_at: resp?.created_at ?? resp?.uploaded_at ?? resp?.createdAt,
       url: resp?.signed_url ?? resp?.url ?? resp?.signedUrl,
     };
   },
 
-  publishReport(
-    documentId: string,
-    published: boolean = true,
-  ): Promise<unknown> {
-    return patch(
-      `/admin/vehicle/report/publish/${encodeURIComponent(documentId)}`,
-      {
-        published,
-      },
-    );
+  publishReport(documentId: string, published: boolean = true): Promise<unknown> {
+    return patch(`/admin/vehicle/report/publish/${encodeURIComponent(documentId)}`, {
+      published,
+    });
   },
 };

@@ -17,9 +17,7 @@ const emit = defineEmits<{
   orderStatusUpdated: [];
 }>();
 
-const activeStatusOptions = computed(
-  () => props.statusOptions ?? orderStatusOptions,
-);
+const activeStatusOptions = computed(() => props.statusOptions ?? orderStatusOptions);
 
 const isLoading = ref(false);
 const newStatus = ref("");
@@ -55,11 +53,7 @@ watch(
       // legacy/non-settable values (e.g. order_placed, completed) stay empty so
       // the admin must choose a valid status instead of re-sending an invalid one.
       const current = props.order.order_status;
-      newStatus.value = activeStatusOptions.value.some(
-        (o) => o.value === current,
-      )
-        ? current
-        : "";
+      newStatus.value = activeStatusOptions.value.some((o) => o.value === current) ? current : "";
     }
   },
 );
@@ -116,33 +110,22 @@ async function handleSubmit() {
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
           <div class="px-2 pt-2 mb-2">
-            <h2 class="text-[24px] font-bold leading-normal text-black">
-              Auftragsstatus ändern
-            </h2>
-            <p
-              class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]"
-            >
+            <h2 class="text-[24px] font-bold leading-normal text-black">Auftragsstatus ändern</h2>
+            <p class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]">
               Ändern Sie den Status des ausgewählten Auftrags.
             </p>
           </div>
 
           <div class="grid grid-cols-1 gap-y-4">
             <!-- Order info -->
-            <div
-              v-if="order"
-              class="flex flex-col gap-2 p-4 bg-gray-50 rounded-2xl"
-            >
+            <div v-if="order" class="flex flex-col gap-2 p-4 bg-gray-50 rounded-2xl">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Auftragsnummer</span>
-                <span class="text-sm font-semibold text-gray-800">{{
-                  order.auftragsnummer
-                }}</span>
+                <span class="text-sm font-semibold text-gray-800">{{ order.auftragsnummer }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Kennzeichen</span>
-                <span class="text-sm font-semibold text-gray-800">{{
-                  order.license_plate
-                }}</span>
+                <span class="text-sm font-semibold text-gray-800">{{ order.license_plate }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Aktueller Status</span>
@@ -154,21 +137,15 @@ async function handleSubmit() {
 
             <!-- Status dropdown -->
             <div ref="dropdownRef" class="relative flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black">
-                Neuer Status
-              </label>
+              <label class="text-sm font-semibold text-black"> Neuer Status </label>
               <div
                 class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
                 tabindex="0"
                 @click="statusOpen = !statusOpen"
               >
-                <span
-                  class="text-sm"
-                  :class="newStatus ? 'text-gray-800' : 'text-gray-400'"
-                >
+                <span class="text-sm" :class="newStatus ? 'text-gray-800' : 'text-gray-400'">
                   {{
-                    activeStatusOptions.find((s) => s.value === newStatus)
-                      ?.label || "Status wählen"
+                    activeStatusOptions.find((s) => s.value === newStatus)?.label || "Status wählen"
                   }}
                 </span>
                 <Icon
@@ -199,9 +176,7 @@ async function handleSubmit() {
           <div class="mt-8 flex justify-center">
             <button
               class="h-10 px-6 rounded-full text-base font-semibold text-white transition-all duration-200 shadow-lg"
-              :style="
-                buttonActive ? 'background: #EF8450;' : 'background: #D9D9D9;'
-              "
+              :style="buttonActive ? 'background: #EF8450;' : 'background: #D9D9D9;'"
               :disabled="!buttonActive || isLoading"
               @click="handleSubmit"
             >
@@ -224,8 +199,7 @@ async function handleSubmit() {
 }
 
 .inverted-corner-top-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 0%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 0%);
   --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 

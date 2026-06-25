@@ -33,9 +33,7 @@ function handleClick() {
   emit("toggle");
 }
 
-const iconClasses = computed(() => [
-  "text-[32px] text-gray-400 transition-transform duration-200",
-]);
+const iconClasses = computed(() => ["text-[32px] text-gray-400 transition-transform duration-200"]);
 
 const activeAction = ref<string | null>(null);
 const orderModalOpen = ref(false);
@@ -84,9 +82,7 @@ function handleAction(action: string) {
     :class="isExpanded ? 'bg-gray-50' : 'bg-white'"
     @click="handleClick"
   >
-    <TableCell
-      class="h-[52px] truncate px-4 text-[14px] font-medium text-gray-700"
-    >
+    <TableCell class="h-[52px] truncate px-4 text-[14px] font-medium text-gray-700">
       {{ vehicle.licensePlate }}
     </TableCell>
     <TableCell class="h-[52px] truncate px-4 text-[14px] text-gray-600">
@@ -118,11 +114,7 @@ function handleAction(action: string) {
           @click.stop="handleAction('Start Process')"
           class="transition-opacity hover:opacity-70 hover:bg-orange-50 p-1 rounded"
         >
-          <Icon
-            icon="solar:play-bold"
-            class="w-5 h-5"
-            style="color: rgb(239, 132, 80)"
-          />
+          <Icon icon="solar:play-bold" class="w-5 h-5" style="color: rgb(239, 132, 80)" />
         </button>
         <!-- Three dots menu — only relevant while the process can be started
              (its sole action is "Vorgang starten"). Hide it once an order exists. -->
@@ -135,10 +127,7 @@ function handleAction(action: string) {
               <Icon icon="mdi:dots-vertical" class="w-5 h-5 text-gray-400" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            class="w-56 rounded-xl shadow-lg border border-gray-100"
-          >
+          <DropdownMenuContent align="end" class="w-56 rounded-xl shadow-lg border border-gray-100">
             <DropdownMenuItem
               v-if="canStartProcess"
               @click="handleAction('Start Process')"

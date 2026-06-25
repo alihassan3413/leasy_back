@@ -74,11 +74,7 @@ watch(
       <!-- First Row: Salutation and Name -->
       <div class="flex gap-7.5">
         <div class="">
-          <FormSelectField
-            name="anrede"
-            label="Anrede"
-            :options="anredeOptions"
-          />
+          <FormSelectField name="anrede" label="Anrede" :options="anredeOptions" />
         </div>
         <div class="flex gap-7.5">
           <FormTextField name="vorname" label="Vorname" placeholder="" class="w-90" />
@@ -88,29 +84,16 @@ watch(
 
       <!-- Second Row: Email -->
       <div class="w-252.5">
-        <FormTextField
-          name="email"
-          label="E-Mail-Adresse für Anfragen"
-          placeholder=""
-          class=""
-        />
+        <FormTextField name="email" label="E-Mail-Adresse für Anfragen" placeholder="" class="" />
       </div>
 
       <!-- Third Row: Prefix and Phone -->
       <div class="flex gap-7.5">
         <div class="">
-          <FormSelectField
-            name="prefix"
-            label="Internat. Vorwahl"
-            :options="prefixOptions"
-          />
+          <FormSelectField name="prefix" label="Internat. Vorwahl" :options="prefixOptions" />
         </div>
         <div class="w-187.5">
-          <FormTextField
-            name="phone"
-            label="Tel. für Anfragen"
-            placeholder=""
-          />
+          <FormTextField name="phone" label="Tel. für Anfragen" placeholder="" />
         </div>
       </div>
     </div>

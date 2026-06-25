@@ -43,7 +43,9 @@ const transactions = [
 
 <template>
   <div class="w-full pt-2">
-    <h2 class="text-lg md:text-[22px] font-normal text-color-primary my-4 pl-3 md:pl-8">Transaktionen</h2>
+    <h2 class="text-lg md:text-[22px] font-normal text-color-primary my-4 pl-3 md:pl-8">
+      Transaktionen
+    </h2>
 
     <!-- Desktop: Table View -->
     <div class="hidden md:block overflow-hidden rounded-[5px] border border-green-gray">
@@ -53,15 +55,11 @@ const transactions = [
             class="border-0 hover:bg-transparent"
             style="background-color: #01b990; height: 40px"
           >
-            <TableHead class="h-10 px-4 text-[18px] font-normal text-white"
-              >Ausstellung</TableHead
-            >
+            <TableHead class="h-10 px-4 text-[18px] font-normal text-white">Ausstellung</TableHead>
             <TableHead class="h-10 px-4 text-[18px] font-normal text-white"
               >Rechnungsnummer</TableHead
             >
-            <TableHead class="h-10 px-4 text-[18px] font-normal text-white"
-              >Kenzeichen</TableHead
-            >
+            <TableHead class="h-10 px-4 text-[18px] font-normal text-white">Kenzeichen</TableHead>
             <TableHead class="h-10 px-4 text-[18px] font-normal text-white"
               >Rechnungsbetrag</TableHead
             >
@@ -93,9 +91,7 @@ const transactions = [
               transaction.rechnungssaldo
             }}</TableCell>
             <TableCell class="py-3 px-4 text-right">
-              <button
-                class="text-custom-green hover:opacity-80 transition-opacity"
-              >
+              <button class="text-custom-green hover:opacity-80 transition-opacity">
                 <Icon icon="mdi:file-download-outline" class="size-6 cursor-pointer" />
               </button>
             </TableCell>
@@ -131,7 +127,9 @@ const transactions = [
           </div>
           <div class="flex justify-between">
             <span class="text-xs text-gray-500">Rechnungsbetrag</span>
-            <span class="text-sm font-bold text-custom-black">{{ transaction.rechnungsbetrag }}</span>
+            <span class="text-sm font-bold text-custom-black">{{
+              transaction.rechnungsbetrag
+            }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-xs text-gray-500">Rechnungssaldo</span>

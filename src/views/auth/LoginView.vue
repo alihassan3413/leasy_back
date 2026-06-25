@@ -24,8 +24,7 @@ const { handleSubmit, setErrors } = useForm<LoginFormValues>({
 });
 
 const { value: email, errorMessage: emailError } = useField<string>("email");
-const { value: password, errorMessage: passwordError } =
-  useField<string>("password");
+const { value: password, errorMessage: passwordError } = useField<string>("password");
 
 const onSubmit = handleSubmit(async (values) => {
   const payload: LoginPayload = {
@@ -115,9 +114,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     <p class="mt-5 text-center text-sm text-custom-black">
       Sind Sie noch kein Kunde bei uns?
-      <RouterLink to="/auth/register" class="text-custom-orange">
-        Hier registrieren
-      </RouterLink>
+      <RouterLink to="/auth/register" class="text-custom-orange"> Hier registrieren </RouterLink>
     </p>
   </div>
 </template>

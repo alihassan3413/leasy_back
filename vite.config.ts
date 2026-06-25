@@ -1,32 +1,32 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import tailwindcss from "@tailwindcss/vite";
+import path from "path";
 
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
+import AutoImport from "unplugin-auto-import/vite";
+import Components from "unplugin-vue-components/vite";
 
 export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
     AutoImport({
-      imports: ['vue', 'vue-router'],
-      dts: 'src/types/auto-imports.d.ts',
+      imports: ["vue", "vue-router"],
+      dts: "src/types/auto-imports.d.ts",
     }),
     Components({
-      dirs: ['src/components'],
-      dts: 'src/types/components.d.ts',
+      dirs: ["src/components"],
+      dts: "src/types/components.d.ts",
 
-     directoryAsNamespace: true,
-     collapseSamePrefixes: true,
-     globalNamespaces: ['ui'],
+      directoryAsNamespace: true,
+      collapseSamePrefixes: true,
+      globalNamespaces: ["ui"],
     }),
   ],
 
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 
@@ -34,12 +34,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id: string) => {
-          if (id.includes('node_modules')) {
-            if (['vue', 'vue-router', 'pinia'].some((pkg) => id.includes(`/${pkg}/`))) {
-              return 'vendor'
+          if (id.includes("node_modules")) {
+            if (["vue", "vue-router", "pinia"].some((pkg) => id.includes(`/${pkg}/`))) {
+              return "vendor";
             }
-            if (['axios', 'dayjs'].some((pkg) => id.includes(`/${pkg}/`))) {
-              return 'utils'
+            if (["axios", "dayjs"].some((pkg) => id.includes(`/${pkg}/`))) {
+              return "utils";
             }
           }
         },
@@ -50,10 +50,10 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
+      "/api": {
+        target: "http://localhost:8000",
         changeOrigin: true,
       },
     },
   },
-})
+});

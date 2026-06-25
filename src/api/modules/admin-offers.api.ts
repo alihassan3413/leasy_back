@@ -14,20 +14,12 @@ interface CreateOfferDraftPayload {
 }
 
 export const adminOffersApi = {
-  createDraft(
-    auftragsnummer: string,
-    payload: CreateOfferDraftPayload,
-  ): Promise<unknown> {
-    return post(
-      `/admin/offers/create/${encodeURIComponent(auftragsnummer)}`,
-      payload,
-    );
+  createDraft(auftragsnummer: string, payload: CreateOfferDraftPayload): Promise<unknown> {
+    return post(`/admin/offers/create/${encodeURIComponent(auftragsnummer)}`, payload);
   },
 
   list(auftragsnummer: string): Promise<OffersListResponse> {
-    return get<OffersListResponse>(
-      `/admin/offers/list/${encodeURIComponent(auftragsnummer)}`,
-    );
+    return get<OffersListResponse>(`/admin/offers/list/${encodeURIComponent(auftragsnummer)}`);
   },
 
   publishOffer(offerId: string, published: boolean = true): Promise<unknown> {

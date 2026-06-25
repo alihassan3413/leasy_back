@@ -34,30 +34,30 @@ LeasyBack is a B2B/B2C SaaS platform for **vehicle lease return management** (Fa
 
 ## User Roles
 
-| Role | German | What they do |
-|------|--------|--------------|
-| B2C | Leasingnehmer | Start return, upload docs, book appointment |
-| B2B | Firmenkunde | Manage fleet, view return status per vehicle |
-| Workshop | Werkstatt | Receive appointments, write damage reports, manage invoices |
-| Admin | Admin | Platform management (internal) |
+| Role     | German        | What they do                                                |
+| -------- | ------------- | ----------------------------------------------------------- |
+| B2C      | Leasingnehmer | Start return, upload docs, book appointment                 |
+| B2B      | Firmenkunde   | Manage fleet, view return status per vehicle                |
+| Workshop | Werkstatt     | Receive appointments, write damage reports, manage invoices |
+| Admin    | Admin         | Platform management (internal)                              |
 
 ---
 
 ## Tech Stack — and Why
 
-| Tool | Purpose | Why we chose it |
-|------|---------|-----------------|
-| **Vue 3** | UI framework | Component-based, reactive, great TypeScript support |
-| **Vite** | Build tool | 10–100x faster than Webpack for dev server + HMR |
-| **TypeScript** | Type safety | Catches bugs before runtime, self-documenting code |
-| **Vue Router 4** | Client-side routing | Official Vue router, lazy-loading built-in |
-| **Pinia** | State management | Official Vue store, simpler than Vuex, DevTools support |
-| **Axios** | HTTP client | Interceptors for auth tokens, error normalization |
-| **vue-i18n v11** | Translations | German/English support, future-proof for more languages |
-| **vee-validate + yup** | Form validation | Schema-based validation, works great with Vue 3 |
-| **dayjs** | Date handling | 2KB alternative to moment.js |
-| **Vitest** | Unit testing | Same config as Vite, very fast |
-| **Playwright** | E2E testing | Cross-browser, reliable for form flows |
+| Tool                   | Purpose             | Why we chose it                                         |
+| ---------------------- | ------------------- | ------------------------------------------------------- |
+| **Vue 3**              | UI framework        | Component-based, reactive, great TypeScript support     |
+| **Vite**               | Build tool          | 10–100x faster than Webpack for dev server + HMR        |
+| **TypeScript**         | Type safety         | Catches bugs before runtime, self-documenting code      |
+| **Vue Router 4**       | Client-side routing | Official Vue router, lazy-loading built-in              |
+| **Pinia**              | State management    | Official Vue store, simpler than Vuex, DevTools support |
+| **Axios**              | HTTP client         | Interceptors for auth tokens, error normalization       |
+| **vue-i18n v11**       | Translations        | German/English support, future-proof for more languages |
+| **vee-validate + yup** | Form validation     | Schema-based validation, works great with Vue 3         |
+| **dayjs**              | Date handling       | 2KB alternative to moment.js                            |
+| **Vitest**             | Unit testing        | Same config as Vite, very fast                          |
+| **Playwright**         | E2E testing         | Cross-browser, reliable for form flows                  |
 
 ---
 
@@ -193,10 +193,10 @@ Output goes to `dist/` folder — ready for Nginx/CDN deployment.
 
 All env vars must start with `VITE_` — only then does Vite expose them to the browser.
 
-| Variable | Dev value | Prod value | Purpose |
-|----------|-----------|------------|---------|
+| Variable       | Dev value                      | Prod value                   | Purpose          |
+| -------------- | ------------------------------ | ---------------------------- | ---------------- |
 | `VITE_API_URL` | `http://localhost:8000/api/v1` | `https://api.leasyback.com/` | Backend base URL |
-| `VITE_APP_ENV` | `development` | `production` | Feature flags |
+| `VITE_APP_ENV` | `development`                  | `production`                 | Feature flags    |
 
 Access them in code: `import.meta.env.VITE_API_URL`
 
@@ -253,32 +253,32 @@ Format: `type(scope): description`
 
 ## Naming Conventions
 
-| Thing | Convention | Example |
-|-------|-----------|---------|
-| View files | PascalCase + `View.vue` | `LoginView.vue` |
-| Component files | PascalCase, domain-prefixed | `VehicleCard.vue` |
-| Composables | camelCase, `use` prefix | `useVehicles.ts` |
-| Stores | camelCase + `Store` | `authStore.ts` |
-| Services | camelCase + `.service.ts` | `vehicle.service.ts` |
-| Types/interfaces | PascalCase | `interface Vehicle {}` |
-| i18n keys | snake_case | `dashboard.welcome_message` |
-| CSS classes | kebab-case | `vehicle-card__status` |
+| Thing            | Convention                  | Example                     |
+| ---------------- | --------------------------- | --------------------------- |
+| View files       | PascalCase + `View.vue`     | `LoginView.vue`             |
+| Component files  | PascalCase, domain-prefixed | `VehicleCard.vue`           |
+| Composables      | camelCase, `use` prefix     | `useVehicles.ts`            |
+| Stores           | camelCase + `Store`         | `authStore.ts`              |
+| Services         | camelCase + `.service.ts`   | `vehicle.service.ts`        |
+| Types/interfaces | PascalCase                  | `interface Vehicle {}`      |
+| i18n keys        | snake_case                  | `dashboard.welcome_message` |
+| CSS classes      | kebab-case                  | `vehicle-card__status`      |
 
 ---
 
 ## Module Roadmap
 
-| Phase | Module | Ticket | Status |
-|-------|--------|--------|--------|
-| 0 | Project setup & architecture | DEV-4098 | ✅ Done |
-| 1 | Authentication (all 4 roles) | DEV-4100 | 🔄 In progress |
-| 2 | B2C Dashboard | — | ⏳ Pending |
-| 3 | B2B Dashboard | — | ⏳ Pending |
-| 4 | Workshop Dashboard | — | ⏳ Pending |
-| 5 | Return wizard | — | ⏳ Pending |
-| 6 | My Account + Bank data | — | ⏳ Pending |
-| 7 | Payment history | — | ⏳ Pending |
-| 8 | i18n + a11y + QA | — | ⏳ Pending |
+| Phase | Module                       | Ticket   | Status         |
+| ----- | ---------------------------- | -------- | -------------- |
+| 0     | Project setup & architecture | DEV-4098 | ✅ Done        |
+| 1     | Authentication (all 4 roles) | DEV-4100 | 🔄 In progress |
+| 2     | B2C Dashboard                | —        | ⏳ Pending     |
+| 3     | B2B Dashboard                | —        | ⏳ Pending     |
+| 4     | Workshop Dashboard           | —        | ⏳ Pending     |
+| 5     | Return wizard                | —        | ⏳ Pending     |
+| 6     | My Account + Bank data       | —        | ⏳ Pending     |
+| 7     | Payment history              | —        | ⏳ Pending     |
+| 8     | i18n + a11y + QA             | —        | ⏳ Pending     |
 
 ---
 
@@ -291,4 +291,4 @@ Format: `type(scope): description`
 
 ---
 
-*LeasyBack Web — built with Vue 3 + Vite. For questions, contact the dev team.*
+_LeasyBack Web — built with Vue 3 + Vite. For questions, contact the dev team._

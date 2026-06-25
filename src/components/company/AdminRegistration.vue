@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import FormTextField from '@/components/ui/form/FormTextField.vue'
-import FormSelectField from '../ui/form/FormSelectField.vue';
+import FormTextField from "@/components/ui/form/FormTextField.vue";
+import FormSelectField from "../ui/form/FormSelectField.vue";
 
 const anredeOptions = [
   { label: "Herr", value: "herr" },
@@ -13,14 +13,10 @@ const vorwahlOptions = [
   { label: "Österreich + (43)", value: "at" },
   { label: "Schweiz + (41)", value: "ch" },
 ];
-
-
 </script>
 
 <template>
-  <div
-    class="w-full bg-white rounded px-5 py-5 flex flex-col gap-4 mt-7 mb-67.5"
-  >
+  <div class="w-full bg-white rounded px-5 py-5 flex flex-col gap-4 mt-7 mb-67.5">
     <h1 class="text-primary text-[20px] font-bold leading-normal not-italic">
       Admin für LeasyBack (z.B. Fuhrparkleiter, Geschäftsführer)
     </h1>
@@ -29,7 +25,6 @@ const vorwahlOptions = [
     <div class="w-full flex flex-col gap-4">
       <!-- Row 1: Anrede + Vorname + Nachname -->
       <div class="grid grid-cols-3 gap-1">
-        
         <FormSelectField
           name="admin.anrede"
           placeholder="Bitte wählen"
@@ -39,20 +34,9 @@ const vorwahlOptions = [
           class="w-full"
         />
 
-        <FormTextField
-          name="admin.vorname"
-          
-          label="Vorname"
-          :required="true"
-          class="w-60"
-        />
+        <FormTextField name="admin.vorname" label="Vorname" :required="true" class="w-60" />
 
-        <FormTextField
-          name="admin.nachname"
-          label="Nachname"
-          :required="true"
-          class="w-60"
-        />
+        <FormTextField name="admin.nachname" label="Nachname" :required="true" class="w-60" />
       </div>
 
       <!-- Row 2: Email full width -->

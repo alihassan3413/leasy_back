@@ -97,19 +97,13 @@ function close() {
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
           <div class="px-4 pt-4 mb-4">
-            <h2 class="text-[20px] font-bold leading-normal text-black">
-              Station erstellen
-            </h2>
+            <h2 class="text-[20px] font-bold leading-normal text-black">Station erstellen</h2>
           </div>
 
-          <div
-            class="grid grid-cols-1 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1"
-          >
+          <div class="grid grid-cols-1 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
             <!-- Service switches -->
             <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black"
-                >Service wählen</label
-              >
+              <label class="text-sm font-semibold text-black">Service wählen</label>
               <div class="flex flex-col gap-2">
                 <!-- TÜV SÜD -->
                 <label class="flex items-center gap-2 cursor-pointer">
@@ -212,9 +206,7 @@ function close() {
             <div class="mt-2 flex justify-center">
               <button
                 class="h-9 px-6 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
-                :style="
-                  canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'
-                "
+                :style="canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'"
                 :disabled="!canSubmit || isSubmitting"
                 @click="handleSubmit"
               >
@@ -238,8 +230,7 @@ function close() {
 }
 
 .inverted-corner-top-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r))
-    radial-gradient(#000 70%, #0000 0%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 0%);
   --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 

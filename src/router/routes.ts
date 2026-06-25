@@ -147,7 +147,12 @@ export const routes: RouteRecordRaw[] = [
     path: "/register/workshop",
     name: "register-workshop",
     component: () => import("@/views/auth/RegisterWorkshopView.vue"),
-    meta: { title: "Werkstattregistrierung", requiresAuth: true, roles: ["WORKSHOP"], isOnboarding: true },
+    meta: {
+      title: "Werkstattregistrierung",
+      requiresAuth: true,
+      roles: ["WORKSHOP"],
+      isOnboarding: true,
+    },
   },
   {
     path: "/register/b2c",

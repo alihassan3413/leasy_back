@@ -52,9 +52,7 @@ const handleBillingSubmit = (data: any) => {
       <!-- Right: Current Info -->
       <div class="space-y-4 md:space-y-6 pt-0 md:pt-2">
         <div class="flex flex-col md:flex-row md:items-start gap-1 md:gap-0">
-          <span class="text-sm md:text-base font-bold text-custom-black"
-            >Aktuelle Kontodaten</span
-          >
+          <span class="text-sm md:text-base font-bold text-custom-black">Aktuelle Kontodaten</span>
           <span
             class="text-sm md:text-base text-custom-black opacity-70 cursor-pointer hover:opacity-100 transition-opacity"
             @click="handlePaymentMethodChange"
@@ -73,13 +71,7 @@ const handleBillingSubmit = (data: any) => {
     </div>
 
     <!-- Modals -->
-    <ChangePayment
-      v-model:open="showChangePaymentModal"
-      @submit="handlePaymentSubmit"
-    />
-    <ChangeBillingAdress
-      v-model:open="showChangeBillingModal"
-      @submit="handleBillingSubmit"
-    />
+    <ChangePayment v-model:open="showChangePaymentModal" @submit="handlePaymentSubmit" />
+    <ChangeBillingAdress v-model:open="showChangeBillingModal" @submit="handleBillingSubmit" />
   </div>
 </template>

@@ -26,27 +26,26 @@ const anredeOptions = [
   { label: "Divers", value: "Divers" },
 ];
 
-const { handleSubmit, resetForm, setFieldValue, values, isSubmitting } =
-  useForm({
-    // Leaving edit mode unmounts the address field components; without this,
-    // vee-validate prunes their values from `values`, so re-entering edit (and
-    // the read-mode map, which derives from `values`) would show empty fields.
-    keepValuesOnUnmount: true,
-    initialValues: {
-      anrede: "",
-      vorname: "",
-      nachname: "",
-      address: {
-        strasse: "",
-        nr: "",
-        zusaetzlicheAnschrift: "",
-        plz: "",
-        ort: "",
-        latitude: null as number | null,
-        longitude: null as number | null,
-      },
+const { handleSubmit, resetForm, setFieldValue, values, isSubmitting } = useForm({
+  // Leaving edit mode unmounts the address field components; without this,
+  // vee-validate prunes their values from `values`, so re-entering edit (and
+  // the read-mode map, which derives from `values`) would show empty fields.
+  keepValuesOnUnmount: true,
+  initialValues: {
+    anrede: "",
+    vorname: "",
+    nachname: "",
+    address: {
+      strasse: "",
+      nr: "",
+      zusaetzlicheAnschrift: "",
+      plz: "",
+      ort: "",
+      latitude: null as number | null,
+      longitude: null as number | null,
     },
-  });
+  },
+});
 
 const syncFromProfile = () => {
   const profile = b2cStore.profile;
@@ -159,7 +158,8 @@ const onSubmit = handleSubmit(async (formValues) => {
         address: {
           street: formValues.address.strasse || existing.street || "",
           number: formValues.address.nr || existing.number || "",
-          additional_address: formValues.address.zusaetzlicheAnschrift || existing.additional_address || "",
+          additional_address:
+            formValues.address.zusaetzlicheAnschrift || existing.additional_address || "",
           zip_code: formValues.address.plz || existing.zip_code || "",
           city: formValues.address.ort || existing.city || "",
           country: existing.country || "Deutschland",
@@ -206,7 +206,9 @@ const formatAddressLine2 = () => {
 <template>
   <div class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm">
     <!-- ── Card header ─────────────────────────────────── -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[#EDF2F2] px-4 py-4 sm:px-8 sm:py-5">
+    <div
+      class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-[#EDF2F2] px-4 py-4 sm:px-8 sm:py-5"
+    >
       <div>
         <h2 class="text-[16px] sm:text-[17px] font-bold text-[#10393B]">Kontodaten</h2>
         <p class="mt-0.5 text-[12px] sm:text-[13px] text-[#7A9699]">
@@ -215,13 +217,21 @@ const formatAddressLine2 = () => {
       </div>
 
       <div class="flex shrink-0">
-        <button v-if="!isEditMode" type="button" @click="isEditMode = true"
-          class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green">
+        <button
+          v-if="!isEditMode"
+          type="button"
+          @click="isEditMode = true"
+          class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green"
+        >
           <Icon icon="mdi:pencil-outline" class="size-4" />
           {{ isCreateMode ? "Profil erstellen" : "Bearbeiten" }}
         </button>
-        <button v-else type="button" @click="cancelEdit"
-          class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]">
+        <button
+          v-else
+          type="button"
+          @click="cancelEdit"
+          class="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]"
+        >
           <Icon icon="mdi:close" class="size-4" />
           Abbrechen
         </button>
@@ -230,8 +240,13 @@ const formatAddressLine2 = () => {
 
     <!-- ════════════ NO PROFILE EMPTY STATE ════════════ -->
     <div v-if="isCreateMode && !isEditMode" class="px-4 py-10 sm:px-8 sm:py-12 text-center">
-      <Icon icon="mdi:account-circle-outline" class="mx-auto mb-3 size-10 sm:size-12 text-[#9CB3B4]" />
-      <p class="text-[14px] sm:text-[15px] font-semibold text-[#10393B]">Noch kein Profil hinterlegt</p>
+      <Icon
+        icon="mdi:account-circle-outline"
+        class="mx-auto mb-3 size-10 sm:size-12 text-[#9CB3B4]"
+      />
+      <p class="text-[14px] sm:text-[15px] font-semibold text-[#10393B]">
+        Noch kein Profil hinterlegt
+      </p>
       <p class="mt-1 text-[12px] sm:text-[13px] text-[#7A9699]">
         Klicken Sie auf „Profil erstellen", um Ihre Daten zu hinterlegen.
       </p>
@@ -241,12 +256,18 @@ const formatAddressLine2 = () => {
     <div v-else-if="!isEditMode" class="px-4 py-6 sm:px-5 sm:py-8">
       <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
         <!-- Data list -->
-        <dl class="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-5 sm:gap-x-10 sm:gap-y-7 sm:grid-cols-2">
+        <dl
+          class="grid min-w-0 flex-1 grid-cols-1 gap-x-6 gap-y-5 sm:gap-x-10 sm:gap-y-7 sm:grid-cols-2"
+        >
           <div class="min-w-0">
-            <dt class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+            <dt
+              class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+            >
               Name
             </dt>
-            <dd class="mt-1.5 wrap-break-word text-[14px] sm:text-[15px] font-semibold text-[#10393B]">
+            <dd
+              class="mt-1.5 wrap-break-word text-[14px] sm:text-[15px] font-semibold text-[#10393B]"
+            >
               {{
                 [
                   b2cStore.profile?.contact?.salutation,
@@ -260,7 +281,9 @@ const formatAddressLine2 = () => {
           </div>
 
           <div class="min-w-0">
-            <dt class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+            <dt
+              class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+            >
               E-Mail
             </dt>
             <dd class="mt-1.5 break-all text-[14px] sm:text-[15px] font-semibold text-[#10393B]">
@@ -269,10 +292,14 @@ const formatAddressLine2 = () => {
           </div>
 
           <div class="min-w-0 sm:col-span-2 lg:col-span-1">
-            <dt class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+            <dt
+              class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+            >
               Anschrift
             </dt>
-            <dd class="mt-1.5 wrap-break-word text-[14px] sm:text-[15px] font-semibold leading-relaxed text-[#10393B]">
+            <dd
+              class="mt-1.5 wrap-break-word text-[14px] sm:text-[15px] font-semibold leading-relaxed text-[#10393B]"
+            >
               {{ formatAddressLine1() }}<br />
               <template v-if="b2cStore.profile?.address?.additional_address">
                 {{ b2cStore.profile.address.additional_address }}<br />
@@ -282,7 +309,9 @@ const formatAddressLine2 = () => {
           </div>
 
           <div class="min-w-0">
-            <dt class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+            <dt
+              class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+            >
               Land
             </dt>
             <dd class="mt-1.5 text-[14px] sm:text-[15px] font-semibold text-[#10393B]">
@@ -292,9 +321,15 @@ const formatAddressLine2 = () => {
         </dl>
 
         <!-- Static map preview -->
-        <div class="h-[240px] sm:h-[300px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[400px]">
-          <AppMapPicker :latitude="values.address?.latitude ?? null" :longitude="values.address?.longitude ?? null"
-            :address="addressQuery" :interactive="false" />
+        <div
+          class="h-[240px] sm:h-[300px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[400px]"
+        >
+          <AppMapPicker
+            :latitude="values.address?.latitude ?? null"
+            :longitude="values.address?.longitude ?? null"
+            :address="addressQuery"
+            :interactive="false"
+          />
         </div>
       </div>
     </div>
@@ -305,43 +340,90 @@ const formatAddressLine2 = () => {
         <!-- Avatar + contact -->
         <div class="flex flex-col gap-5 items-center sm:flex-row sm:items-end sm:gap-8">
           <div class="shrink-0">
-            <button type="button" @click="triggerAvatarUpload"
-              class="group relative block size-16 sm:size-20 overflow-hidden rounded-full ring-2 ring-[#D1DCDC] ring-offset-2 transition-all hover:ring-custom-green">
-              <img :src="avatarUrl || profileImage" alt="Profilbild" class="size-full object-cover" />
+            <button
+              type="button"
+              @click="triggerAvatarUpload"
+              class="group relative block size-16 sm:size-20 overflow-hidden rounded-full ring-2 ring-[#D1DCDC] ring-offset-2 transition-all hover:ring-custom-green"
+            >
+              <img
+                :src="avatarUrl || profileImage"
+                alt="Profilbild"
+                class="size-full object-cover"
+              />
               <span
-                class="absolute inset-0 flex items-center justify-center bg-[#10393B]/50 opacity-0 transition-opacity group-hover:opacity-100">
+                class="absolute inset-0 flex items-center justify-center bg-[#10393B]/50 opacity-0 transition-opacity group-hover:opacity-100"
+              >
                 <Icon icon="mdi:camera-outline" class="size-5 sm:size-6 text-white" />
               </span>
             </button>
-            <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange" />
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              class="hidden"
+              @change="onFileChange"
+            />
           </div>
 
-          <div class="flex justify-center sm:justify-start min-w-0 flex-1 flex-wrap gap-x-5 sm:gap-x-[30px] gap-y-4">
-            <FormSelectField name="anrede" label="Anrede" placeholder="Anrede" :options="anredeOptions"
-              width="w-full sm:w-[128px]" class="shrink-0" />
-            <FormTextField name="vorname" label="Vorname" placeholder="Vorname" class="min-w-[140px] flex-1" />
-            <FormTextField name="nachname" label="Nachname" placeholder="Nachname" class="min-w-[140px] flex-1" />
+          <div
+            class="flex justify-center sm:justify-start min-w-0 flex-1 flex-wrap gap-x-5 sm:gap-x-[30px] gap-y-4"
+          >
+            <FormSelectField
+              name="anrede"
+              label="Anrede"
+              placeholder="Anrede"
+              :options="anredeOptions"
+              width="w-full sm:w-[128px]"
+              class="shrink-0"
+            />
+            <FormTextField
+              name="vorname"
+              label="Vorname"
+              placeholder="Vorname"
+              class="min-w-[140px] flex-1"
+            />
+            <FormTextField
+              name="nachname"
+              label="Nachname"
+              placeholder="Nachname"
+              class="min-w-[140px] flex-1"
+            />
           </div>
         </div>
 
         <!-- Divider with label -->
         <div class="flex items-center gap-3">
-          <span class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]">
+          <span
+            class="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#9CB3B4]"
+          >
             Anschrift
           </span>
           <span class="h-px flex-1 bg-[#EDF2F2]" />
         </div>
         <p class="mt-1.5! text-[12px] sm:text-[13px] text-[#7A9699]">
-          {{ isCreateMode ? "Bitte geben Sie Ihre Daten ein, um Ihr Profil zu erstellen." : "Adresse eingeben oder direkt auf der Karte auswählen." }}
+          {{
+            isCreateMode
+              ? "Bitte geben Sie Ihre Daten ein, um Ihr Profil zu erstellen."
+              : "Adresse eingeben oder direkt auf der Karte auswählen."
+          }}
         </p>
 
         <div class="flex flex-col gap-6 lg:flex-row">
-          <div class="grid min-w-0 flex-1 grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-[2fr_1fr] sm:gap-x-[30px]">
-            <FormAddressAutocompleteField name="address.strasse" label="Straße"
-              placeholder="Straße eingeben…" @resolved="onAddressFromMap" />
+          <div
+            class="grid min-w-0 flex-1 grid-cols-1 gap-x-5 gap-y-5 sm:grid-cols-[2fr_1fr] sm:gap-x-[30px]"
+          >
+            <FormAddressAutocompleteField
+              name="address.strasse"
+              label="Straße"
+              placeholder="Straße eingeben…"
+              @resolved="onAddressFromMap"
+            />
             <FormTextField name="address.nr" label="Nr." placeholder="Nr." />
-            <FormTextField name="address.zusaetzlicheAnschrift" label="Zusätzliche Anschrift"
-              placeholder="Adresszusatz" />
+            <FormTextField
+              name="address.zusaetzlicheAnschrift"
+              label="Zusätzliche Anschrift"
+              placeholder="Adresszusatz"
+            />
             <FormTextField name="address.plz" label="PLZ" placeholder="PLZ" />
             <FormTextField name="address.ort" label="Ort" placeholder="Ort" />
             <div class="flex flex-col">
@@ -352,23 +434,37 @@ const formatAddressLine2 = () => {
             </div>
           </div>
 
-          <div class="h-[220px] sm:h-[260px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[380px]">
-            <AppMapPicker :latitude="values.address?.latitude ?? null" :longitude="values.address?.longitude ?? null"
-              :address="addressQuery" :interactive="true" @resolved="onAddressFromMap" />
+          <div
+            class="h-[220px] sm:h-[260px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[380px]"
+          >
+            <AppMapPicker
+              :latitude="values.address?.latitude ?? null"
+              :longitude="values.address?.longitude ?? null"
+              :address="addressQuery"
+              :interactive="true"
+              @resolved="onAddressFromMap"
+            />
           </div>
         </div>
       </div>
 
       <!-- Action footer -->
-      <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 border-t border-[#EDF2F2] bg-[#F8FAFB] px-4 py-4 sm:px-8">
+      <div
+        class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 border-t border-[#EDF2F2] bg-[#F8FAFB] px-4 py-4 sm:px-8"
+      >
         <p v-if="saveError" class="text-sm text-red-500 sm:mr-auto">{{ saveError }}</p>
-        <button type="button" @click="cancelEdit"
-          class="rounded-lg px-4 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]">
+        <button
+          type="button"
+          @click="cancelEdit"
+          class="rounded-lg px-4 py-2 text-sm font-semibold text-[#7A9699] transition-colors hover:text-[#10393B]"
+        >
           Abbrechen
         </button>
-        <Button type="submit"
+        <Button
+          type="submit"
           class="h-[38px] w-full sm:w-auto rounded-lg bg-custom-green px-6 text-sm font-semibold text-white transition-all hover:bg-[#019d7a]"
-          :disabled="isSubmitting">
+          :disabled="isSubmitting"
+        >
           {{
             isSubmitting
               ? "Wird gespeichert…"
