@@ -17,64 +17,52 @@ const emit = defineEmits<{
 
 const isLoading = ref(false);
 
+type AmountField = { net: string; gross: string };
+
 // Define state for each field's net and gross
-const repairCosts = ref({ net: "", gross: "" });
-const depreciationValue = ref({ net: "", gross: "" });
-const workshopQuote = ref({ net: "", gross: "" });
-const missingPartsCost = ref({ net: "", gross: "" });
+const repairCosts = ref<AmountField>({ net: "", gross: "" });
+const depreciationValue = ref<AmountField>({ net: "", gross: "" });
+const workshopQuote = ref<AmountField>({ net: "", gross: "" });
+const missingPartsCost = ref<AmountField>({ net: "", gross: "" });
 const notes = ref("");
+
+// Parse a (possibly comma-decimal) string into a number
+const toNumber = (str: string): number => {
+    return parseFloat(str.replace(",", "."));
+};
 
 // Auto-calculate gross from net (assuming 19% VAT as standard in DE)
 const calculateGross = (netStr: string): string => {
-    const net = parseFloat(netStr);
+    const net = toNumber(netStr);
     if (isNaN(net)) return "";
-    const gross = net * 1.19;
-    return gross.toFixed(2);
+    return (net * 1.19).toFixed(2);
 };
 
 // Auto-calculate net from gross
 const calculateNet = (grossStr: string): string => {
-    const gross = parseFloat(grossStr);
+    const gross = toNumber(grossStr);
     if (isNaN(gross)) return "";
-    const net = gross / 1.19;
-    return net.toFixed(2);
+    return (gross / 1.19).toFixed(2);
 };
 
-// Watch for changes to calculate gross/net
-watch(() => repairCosts.value.net, (newNet) => {
-    repairCosts.value.gross = calculateGross(newNet);
-});
-watch(() => repairCosts.value.gross, (newGross) => {
-    repairCosts.value.net = calculateNet(newGross);
-});
-
-watch(() => depreciationValue.value.net, (newNet) => {
-    depreciationValue.value.gross = calculateGross(newNet);
-});
-watch(() => depreciationValue.value.gross, (newGross) => {
-    depreciationValue.value.net = calculateNet(newGross);
-});
-
-watch(() => workshopQuote.value.net, (newNet) => {
-    workshopQuote.value.gross = calculateGross(newNet);
-});
-watch(() => workshopQuote.value.gross, (newGross) => {
-    workshopQuote.value.net = calculateNet(newGross);
-});
-
-watch(() => missingPartsCost.value.net, (newNet) => {
-    missingPartsCost.value.gross = calculateGross(newNet);
-});
-watch(() => missingPartsCost.value.gross, (newGross) => {
-    missingPartsCost.value.net = calculateNet(newGross);
-});
+// Update handlers — only the *paired* field is recalculated, never the one the
+// user is typing in. This avoids the circular net<->gross watcher feedback loop
+// that was reformatting input mid-typing and made the fields feel broken.
+const onNetInput = (field: AmountField, value: string) => {
+    field.net = value;
+    field.gross = calculateGross(value);
+};
+const onGrossInput = (field: AmountField, value: string) => {
+    field.gross = value;
+    field.net = calculateNet(value);
+};
 
 // Auto-calculate final total
 const finalTotal = computed(() => {
-    const repairNet = parseFloat(repairCosts.value.net) || 0;
-    const depNet = parseFloat(depreciationValue.value.net) || 0;
-    const workshopNet = parseFloat(workshopQuote.value.net) || 0;
-    const partsNet = parseFloat(missingPartsCost.value.net) || 0;
+    const repairNet = toNumber(repairCosts.value.net) || 0;
+    const depNet = toNumber(depreciationValue.value.net) || 0;
+    const workshopNet = toNumber(workshopQuote.value.net) || 0;
+    const partsNet = toNumber(missingPartsCost.value.net) || 0;
 
     const totalNet = repairNet + depNet + workshopNet + partsNet;
     const totalGross = totalNet * 1.19;
@@ -166,7 +154,9 @@ async function handleSubmit() {
                                     </label>
                                     <div
                                         class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
-                                        <input v-model="repairCosts.net" type="number" step="0.01"
+                                        <input :value="repairCosts.net"
+                                            @input="onNetInput(repairCosts, ($event.target as HTMLInputElement).value)"
+                                            type="text" inputmode="decimal"
                                             class="h-full w-full bg-transparent text-sm outline-none"
                                             placeholder="0.00" />
                                     </div>
@@ -177,7 +167,9 @@ async function handleSubmit() {
                                     </label>
                                     <div
                                         class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
-                                        <input v-model="repairCosts.gross" type="number" step="0.01"
+                                        <input :value="repairCosts.gross"
+                                            @input="onGrossInput(repairCosts, ($event.target as HTMLInputElement).value)"
+                                            type="text" inputmode="decimal"
                                             class="h-full w-full bg-transparent text-sm outline-none"
                                             placeholder="0.00" />
                                     </div>
@@ -197,7 +189,9 @@ async function handleSubmit() {
                                     </label>
                                     <div
                                         class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
-                                        <input v-model="depreciationValue.net" type="number" step="0.01"
+                                        <input :value="depreciationValue.net"
+                                            @input="onNetInput(depreciationValue, ($event.target as HTMLInputElement).value)"
+                                            type="text" inputmode="decimal"
                                             class="h-full w-full bg-transparent text-sm outline-none"
                                             placeholder="0.00" />
                                     </div>
@@ -208,7 +202,9 @@ async function handleSubmit() {
                                     </label>
                                     <div
                                         class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
-                                        <input v-model="depreciationValue.gross" type="number" step="0.01"
+                                        <input :value="depreciationValue.gross"
+                                            @input="onGrossInput(depreciationValue, ($event.target as HTMLInputElement).value)"
+                                            type="text" inputmode="decimal"
                                             class="h-full w-full bg-transparent text-sm outline-none"
                                             placeholder="0.00" />
                                     </div>
@@ -228,7 +224,9 @@ async function handleSubmit() {
                                     </label>
                                     <div
                                         class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
-                                        <input v-model="workshopQuote.net" type="number" step="0.01"
+                                        <input :value="workshopQuote.net"
+                                            @input="onNetInput(workshopQuote, ($event.target as HTMLInputElement).value)"
+                                            type="text" inputmode="decimal"
                                             class="h-full w-full bg-transparent text-sm outline-none"
                                             placeholder="0.00" />
                                     </div>
@@ -239,7 +237,9 @@ async function handleSubmit() {
                                     </label>
                                     <div
                                         class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
-                                        <input v-model="workshopQuote.gross" type="number" step="0.01"
+                                        <input :value="workshopQuote.gross"
+                                            @input="onGrossInput(workshopQuote, ($event.target as HTMLInputElement).value)"
+                                            type="text" inputmode="decimal"
                                             class="h-full w-full bg-transparent text-sm outline-none"
                                             placeholder="0.00" />
                                     </div>
@@ -259,7 +259,9 @@ async function handleSubmit() {
                                     </label>
                                     <div
                                         class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
-                                        <input v-model="missingPartsCost.net" type="number" step="0.01"
+                                        <input :value="missingPartsCost.net"
+                                            @input="onNetInput(missingPartsCost, ($event.target as HTMLInputElement).value)"
+                                            type="text" inputmode="decimal"
                                             class="h-full w-full bg-transparent text-sm outline-none"
                                             placeholder="0.00" />
                                     </div>
@@ -270,7 +272,9 @@ async function handleSubmit() {
                                     </label>
                                     <div
                                         class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500">
-                                        <input v-model="missingPartsCost.gross" type="number" step="0.01"
+                                        <input :value="missingPartsCost.gross"
+                                            @input="onGrossInput(missingPartsCost, ($event.target as HTMLInputElement).value)"
+                                            type="text" inputmode="decimal"
                                             class="h-full w-full bg-transparent text-sm outline-none"
                                             placeholder="0.00" />
                                     </div>

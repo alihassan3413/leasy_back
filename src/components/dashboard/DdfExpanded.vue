@@ -4,7 +4,7 @@ import { Icon } from "@iconify/vue";
 import type { Vehicle, Offer, Order } from "./vehicle.types";
 import AddVehicleModal from "./modals/AddVehicleModal.vue";
 import UploadDocumentModal from "./modals/UploadDocumentModal.vue";
-import { vehicleApi } from "@/api";
+import { vehicleApi, customerOffersApi } from "@/api";
 import { useVehicleStore } from "@/stores/vehicle.store";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
@@ -188,9 +188,71 @@ function downloadDocument(url: string, event: Event) {
   document.body.removeChild(link);
 }
 
+// Published offers fetched from the customer offers endpoint
+const realOffers = ref<Offer[]>([]);
+const selectingOfferId = ref<string | null>(null);
+
+const auftragsnummer = computed(
+  () => props.vehicle.orders?.[0]?.auftragsnummer || "",
+);
+
+const hasRealOffers = computed(() => realOffers.value.length > 0);
+
+async function loadOffers() {
+  if (!auftragsnummer.value) {
+    realOffers.value = [];
+    return;
+  }
+  try {
+    const res = await customerOffersApi.list(auftragsnummer.value);
+    realOffers.value = (res.offers || []).map((offer) => ({
+      id: offer.offer_sequence.toString().padStart(2, "0"),
+      name: `Angebot ${offer.offer_sequence}`,
+      cost: parseFloat(offer.final_total_gross),
+      saving: 0,
+      address: "",
+      distance: "",
+      recommended: false,
+      accepted: offer.offer_status === "selected",
+      offer_id: offer.offer_id,
+      status: offer.offer_status,
+    }));
+  } catch (err) {
+    console.error("Failed to load customer offers:", err);
+    realOffers.value = [];
+  }
+}
+
+// Offer pending confirmation (opens the "are you sure" dialog)
+const pendingOfferId = ref<string | null>(null);
+
+function requestSelect(offerId?: string) {
+  if (!offerId) return;
+  pendingOfferId.value = offerId;
+}
+
+function cancelSelect() {
+  pendingOfferId.value = null;
+}
+
+async function confirmSelect() {
+  const offerId = pendingOfferId.value;
+  if (!offerId) return;
+  try {
+    selectingOfferId.value = offerId;
+    await customerOffersApi.select(offerId);
+    await loadOffers();
+  } catch (err) {
+    console.error("Failed to select offer:", err);
+  } finally {
+    selectingOfferId.value = null;
+    pendingOfferId.value = null;
+  }
+}
+
 const offersData = computed(() => {
-  if (props.vehicle.offers && props.vehicle.offers.length > 0) {
-    return props.vehicle.offers;
+  if (realOffers.value.length > 0) {
+    return realOffers.value;
   }
   return mockOffers;
 });
@@ -269,12 +331,14 @@ async function deleteDocument(documentId: string) {
 
 onMounted(() => {
   void loadDocuments();
+  void loadOffers();
 });
 
 watch(
   () => props.vehicle?.vehicle_id,
   () => {
     void loadDocuments();
+    void loadOffers();
   },
 );
 </script>
@@ -475,11 +539,15 @@ watch(
           </div>
         </div>
         <!-- Column 2: Angebote (Offers) -->
-        <div class="flex flex-col gap-4" style="width: 400px">
+        <div class="flex flex-col gap-4 shrink-0" style="width: 400px">
           <div class="relative">
             <div
               class="flex flex-col rounded-[16px] border bg-white"
-              style="border-color: #ececec; opacity: 0.5"
+              :style="
+                hasRealOffers
+                  ? 'border-color: #ececec'
+                  : 'border-color: #ececec; opacity: 0.5'
+              "
             >
               <div class="px-6 py-6">
                 <p class="text-[16px] font-bold" style="color: #2e3e3f">
@@ -499,20 +567,26 @@ watch(
                       : 'border-color: #ECECEC; background: white'
                   "
                 >
-                  <!-- Radio circle -->
-                  <div
-                    class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1"
+                  <!-- Radio circle / select offer -->
+                  <button
+                    type="button"
+                    @click.stop="hasRealOffers && requestSelect(offer.offer_id)"
+                    :disabled="
+                      !hasRealOffers || selectingOfferId === offer.offer_id
+                    "
+                    class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
                     :style="
                       offer.accepted
                         ? 'border-color: #EF8450; background: #EF8450'
                         : 'border-color: #B7C2C2; background: white'
                     "
+                    title="Angebot auswählen"
                   >
                     <div
                       v-if="offer.accepted"
                       class="w-4.5 h-4.5 rounded-full bg-white"
                     ></div>
-                  </div>
+                  </button>
 
                   <!-- Content -->
                   <div
@@ -557,7 +631,7 @@ watch(
               </div>
 
               <!-- Accept button -->
-              <div class="mt-6 px-6">
+              <div class="mt-6 px-6 pb-6">
                 <button
                   class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
                   style="background: #e0e0e0; color: #9e9e9e"
@@ -582,13 +656,14 @@ watch(
                 </div>
               </div>
             </div>
-            <!-- Coming Soon Overlay -->
+            <!-- Overlay: shown only when there are no published offers -->
             <div
+              v-if="!hasRealOffers"
               class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
             >
               <div class="bg-white/80 px-6 py-3 rounded-full shadow-lg">
                 <p class="text-[18px] font-bold" style="color: #ef8450">
-                  Coming Soon
+                  Keine Angebote
                 </p>
               </div>
             </div>
@@ -1011,7 +1086,11 @@ watch(
     <div class="relative">
       <div
         class="flex flex-col rounded-[16px] border bg-white"
-        style="border-color: #ececec; opacity: 0.5"
+        :style="
+          hasRealOffers
+            ? 'border-color: #ececec'
+            : 'border-color: #ececec; opacity: 0.5'
+        "
       >
         <div class="px-4 py-4">
           <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
@@ -1029,20 +1108,26 @@ watch(
                 : 'border-color: #ECECEC; background: white'
             "
           >
-            <!-- Radio circle -->
-            <div
-              class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1"
+            <!-- Radio circle / select offer -->
+            <button
+              type="button"
+              @click.stop="hasRealOffers && requestSelect(offer.offer_id)"
+              :disabled="
+                !hasRealOffers || selectingOfferId === offer.offer_id
+              "
+              class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
               :style="
                 offer.accepted
                   ? 'border-color: #EF8450; background: #EF8450'
                   : 'border-color: #B7C2C2; background: white'
               "
+              title="Angebot auswählen"
             >
               <div
                 v-if="offer.accepted"
                 class="w-3.5 h-3.5 rounded-full bg-white"
               ></div>
-            </div>
+            </button>
 
             <!-- Content -->
             <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
@@ -1092,13 +1177,14 @@ watch(
           </div>
         </div>
       </div>
-      <!-- Coming Soon Overlay -->
+      <!-- Overlay: shown only when there are no published offers -->
       <div
+        v-if="!hasRealOffers"
         class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
       >
         <div class="bg-white/80 px-4 py-2 rounded-full shadow-lg">
           <p class="text-[16px] font-bold" style="color: #ef8450">
-            Coming Soon
+            Keine Angebote
           </p>
         </div>
       </div>
@@ -1328,6 +1414,41 @@ watch(
     @uploaded="loadDocuments"
     @changed="loadDocuments"
   />
+
+  <!-- Select offer confirmation -->
+  <div
+    v-if="pendingOfferId"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+    @click="cancelSelect"
+  >
+    <div
+      class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+      @click.stop
+    >
+      <h3 class="text-[18px] font-bold text-[#2e3e3f]">Angebot auswählen</h3>
+      <p class="mt-3 text-[14px] text-[#5a6b7a] leading-relaxed">
+        Sind Sie sicher, dass Sie dieses Angebot auswählen möchten? Sie können
+        die Auswahl danach nicht mehr ändern.
+      </p>
+      <div class="mt-6 flex justify-end gap-3">
+        <button
+          @click="cancelSelect"
+          :disabled="selectingOfferId !== null"
+          class="px-5 py-2.5 rounded-full text-[14px] font-medium text-[#2e3e3f] border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+        >
+          Abbrechen
+        </button>
+        <button
+          @click="confirmSelect"
+          :disabled="selectingOfferId !== null"
+          class="px-5 py-2.5 rounded-full text-[14px] font-semibold text-white disabled:opacity-50"
+          style="background: #ef8450"
+        >
+          {{ selectingOfferId !== null ? "Wird ausgewählt..." : "Bestätigen" }}
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Document Viewer Popup -->
   <div

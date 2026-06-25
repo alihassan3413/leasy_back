@@ -13,6 +13,9 @@ export interface Offer {
   distance?: string;
   recommended?: boolean;
   accepted?: boolean;
+  // Present when the offer comes from the backend (customer offers endpoint)
+  offer_id?: string;
+  status?: string;
 }
 
 export interface OrderStatusUpdate {

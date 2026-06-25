@@ -97,14 +97,19 @@ async function fetchOffers(auftragsnummer: string) {
   }
 }
 
+const publishingId = ref<string | null>(null);
+
 async function publishOffer(offerId: string) {
   try {
+    publishingId.value = offerId;
     await adminOffersApi.publishOffer(offerId, true);
     if (firstOrder.value?.auftragsnummer) {
       await fetchOffers(firstOrder.value.auftragsnummer);
     }
   } catch (err) {
     console.error("Failed to publish offer:", err);
+  } finally {
+    publishingId.value = null;
   }
 }
 
@@ -249,7 +254,7 @@ const timelineData = computed(() => {
 const offersData = computed(() => {
   if (realOffers.value.length > 0) {
     return realOffers.value.map((offer) => ({
-      id: offer.offer_sequence.toString(),
+      id: offer.offer_sequence.toString().padStart(2, "0"),
       name: `Angebot ${offer.offer_sequence}`,
       cost: parseFloat(offer.final_total_gross),
       saving: 0,
@@ -257,6 +262,10 @@ const offersData = computed(() => {
       distance: "",
       recommended: false,
       accepted: offer.offer_status === "selected",
+      status: offer.offer_status,
+      published:
+        offer.offer_status === "published" ||
+        offer.offer_status === "selected",
       originalOffer: offer,
     }));
   }
@@ -549,7 +558,47 @@ async function publishDocument(documentId: string) {
                       : 'border-color: #ECECEC; background: white'
                   "
                 >
-                  <!-- Radio circle -->
+                  <!-- Publish toggle (minimal button in front of each offer) -->
+                  <button
+                    v-if="offer.originalOffer"
+                    @click.stop="
+                      !offer.published &&
+                        publishOffer(offer.originalOffer.offer_id)
+                    "
+                    :disabled="
+                      offer.published ||
+                      publishingId === offer.originalOffer.offer_id
+                    "
+                    class="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition-colors disabled:cursor-default"
+                    :style="
+                      offer.published
+                        ? 'background:#01B990;color:#fff'
+                        : 'background:#F0F4F4;color:#01B990'
+                    "
+                    :title="
+                      offer.published
+                        ? 'Veröffentlicht'
+                        : 'Angebot veröffentlichen'
+                    "
+                  >
+                    <Icon
+                      :icon="
+                        publishingId === offer.originalOffer.offer_id
+                          ? 'mdi:loading'
+                          : offer.published
+                            ? 'mdi:check'
+                            : 'mdi:eye-outline'
+                      "
+                      class="size-4"
+                      :class="{
+                        'animate-spin':
+                          publishingId === offer.originalOffer.offer_id,
+                      }"
+                    />
+                  </button>
+
+                  <!-- Selection indicator (read-only for admin; only the
+                       B2B/B2C customer can select an offer) -->
                   <div
                     class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1"
                     :style="
@@ -557,6 +606,7 @@ async function publishDocument(documentId: string) {
                         ? 'border-color: #EF8450; background: #EF8450'
                         : 'border-color: #B7C2C2; background: white'
                     "
+                    :title="offer.accepted ? 'Vom Kunden ausgewählt' : ''"
                   >
                     <div
                       v-if="offer.accepted"
@@ -664,7 +714,7 @@ async function publishDocument(documentId: string) {
               </div>
 
               <!-- Accept button -->
-              <div class="mt-6 px-6">
+              <div class="mt-6 px-6 pb-6">
                 <button
                   class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
                   style="background: #e0e0e0; color: #9e9e9e"
