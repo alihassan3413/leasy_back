@@ -13,6 +13,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useVehicleStore } from "@/stores/vehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { getVehicleStatusLabel } from "@/lib/status";
+
+// Status is driven by the same order check as the play button: no order yet →
+// "Eingeplant" (ready to start), otherwise the real order status.
+function getVehicleStatus(vehicle: Vehicle) {
+  if (!vehicle.orders?.length) {
+    return { label: "Eingeplant", dotColor: "#ef8450" };
+  }
+
+  return {
+    label: getVehicleStatusLabel(vehicle.orders[0].order_status).label,
+    dotColor: "#01B990",
+  };
+}
 
 const props = defineProps<{
   vehicles: Vehicle[];
@@ -113,8 +127,9 @@ function handleCardAction(vehicle: Vehicle, action: string) {
             <span class="text-[14px] text-gray-600">{{ vehicle.brand }} {{ vehicle.model }}</span>
           </div>
           <div class="flex items-center gap-1">
-            <span class="w-3 h-3 rounded-full" style="background-color: #ef8450"></span>
-            <span class="text-[12px] text-gray-600 ml-1">Eingeplant</span>
+            <span class="w-3 h-3 rounded-full"
+              :style="{ backgroundColor: getVehicleStatus(vehicle).dotColor }"></span>
+            <span class="text-[12px] text-gray-600 ml-1">{{ getVehicleStatus(vehicle).label }}</span>
             <button class="transition-transform focus:outline-none ml-1"
               :class="expandedId === vehicle.id ? 'rotate-180' : ''">
               <Icon icon="ic:round-arrow-drop-down" class="text-[24px] text-gray-400" />
@@ -138,8 +153,9 @@ function handleCardAction(vehicle: Vehicle, action: string) {
       </div>
       <!-- Expanded view -->
       <DdfExpanded v-if="expandedId === vehicle.id && !vehicle.completed" :vehicle="vehicle" />
-      <!-- Mobile actions -->
-      <div class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+      <!-- Mobile actions — "Vorgang starten" only applies to vehicles without an existing order -->
+      <div v-if="!vehicle.orders?.length"
+        class="flex items-center justify-between px-4 py-3 border-t border-gray-100">
         <button @click.stop="handleCardAction(vehicle, 'Start Process')"
           class="flex items-center gap-2 px-3 py-2 rounded-lg text-white font-medium" style="background-color: #ef8450">
           <Icon icon="solar:play-bold" class="w-5 h-5" />

@@ -13,6 +13,7 @@ import {
 import { useVehicleStore } from "@/stores/vehicle.store";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { getVehicleStatusLabel } from "@/lib/status";
 
 const props = defineProps<{
   vehicle: Vehicle;
@@ -42,6 +43,21 @@ const orderModalOpen = ref(false);
 // "Start Process" creates the first order for a vehicle, so it only applies to
 // vehicles that have not started a process yet (no existing order).
 const canStartProcess = computed(() => !props.vehicle.orders?.length);
+
+// Status is driven by the same order check: no order yet → "Eingeplant" (ready
+// to start), otherwise the real order status.
+const vehicleStatus = computed(() => {
+  const orders = props.vehicle.orders;
+
+  if (!orders?.length) {
+    return { label: "Eingeplant", dotColor: "#ef8450" };
+  }
+
+  return {
+    label: getVehicleStatusLabel(orders[0].order_status).label,
+    dotColor: "#01B990",
+  };
+});
 
 async function handleOrderSuccess() {
   if (authStore.user?.id) {
@@ -86,9 +102,9 @@ function handleAction(action: string) {
       <div class="flex items-center gap-2">
         <span
           class="w-3 h-3 rounded-full"
-          style="background-color: #ef8450"
+          :style="{ backgroundColor: vehicleStatus.dotColor }"
         ></span>
-        <span class="text-[14px] text-gray-600">Eingeplant</span>
+        <span class="text-[14px] text-gray-600">{{ vehicleStatus.label }}</span>
       </div>
     </TableCell>
     <TableCell class="h-[52px] truncate px-4 text-[14px] text-gray-600">

@@ -327,6 +327,16 @@ const formatAddressLine2 = () => {
             </dd>
           </div>
         </dl>
+
+        <!-- Static map preview -->
+        <div class="h-[240px] sm:h-[300px] w-full shrink-0 overflow-hidden rounded-2xl border border-[#D1DCDC] lg:w-[400px]">
+          <AppMapPicker
+            :latitude="null"
+            :longitude="null"
+            :address="addressQuery"
+            :interactive="false"
+          />
+        </div>
       </div>
     </div>
 
