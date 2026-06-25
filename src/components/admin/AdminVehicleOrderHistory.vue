@@ -318,6 +318,49 @@ const currentDocuments = computed(() => {
   return props.documents[props.vehicle.vehicle_id] || [];
 });
 
+// Human-readable German titles for known document types.
+const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  leasingvertrag: "Leasingvertrag",
+  vorschaden: "Vorschaden",
+  gutachten: "Gutachten",
+  nachgutachten: "Nachgutachten",
+  rechnung: "Rechnung",
+  tuv: "TÜV",
+};
+
+function documentTypeLabel(type?: string): string {
+  const key = (type ?? "").trim();
+  if (!key) return "Sonstige Dokumente";
+  const mapped = DOCUMENT_TYPE_LABELS[key.toLowerCase()];
+  if (mapped) return mapped;
+  // Fallback: capitalize the raw backend value so it still reads cleanly.
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+// Group documents by their document_type so each type renders under its own
+// heading. Order of groups follows first appearance in the documents list.
+const groupedDocuments = computed(() => {
+  const groups: { key: string; title: string; items: any[] }[] = [];
+  const indexByKey = new Map<string, number>();
+
+  for (const doc of currentDocuments.value) {
+    const key = (doc?.document_type ?? "").trim().toLowerCase() || "__other__";
+    let idx = indexByKey.get(key);
+    if (idx === undefined) {
+      idx = groups.length;
+      indexByKey.set(key, idx);
+      groups.push({
+        key,
+        title: documentTypeLabel(doc?.document_type),
+        items: [],
+      });
+    }
+    groups[idx].items.push(doc);
+  }
+
+  return groups;
+});
+
 async function deleteDocument(documentId: string) {
   try {
     if (!props.vehicle?.vehicle_id) return;
@@ -457,56 +500,70 @@ async function publishDocument(documentId: string) {
 
               <div class="flex flex-col gap-4 p-6 pt-0">
                 <div
-                  v-for="(doc, i) in currentDocuments"
-                  :key="i"
-                  class="flex items-center justify-between gap-3"
+                  v-for="group in groupedDocuments"
+                  :key="group.key"
+                  class="flex flex-col gap-3"
                 >
-                  <div class="flex items-center gap-2 flex-1 min-w-0">
-                    <span
-                      class="text-[14px] font-normal text-[#475569] truncate"
-                      :title="doc.file_name || doc.document_type || 'Dokument'"
+                  <div v-if="group.key !== 'gutachten'">
+                    <p
+                      class="text-[16px] font-semibold uppercase text-[#000000]"
                     >
-                      {{ doc.file_name || doc.document_type || "Dokument" }}
-                    </span>
-                    <span
-                      v-if="doc.is_report && doc.published"
-                      class="text-[10px] font-bold text-[#01b990] uppercase"
-                    >
-                      Published
-                    </span>
+                      {{ group.title }}
+                    </p>
+                    <div class="h-px bg-gray-200 mt-2"></div>
                   </div>
-                  <div class="flex items-center gap-2">
-                    <a
-                      v-if="doc.url"
-                      :href="doc.url"
-                      target="_blank"
-                      class="text-[#01b990] hover:opacity-70 flex-shrink-0"
-                    >
-                      <Icon
-                        icon="material-symbols:download"
-                        class="size-[18.5px] shrink-0"
-                      />
-                    </a>
-                    <button
-                      v-if="doc.is_report && !doc.published"
-                      @click="publishDocument(doc.id)"
-                      class="text-[#01b990] hover:opacity-70 flex-shrink-0"
-                      title="Publish"
-                    >
-                      <Icon
-                        icon="mdi:eye-outline"
-                        class="size-[18.5px] shrink-0"
-                      />
-                    </button>
-                    <button
-                      @click="deleteDocument(doc.id)"
-                      class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
-                    >
-                      <Icon
-                        icon="mdi:delete-outline"
-                        class="size-[18.5px] shrink-0"
-                      />
-                    </button>
+                  <div
+                    v-for="(doc, i) in group.items"
+                    :key="doc.id || i"
+                    class="flex items-center justify-between gap-3"
+                  >
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                      <span
+                        class="text-[14px] font-normal text-[#475569] truncate"
+                        :title="doc.file_name || doc.document_type || 'Dokument'"
+                      >
+                        {{ doc.file_name || doc.document_type || "Dokument" }}
+                      </span>
+                      <span
+                        v-if="doc.is_report && doc.published"
+                        class="text-[10px] font-bold text-[#01b990] uppercase"
+                      >
+                        Published
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <a
+                        v-if="doc.url"
+                        :href="doc.url"
+                        target="_blank"
+                        class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                      >
+                        <Icon
+                          icon="material-symbols:download"
+                          class="size-[18.5px] shrink-0"
+                        />
+                      </a>
+                      <button
+                        v-if="doc.is_report && !doc.published"
+                        @click="publishDocument(doc.id)"
+                        class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                        title="Publish"
+                      >
+                        <Icon
+                          icon="mdi:eye-outline"
+                          class="size-[18.5px] shrink-0"
+                        />
+                      </button>
+                      <button
+                        @click="deleteDocument(doc.id)"
+                        class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+                      >
+                        <Icon
+                          icon="mdi:delete-outline"
+                          class="size-[18.5px] shrink-0"
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div

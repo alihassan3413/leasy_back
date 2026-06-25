@@ -16,7 +16,88 @@ const uploadDocsOpen = ref(false);
 const documents = ref<any[]>([]);
 const viewDocUrl = ref<string | null>(null);
 
+<<<<<<< Updated upstream
 // Computed properties
+=======
+// Human-readable German titles for known document types.
+const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  leasingvertrag: "Leasingvertrag",
+  vorschaden: "Vorschaden",
+  gutachten: "Gutachten",
+  nachgutachten: "Nachgutachten",
+  rechnung: "Rechnung",
+  tuv: "TÜV",
+};
+
+function documentTypeLabel(type?: string): string {
+  const key = (type ?? "").trim();
+  if (!key) return "Sonstige Dokumente";
+  const mapped = DOCUMENT_TYPE_LABELS[key.toLowerCase()];
+  if (mapped) return mapped;
+  // Fallback: capitalize the raw backend value so it still reads cleanly.
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+// Group documents by their document_type so each type renders under its own
+// heading. Order of groups follows first appearance in the documents list.
+const groupedDocuments = computed(() => {
+  const groups: { key: string; title: string; items: any[] }[] = [];
+  const indexByKey = new Map<string, number>();
+
+  for (const doc of documents.value) {
+    const key = (doc?.document_type ?? "").trim().toLowerCase() || "__other__";
+    let idx = indexByKey.get(key);
+    if (idx === undefined) {
+      idx = groups.length;
+      indexByKey.set(key, idx);
+      groups.push({
+        key,
+        title: documentTypeLabel(doc?.document_type),
+        items: [],
+      });
+    }
+    groups[idx].items.push(doc);
+  }
+
+  return groups;
+});
+
+// Mock data for offers if backend doesn't provide any
+const mockOffers: Offer[] = [
+  {
+    id: "01",
+    name: "Göhler Werkstatt",
+    cost: 1866,
+    saving: 36,
+    address: "Musterstraße 123, 12345 Berlin",
+    distance: "227km distance",
+    recommended: false,
+    accepted: false,
+  },
+  {
+    id: "02",
+    name: "HanseMerkur",
+    cost: 2555,
+    saving: 85,
+    address: "Beispielstraße 456, 67890 Hamburg",
+    distance: "406km distance",
+    recommended: false,
+    accepted: false,
+  },
+  {
+    id: "03",
+    name: "ATU Lüneburg",
+    cost: 1755,
+    saving: 59,
+    address: "Teststraße 789, 21073 Lüneburg",
+    distance: "405km distance",
+    recommended: true,
+    accepted: true,
+  },
+];
+
+// Computed properties with fallback to mock data
+>>>>>>> Stashed changes
 const timelineData = computed(() => {
   // Generate timeline from orders
   if (props.vehicle.orders && props.vehicle.orders.length > 0) {
@@ -459,39 +540,53 @@ watch(
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
-              <div class="flex flex-col gap-4 p-6 pt-0">
+              <div class="flex flex-col gap-5 p-6 pt-0">
                 <div
-                  v-for="(doc, i) in documents"
-                  :key="i"
-                  class="flex items-center justify-between gap-3"
+                  v-for="group in groupedDocuments"
+                  :key="group.key"
+                  class="flex flex-col gap-3"
                 >
-                  <span
-                    class="text-[14px] font-normal text-[#475569] flex-1 truncate"
-                    :title="doc.file_name || doc.document_type || 'Dokument'"
+                  <div v-if="group.key !== 'gutachten'">
+                    <p
+                      class="text-[16px] font-semibold uppercase text-[#000000]"
+                    >
+                      {{ group.title }}
+                    </p>
+                    <div class="h-px bg-gray-200 mt-2"></div>
+                  </div>
+                  <div
+                    v-for="(doc, i) in group.items"
+                    :key="doc.id || i"
+                    class="flex items-center justify-between gap-3"
                   >
-                    {{ doc.file_name || doc.document_type || "Dokument" }}
-                  </span>
-                  <div class="flex items-center gap-2">
-                    <a
-                      v-if="doc.url"
-                      :href="doc.url"
-                      target="_blank"
-                      class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                    <span
+                      class="text-[14px] font-normal text-[#475569] flex-1 truncate"
+                      :title="doc.file_name || doc.document_type || 'Dokument'"
                     >
-                      <Icon
-                        icon="material-symbols:download"
-                        class="size-[18.5px] shrink-0"
-                      />
-                    </a>
-                    <button
-                      @click="deleteDocument(doc.id)"
-                      class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
-                    >
-                      <Icon
-                        icon="mdi:delete-outline"
-                        class="size-[18.5px] shrink-0"
-                      />
-                    </button>
+                      {{ doc.file_name || doc.document_type || "Dokument" }}
+                    </span>
+                    <div class="flex items-center gap-2">
+                      <a
+                        v-if="doc.url"
+                        :href="doc.url"
+                        target="_blank"
+                        class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                      >
+                        <Icon
+                          icon="material-symbols:download"
+                          class="size-[18.5px] shrink-0"
+                        />
+                      </a>
+                      <button
+                        @click="deleteDocument(doc.id)"
+                        class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+                      >
+                        <Icon
+                          icon="mdi:delete-outline"
+                          class="size-[18.5px] shrink-0"
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div
@@ -1012,36 +1107,51 @@ watch(
         <div class="h-px bg-gray-200 mt-2"></div>
       </div>
 
-      <div class="flex flex-col gap-3 p-4 pt-0">
+      <div class="flex flex-col gap-4 p-4 pt-0">
         <div
-          v-for="(doc, i) in documents"
-          :key="i"
-          class="flex items-center justify-between gap-3"
+          v-for="group in groupedDocuments"
+          :key="group.key"
+          class="flex flex-col gap-3"
         >
-          <span
-            class="text-[14px] font-normal text-[#475569] flex-1 truncate"
-            :title="doc.file_name || doc.document_type || 'Dokument'"
+          <div v-if="group.key !== 'gutachten'">
+            <p class="text-[16px] font-semibold uppercase text-[#000000]">
+              {{ group.title }}
+            </p>
+            <div class="h-px bg-gray-200 mt-2"></div>
+          </div>
+          <div
+            v-for="(doc, i) in group.items"
+            :key="doc.id || i"
+            class="flex items-center justify-between gap-3"
           >
-            {{ doc.file_name || doc.document_type || "Dokument" }}
-          </span>
-          <div class="flex items-center gap-2">
-            <a
-              v-if="doc.url"
-              :href="doc.url"
-              target="_blank"
-              class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+            <span
+              class="text-[14px] font-normal text-[#475569] flex-1 truncate"
+              :title="doc.file_name || doc.document_type || 'Dokument'"
             >
-              <Icon
-                icon="material-symbols:download"
-                class="size-[18.5px] shrink-0"
-              />
-            </a>
-            <button
-              @click="deleteDocument(doc.id)"
-              class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
-            >
-              <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
-            </button>
+              {{ doc.file_name || doc.document_type || "Dokument" }}
+            </span>
+            <div class="flex items-center gap-2">
+              <a
+                v-if="doc.url"
+                :href="doc.url"
+                target="_blank"
+                class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+              >
+                <Icon
+                  icon="material-symbols:download"
+                  class="size-[18.5px] shrink-0"
+                />
+              </a>
+              <button
+                @click="deleteDocument(doc.id)"
+                class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+              >
+                <Icon
+                  icon="mdi:delete-outline"
+                  class="size-[18.5px] shrink-0"
+                />
+              </button>
+            </div>
           </div>
         </div>
         <div v-if="documents.length === 0" class="text-[14px] text-[#b7c2c2]">
