@@ -7,6 +7,7 @@ import type { AdminVehicle, Offer, OffersListResponse } from "@/types";
 import AddVehicleModal from "@/components/dashboard/modals/AddVehicleModal.vue";
 import UploadDocumentModal from "@/components/dashboard/modals/UploadDocumentModal.vue";
 import { vehicleApi, adminVehiclesApi, adminOffersApi } from "@/api";
+import { getOrderStatusLabel } from "@/lib/status";
 
 const props = defineProps<{
   vehicle: AdminVehicle;
@@ -207,7 +208,7 @@ const timelineData = computed(() => {
     // Add current status as first entry
     timeline.push({
       datetime: "",
-      label: `STATUS: ${(order.order_status || "KEINE AUFTRÄGE").replace("_", " ").toUpperCase()}`,
+      label: `STATUS: ${order.order_status ? getOrderStatusLabel(order.order_status).label.toUpperCase() : "KEINE AUFTRÄGE"}`,
       completed: false,
     });
 
@@ -302,7 +303,7 @@ const lastActivityDate = computed(() => {
 
 const lastActivityStatus = computed(() => {
   if (firstOrder.value?.order_status) {
-    return firstOrder.value.order_status.replace("_", " ");
+    return getOrderStatusLabel(firstOrder.value.order_status).label;
   }
   return null;
 });
@@ -828,22 +829,12 @@ async function publishDocument(documentId: string) {
             class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
             style="border-color: #ececec"
           >
-            <button
-              @click="uploadDocsOpen = true"
-              class="absolute right-5 top-5 transition-opacity hover:opacity-60"
-            >
-              <Icon
-                icon="material-symbols-light:edit"
-                class="size-6 shrink-0"
-                style="color: #01b990"
-              />
-            </button>
             <div class="pb-6">
               <p
                 class="text-[16px] font-normal uppercase"
                 style="color: #2e3e3f"
               >
-                Assigned To
+                Zugewiesen an
               </p>
             </div>
 
@@ -862,7 +853,7 @@ async function publishDocument(documentId: string) {
                   {{ primaryDriverName }}
                 </p>
                 <p class="text-[12px] font-semibold" style="color: #01b990">
-                  Primary Driver
+                  Primärer Fahrer
                 </p>
               </div>
             </div>
@@ -880,7 +871,7 @@ async function publishDocument(documentId: string) {
                   Marcus Dietrich
                 </p>
                 <p class="text-[12px] font-semibold" style="color: #01b990">
-                  Primary Driver
+                  Primärer Fahrer
                 </p>
               </div>
             </div>
@@ -891,7 +882,7 @@ async function publishDocument(documentId: string) {
                 class="text-[10px] font-medium uppercase"
                 style="color: #8f9ba7; letter-spacing: 0.5px"
               >
-                Last Activity
+                Letzte Aktivität
               </p>
               <div
                 class="flex items-center justify-between pt-2"
@@ -899,7 +890,7 @@ async function publishDocument(documentId: string) {
               >
                 <p class="text-[14px] font-normal" style="color: #2e3e3f">
                   {{ lastActivityDate }}
-                  · Order placed
+                  · Auftrag erstellt
                 </p>
                 <p class="text-[14px] font-bold" style="color: #2e3e3f">
                   {{ lastActivityStatus }}
@@ -979,14 +970,14 @@ async function publishDocument(documentId: string) {
             </button>
             <div class="px-6 pt-6">
               <p class="text-[18px] font-bold" style="color: #000">
-                VEHICLE SPECS
+                FAHRZEUGDATEN
               </p>
             </div>
 
             <div class="flex flex-col gap-0 px-6 pt-4 pb-6">
               <div class="flex items-center justify-between py-4">
                 <span class="text-[16px] font-normal" style="color: #64748b">
-                  License Plate
+                  Kennzeichen
                 </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.license_plate }}
@@ -995,7 +986,7 @@ async function publishDocument(documentId: string) {
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
                 <span class="text-[16px] font-normal" style="color: #64748b">
-                  Model
+                  Modell
                 </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.make }} {{ vehicle.model }}
@@ -1030,7 +1021,7 @@ async function publishDocument(documentId: string) {
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
                 <span class="text-[16px] font-normal" style="color: #64748b">
-                  Return Deadline
+                  Rückgabetermin
                 </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{

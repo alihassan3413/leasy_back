@@ -8,6 +8,7 @@ import { vehicleApi, customerOffersApi } from "@/api";
 import { useVehicleStore } from "@/stores/vehicle.store";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { getOrderStatusLabel } from "@/lib/status";
 
 const props = defineProps<{ vehicle: Vehicle }>();
 
@@ -16,9 +17,6 @@ const uploadDocsOpen = ref(false);
 const documents = ref<any[]>([]);
 const viewDocUrl = ref<string | null>(null);
 
-<<<<<<< Updated upstream
-// Computed properties
-=======
 // Human-readable German titles for known document types.
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   leasingvertrag: "Leasingvertrag",
@@ -97,7 +95,6 @@ const mockOffers: Offer[] = [
 ];
 
 // Computed properties with fallback to mock data
->>>>>>> Stashed changes
 const timelineData = computed(() => {
   // Generate timeline from orders
   if (props.vehicle.orders && props.vehicle.orders.length > 0) {
@@ -106,7 +103,7 @@ const timelineData = computed(() => {
     // Keep status as separate (will be added first without date
     const statusEntry = {
       datetime: "",
-      label: `STATUS: ${firstOrder.order_status.replace("_", " ").toUpperCase()}`,
+      label: `STATUS: ${getOrderStatusLabel(firstOrder.order_status).label.toUpperCase()}`,
       completed: false,
     };
 
@@ -740,16 +737,6 @@ watch(
             class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
             style="border-color: #ececec"
           >
-            <button
-              @click="uploadDocsOpen = true"
-              class="absolute right-5 top-5 transition-opacity hover:opacity-60"
-            >
-              <Icon
-                icon="material-symbols-light:edit"
-                class="size-6 shrink-0"
-                style="color: #01b990"
-              />
-            </button>
             <div class="pb-6">
               <p
                 class="text-[16px] font-normal uppercase"
@@ -828,10 +815,10 @@ watch(
                       },
                     )
                   }}
-                  · Order placed
+                  · Auftrag erstellt
                 </p>
                 <p class="text-[14px] font-bold" style="color: #2e3e3f">
-                  {{ vehicle.orders[0].order_status.replace("_", " ") }}
+                  {{ getOrderStatusLabel(vehicle.orders[0].order_status).label }}
                 </p>
               </div>
               <div class="flex items-center justify-between pt-2" v-else>
@@ -914,7 +901,7 @@ watch(
             </button>
             <div class="px-6 pt-6">
               <p class="text-[18px] font-bold" style="color: #000">
-                VEHICLE SPECS
+                FAHRZEUGDATEN
               </p>
             </div>
 
@@ -930,7 +917,7 @@ watch(
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
                 <span class="text-[16px] font-normal" style="color: #64748b">
-                  Model
+                  Modell
                 </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.make }} {{ vehicle.model }}
@@ -1275,16 +1262,6 @@ watch(
       class="relative flex flex-col rounded-[24px] border bg-white p-6"
       style="border-color: #ececec"
     >
-      <button
-        @click="uploadDocsOpen = true"
-        class="absolute right-4 top-4 transition-opacity hover:opacity-60"
-      >
-        <Icon
-          icon="material-symbols-light:edit"
-          class="size-5 shrink-0"
-          style="color: #01b990"
-        />
-      </button>
       <div class="pb-4">
         <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
           Zugewiesen an
@@ -1353,10 +1330,10 @@ watch(
                 },
               )
             }}
-            · Order placed
+            · Auftrag erstellt
           </p>
           <p class="text-[13px] font-bold" style="color: #2e3e3f">
-            {{ vehicle.orders[0].order_status.replace("_", " ") }}
+            {{ getOrderStatusLabel(vehicle.orders[0].order_status).label }}
           </p>
         </div>
         <div class="flex items-center justify-between pt-2" v-else>
@@ -1434,7 +1411,7 @@ watch(
         />
       </button>
       <div class="px-4 pt-4">
-        <p class="text-[16px] font-bold" style="color: #000">VEHICLE SPECS</p>
+        <p class="text-[16px] font-bold" style="color: #000">FAHRZEUGDATEN</p>
       </div>
 
       <div class="flex flex-col gap-0 px-4 pt-3 pb-4">
@@ -1449,7 +1426,7 @@ watch(
         <div class="h-px bg-gray-200"></div>
         <div class="flex items-center justify-between py-3">
           <span class="text-[14px] font-normal" style="color: #64748b">
-            Model
+            Modell
           </span>
           <span class="text-[14px] font-semibold" style="color: #000">
             {{ vehicle.make }} {{ vehicle.model }}

@@ -5,6 +5,7 @@ import type { Vehicle, Offer } from "../dashboard/vehicle.types";
 import AddVehicleModal from "../dashboard/modals/AddVehicleModal.vue";
 import UploadDocumentModal from "../dashboard/modals/UploadDocumentModal.vue";
 import { vehicleApi, customerOffersApi } from "@/api";
+import { getOrderStatusLabel } from "@/lib/status";
 
 const props = defineProps<{ vehicle: Vehicle }>();
 
@@ -12,8 +13,6 @@ const editVehicleOpen = ref(false);
 const uploadDocsOpen = ref(false);
 const documents = ref<any[]>([]);
 
-<<<<<<< Updated upstream
-=======
 // Human-readable German titles for known document types.
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   leasingvertrag: "Leasingvertrag",
@@ -91,7 +90,6 @@ const mockOffers: Offer[] = [
   },
 ];
 
->>>>>>> Stashed changes
 // Published offers fetched from the customer offers endpoint
 const realOffers = ref<Offer[]>([]);
 const selectingOfferId = ref<string | null>(null);
@@ -216,7 +214,11 @@ watch(
               <div class="flex items-center justify-between w-full">
                 <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
                   Status:
-                  {{ latestOrder ? latestOrder.order_status : "Kein Auftrag" }}
+                  {{
+                    latestOrder
+                      ? getOrderStatusLabel(latestOrder.order_status).label
+                      : "Kein Auftrag"
+                  }}
                 </p>
                 <button class="text-[#01b990] hover:opacity-70">
                   <Icon icon="mdi:dots-vertical" class="size-4.5" />
@@ -415,9 +417,6 @@ watch(
           <!-- Zugewiesen an Card -->
           <div class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
             style="border-color: #ececec">
-            <button @click="editVehicleOpen = true" class="absolute right-5 top-5 transition-opacity hover:opacity-60">
-              <Icon icon="material-symbols-light:edit" class="size-6 shrink-0" style="color: #01b990" />
-            </button>
             <div class="pb-6">
               <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
                 Zugewiesen an
