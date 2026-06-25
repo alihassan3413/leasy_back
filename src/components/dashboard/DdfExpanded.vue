@@ -8,6 +8,7 @@ import { vehicleApi, customerOffersApi } from "@/api";
 import { useVehicleStore } from "@/stores/vehicle.store";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { getOrderStatusLabel } from "@/lib/status";
 
 const props = defineProps<{ vehicle: Vehicle }>();
 
@@ -15,7 +16,84 @@ const editVehicleOpen = ref(false);
 const uploadDocsOpen = ref(false);
 const documents = ref<any[]>([]);
 
-// Computed properties
+// Human-readable German titles for known document types.
+const DOCUMENT_TYPE_LABELS: Record<string, string> = {
+  leasingvertrag: "Leasingvertrag",
+  vorschaden: "Vorschaden",
+  gutachten: "Gutachten",
+  nachgutachten: "Nachgutachten",
+  rechnung: "Rechnung",
+  tuv: "TÜV",
+};
+
+function documentTypeLabel(type?: string): string {
+  const key = (type ?? "").trim();
+  if (!key) return "Sonstige Dokumente";
+  const mapped = DOCUMENT_TYPE_LABELS[key.toLowerCase()];
+  if (mapped) return mapped;
+  // Fallback: capitalize the raw backend value so it still reads cleanly.
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+// Group documents by their document_type so each type renders under its own
+// heading. Order of groups follows first appearance in the documents list.
+const groupedDocuments = computed(() => {
+  const groups: { key: string; title: string; items: any[] }[] = [];
+  const indexByKey = new Map<string, number>();
+
+  for (const doc of documents.value) {
+    const key = (doc?.document_type ?? "").trim().toLowerCase() || "__other__";
+    let idx = indexByKey.get(key);
+    if (idx === undefined) {
+      idx = groups.length;
+      indexByKey.set(key, idx);
+      groups.push({
+        key,
+        title: documentTypeLabel(doc?.document_type),
+        items: [],
+      });
+    }
+    groups[idx].items.push(doc);
+  }
+
+  return groups;
+});
+
+// Mock data for offers if backend doesn't provide any
+const mockOffers: Offer[] = [
+  {
+    id: "01",
+    name: "Göhler Werkstatt",
+    cost: 1866,
+    saving: 36,
+    address: "Musterstraße 123, 12345 Berlin",
+    distance: "227km distance",
+    recommended: false,
+    accepted: false,
+  },
+  {
+    id: "02",
+    name: "HanseMerkur",
+    cost: 2555,
+    saving: 85,
+    address: "Beispielstraße 456, 67890 Hamburg",
+    distance: "406km distance",
+    recommended: false,
+    accepted: false,
+  },
+  {
+    id: "03",
+    name: "ATU Lüneburg",
+    cost: 1755,
+    saving: 59,
+    address: "Teststraße 789, 21073 Lüneburg",
+    distance: "405km distance",
+    recommended: true,
+    accepted: true,
+  },
+];
+
+// Computed properties with fallback to mock data
 const timelineData = computed(() => {
   // Generate timeline from orders
   if (props.vehicle.orders && props.vehicle.orders.length > 0) {
@@ -24,7 +102,7 @@ const timelineData = computed(() => {
     // Keep status as separate (will be added first without date
     const statusEntry = {
       datetime: "",
-      label: `STATUS: ${firstOrder.order_status.replace("_", " ").toUpperCase()}`,
+      label: `STATUS: ${getOrderStatusLabel(firstOrder.order_status).label.toUpperCase()}`,
       completed: false,
     };
 
@@ -444,39 +522,53 @@ watch(
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
-              <div class="flex flex-col gap-4 p-6 pt-0">
+              <div class="flex flex-col gap-5 p-6 pt-0">
                 <div
-                  v-for="(doc, i) in documents"
-                  :key="i"
-                  class="flex items-center justify-between gap-3"
+                  v-for="group in groupedDocuments"
+                  :key="group.key"
+                  class="flex flex-col gap-3"
                 >
-                  <span
-                    class="text-[14px] font-normal text-[#475569] flex-1 truncate"
-                    :title="doc.file_name || doc.document_type || 'Dokument'"
+                  <div v-if="group.key !== 'gutachten'">
+                    <p
+                      class="text-[16px] font-semibold uppercase text-[#000000]"
+                    >
+                      {{ group.title }}
+                    </p>
+                    <div class="h-px bg-gray-200 mt-2"></div>
+                  </div>
+                  <div
+                    v-for="(doc, i) in group.items"
+                    :key="doc.id || i"
+                    class="flex items-center justify-between gap-3"
                   >
-                    {{ doc.file_name || doc.document_type || "Dokument" }}
-                  </span>
-                  <div class="flex items-center gap-2">
-                    <a
-                      v-if="doc.url"
-                      :href="doc.url"
-                      target="_blank"
-                      class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                    <span
+                      class="text-[14px] font-normal text-[#475569] flex-1 truncate"
+                      :title="doc.file_name || doc.document_type || 'Dokument'"
                     >
-                      <Icon
-                        icon="material-symbols:download"
-                        class="size-[18.5px] shrink-0"
-                      />
-                    </a>
-                    <button
-                      @click="deleteDocument(doc.id)"
-                      class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
-                    >
-                      <Icon
-                        icon="mdi:delete-outline"
-                        class="size-[18.5px] shrink-0"
-                      />
-                    </button>
+                      {{ doc.file_name || doc.document_type || "Dokument" }}
+                    </span>
+                    <div class="flex items-center gap-2">
+                      <a
+                        v-if="doc.url"
+                        :href="doc.url"
+                        target="_blank"
+                        class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                      >
+                        <Icon
+                          icon="material-symbols:download"
+                          class="size-[18.5px] shrink-0"
+                        />
+                      </a>
+                      <button
+                        @click="deleteDocument(doc.id)"
+                        class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+                      >
+                        <Icon
+                          icon="mdi:delete-outline"
+                          class="size-[18.5px] shrink-0"
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div
@@ -630,16 +722,6 @@ watch(
             class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
             style="border-color: #ececec"
           >
-            <button
-              @click="uploadDocsOpen = true"
-              class="absolute right-5 top-5 transition-opacity hover:opacity-60"
-            >
-              <Icon
-                icon="material-symbols-light:edit"
-                class="size-6 shrink-0"
-                style="color: #01b990"
-              />
-            </button>
             <div class="pb-6">
               <p
                 class="text-[16px] font-normal uppercase"
@@ -718,10 +800,10 @@ watch(
                       },
                     )
                   }}
-                  · Order placed
+                  · Auftrag erstellt
                 </p>
                 <p class="text-[14px] font-bold" style="color: #2e3e3f">
-                  {{ vehicle.orders[0].order_status.replace("_", " ") }}
+                  {{ getOrderStatusLabel(vehicle.orders[0].order_status).label }}
                 </p>
               </div>
               <div class="flex items-center justify-between pt-2" v-else>
@@ -804,7 +886,7 @@ watch(
             </button>
             <div class="px-6 pt-6">
               <p class="text-[18px] font-bold" style="color: #000">
-                VEHICLE SPECS
+                FAHRZEUGDATEN
               </p>
             </div>
 
@@ -820,7 +902,7 @@ watch(
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
                 <span class="text-[16px] font-normal" style="color: #64748b">
-                  Model
+                  Modell
                 </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.make }} {{ vehicle.model }}
@@ -999,36 +1081,51 @@ watch(
         <div class="h-px bg-gray-200 mt-2"></div>
       </div>
 
-      <div class="flex flex-col gap-3 p-4 pt-0">
+      <div class="flex flex-col gap-4 p-4 pt-0">
         <div
-          v-for="(doc, i) in documents"
-          :key="i"
-          class="flex items-center justify-between gap-3"
+          v-for="group in groupedDocuments"
+          :key="group.key"
+          class="flex flex-col gap-3"
         >
-          <span
-            class="text-[14px] font-normal text-[#475569] flex-1 truncate"
-            :title="doc.file_name || doc.document_type || 'Dokument'"
+          <div v-if="group.key !== 'gutachten'">
+            <p class="text-[16px] font-semibold uppercase text-[#000000]">
+              {{ group.title }}
+            </p>
+            <div class="h-px bg-gray-200 mt-2"></div>
+          </div>
+          <div
+            v-for="(doc, i) in group.items"
+            :key="doc.id || i"
+            class="flex items-center justify-between gap-3"
           >
-            {{ doc.file_name || doc.document_type || "Dokument" }}
-          </span>
-          <div class="flex items-center gap-2">
-            <a
-              v-if="doc.url"
-              :href="doc.url"
-              target="_blank"
-              class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+            <span
+              class="text-[14px] font-normal text-[#475569] flex-1 truncate"
+              :title="doc.file_name || doc.document_type || 'Dokument'"
             >
-              <Icon
-                icon="material-symbols:download"
-                class="size-[18.5px] shrink-0"
-              />
-            </a>
-            <button
-              @click="deleteDocument(doc.id)"
-              class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
-            >
-              <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
-            </button>
+              {{ doc.file_name || doc.document_type || "Dokument" }}
+            </span>
+            <div class="flex items-center gap-2">
+              <a
+                v-if="doc.url"
+                :href="doc.url"
+                target="_blank"
+                class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+              >
+                <Icon
+                  icon="material-symbols:download"
+                  class="size-[18.5px] shrink-0"
+                />
+              </a>
+              <button
+                @click="deleteDocument(doc.id)"
+                class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+              >
+                <Icon
+                  icon="mdi:delete-outline"
+                  class="size-[18.5px] shrink-0"
+                />
+              </button>
+            </div>
           </div>
         </div>
         <div v-if="documents.length === 0" class="text-[14px] text-[#b7c2c2]">
@@ -1152,16 +1249,6 @@ watch(
       class="relative flex flex-col rounded-[24px] border bg-white p-6"
       style="border-color: #ececec"
     >
-      <button
-        @click="uploadDocsOpen = true"
-        class="absolute right-4 top-4 transition-opacity hover:opacity-60"
-      >
-        <Icon
-          icon="material-symbols-light:edit"
-          class="size-5 shrink-0"
-          style="color: #01b990"
-        />
-      </button>
       <div class="pb-4">
         <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
           Zugewiesen an
@@ -1230,10 +1317,10 @@ watch(
                 },
               )
             }}
-            · Order placed
+            · Auftrag erstellt
           </p>
           <p class="text-[13px] font-bold" style="color: #2e3e3f">
-            {{ vehicle.orders[0].order_status.replace("_", " ") }}
+            {{ getOrderStatusLabel(vehicle.orders[0].order_status).label }}
           </p>
         </div>
         <div class="flex items-center justify-between pt-2" v-else>
@@ -1311,7 +1398,7 @@ watch(
         />
       </button>
       <div class="px-4 pt-4">
-        <p class="text-[16px] font-bold" style="color: #000">VEHICLE SPECS</p>
+        <p class="text-[16px] font-bold" style="color: #000">FAHRZEUGDATEN</p>
       </div>
 
       <div class="flex flex-col gap-0 px-4 pt-3 pb-4">
@@ -1326,7 +1413,7 @@ watch(
         <div class="h-px bg-gray-200"></div>
         <div class="flex items-center justify-between py-3">
           <span class="text-[14px] font-normal" style="color: #64748b">
-            Model
+            Modell
           </span>
           <span class="text-[14px] font-semibold" style="color: #000">
             {{ vehicle.make }} {{ vehicle.model }}

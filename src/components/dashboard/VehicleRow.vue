@@ -124,8 +124,9 @@ function handleAction(action: string) {
             style="color: rgb(239, 132, 80)"
           />
         </button>
-        <!-- Three dots menu -->
-        <DropdownMenu>
+        <!-- Three dots menu — only relevant while the process can be started
+             (its sole action is "Vorgang starten"). Hide it once an order exists. -->
+        <DropdownMenu v-if="canStartProcess">
           <DropdownMenuTrigger as-child>
             <button
               class="transition-opacity hover:opacity-70 hover:bg-gray-100 p-1 rounded"
