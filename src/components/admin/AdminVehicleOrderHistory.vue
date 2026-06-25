@@ -113,14 +113,35 @@ async function publishOffer(offerId: string) {
   }
 }
 
-async function cancelOffer(offerId: string) {
+// Offer pending cancellation (opens the reason dialog)
+const cancelOfferId = ref<string | null>(null);
+const cancelReason = ref("");
+const cancelling = ref(false);
+
+function requestCancel(offerId: string) {
+  cancelOfferId.value = offerId;
+  cancelReason.value = "";
+}
+
+function closeCancel() {
+  cancelOfferId.value = null;
+  cancelReason.value = "";
+}
+
+async function confirmCancel() {
+  const offerId = cancelOfferId.value;
+  if (!offerId || !cancelReason.value.trim()) return;
   try {
-    await adminOffersApi.cancelOffer(offerId);
+    cancelling.value = true;
+    await adminOffersApi.cancelOffer(offerId, cancelReason.value.trim());
     if (firstOrder.value?.auftragsnummer) {
       await fetchOffers(firstOrder.value.auftragsnummer);
     }
+    closeCancel();
   } catch (err) {
     console.error("Failed to cancel offer:", err);
+  } finally {
+    cancelling.value = false;
   }
 }
 
@@ -693,12 +714,16 @@ async function publishDocument(documentId: string) {
                           Update
                         </span>
                       </button> -->
-                      <!-- Cancel -->
+                      <!-- Cancel (not available for selected or already cancelled offers) -->
                       <div class="h-px bg-[#ececec] my-1"></div>
                       <button
-                        v-if="offer.originalOffer && offer.status !== 'cancelled'"
+                        v-if="
+                          offer.originalOffer &&
+                          offer.status !== 'cancelled' &&
+                          offer.status !== 'selected'
+                        "
                         @click.stop="
-                          cancelOffer(offer.originalOffer.offer_id);
+                          requestCancel(offer.originalOffer.offer_id);
                           openOfferMenu = null;
                         "
                         class="w-full text-left px-4 py-2 text-sm text-[#EF4444] hover:bg-[#f6f9f8] transition-colors"
@@ -714,6 +739,13 @@ async function publishDocument(documentId: string) {
                       >
                         <Icon icon="mdi:cancel" class="size-4" />
                         Cancelled
+                      </div>
+                      <div
+                        v-else-if="offer.status === 'selected'"
+                        class="px-4 py-2 text-sm text-[#01b990] flex items-center gap-2"
+                      >
+                        <Icon icon="mdi:check-circle-outline" class="size-4" />
+                        Selected
                       </div>
                     </div>
                   </div>
@@ -983,4 +1015,44 @@ async function publishDocument(documentId: string) {
     @uploaded="emit('refreshDocs')"
     @changed="emit('refreshDocs')"
   />
+
+  <!-- Cancel offer reason dialog -->
+  <div
+    v-if="cancelOfferId"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/5 p-4"
+    @click="closeCancel"
+  >
+    <div
+      class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+      @click.stop
+    >
+      <h3 class="text-[18px] font-bold text-[#2e3e3f]">Angebot stornieren</h3>
+      <p class="mt-2 text-[14px] text-[#5a6b7a]">
+        Bitte geben Sie einen Grund für die Stornierung an.
+      </p>
+      <textarea
+        v-model="cancelReason"
+        rows="3"
+        placeholder="Stornierungsgrund..."
+        class="mt-4 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none resize-none focus:border-emerald-500"
+      ></textarea>
+      <div class="mt-5 flex justify-end gap-3">
+        <button
+          @click="closeCancel"
+          :disabled="cancelling"
+          class="px-5 py-2.5 rounded-full text-[14px] font-medium text-[#2e3e3f] border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+        >
+          Abbrechen
+        </button>
+        <button
+          @click="confirmCancel"
+          :disabled="cancelling || !cancelReason.trim()"
+          class="px-5 py-2.5 rounded-full text-[14px] font-semibold text-white disabled:opacity-50"
+          style="background: #ef4444"
+        >
+          {{ cancelling ? "Wird storniert..." : "Stornieren" }}
+        </button>
+      </div>
+    </div>
+  </div>
 </template>

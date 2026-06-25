@@ -37,9 +37,11 @@ export const adminOffersApi = {
   },
 
   // POST /admin/offers/cancel/{offer_id}
-  // Cancels an offer. Cancelled offers stay visible to the admin but are
-  // hidden from B2B/B2C customers.
-  cancelOffer(offerId: string): Promise<unknown> {
-    return post(`/admin/offers/cancel/${encodeURIComponent(offerId)}`);
+  // Cancels an offer with a reason. Cancelled offers stay visible to the
+  // admin but are hidden from B2B/B2C customers.
+  cancelOffer(offerId: string, cancellationReason: string): Promise<unknown> {
+    return post(`/admin/offers/cancel/${encodeURIComponent(offerId)}`, {
+      cancellation_reason: cancellationReason,
+    });
   },
 };
