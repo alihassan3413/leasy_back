@@ -43,9 +43,13 @@ const scrollTo = (id: string) => {
             Einstellungen
           </p>
         </div>
+<<<<<<< HEAD
         <h1 class="text-[22px] sm:text-[26px] font-bold leading-tight text-[#10393B]">
           Mein Konto
         </h1>
+=======
+        <h1 class="text-[26px] font-bold leading-tight text-[#10393B]">Mein Konto</h1>
+>>>>>>> origin/main
       </header>
 
       <!-- Mobile identity card -->
