@@ -57,7 +57,7 @@ function onDrop(event: DragEvent): void {
       <div class="w-full h-px bg-green-gray mb-4"></div>
 
       <div class="w-full space-y-4">
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormTextField
             name="company.firmenname"
             label="Firmenname (lt. HGB/Gewerbeeintrag)"
@@ -68,7 +68,7 @@ function onDrop(event: DragEvent): void {
           <FormTextField name="company.ustIdNr" label="USt-IdNr." required />
         </div>
 
-        <div class="grid grid-cols-[1fr_100px_1fr] gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-[1fr_100px_1fr] gap-3">
           <FormTextField name="company.strasse" label="Straße" required />
 
           <FormTextField name="company.nr" label="Nr." required />
@@ -76,7 +76,7 @@ function onDrop(event: DragEvent): void {
           <FormTextField name="company.zusaetzlicheAnschrift" label="Zusätzliche Anschrift" />
         </div>
 
-        <div class="grid grid-cols-[100px_1fr_1fr] gap-3 items-end">
+        <div class="grid grid-cols-1 sm:grid-cols-[100px_1fr_1fr] gap-3 items-end">
           <FormTextField name="company.plz" label="PLZ" required />
 
           <FormTextField name="company.ort" label="Ort" required />

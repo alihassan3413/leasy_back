@@ -54,7 +54,7 @@ const onSubmit = handleSubmit(async (values) => {
 <template>
   <div class="flex min-h-145 flex-col">
     <p
-      class="mx-auto mt-16.25 mb-25 max-w-73 text-left text-lg font-bold text-primary xl:mt-22.75 xl:mb-35 xl:text-xl"
+      class="mx-auto mt-10 mb-14 max-w-73 text-left text-lg font-bold text-primary sm:mt-16.25 sm:mb-25 xl:mt-22.75 xl:mb-35 xl:text-xl"
     >
       Hallo! Willkommen zurück!
     </p>

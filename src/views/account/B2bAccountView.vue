@@ -34,17 +34,54 @@ const scrollTo = (id: string) => {
 
 <template>
   <div class="min-h-screen bg-[#F5F7F7]">
-    <div class="mx-auto max-w-[1240px] px-6 py-10">
+    <div class="mx-auto max-w-[1240px] px-4 py-6 sm:px-6 sm:py-10">
       <!-- Page header -->
-      <header class="mb-8">
+      <header class="mb-6 sm:mb-8">
         <div class="flex items-center gap-2 mb-1.5">
           <span class="h-px w-4 bg-custom-green"></span>
           <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-custom-green">
             Einstellungen
           </p>
         </div>
-        <h1 class="text-[26px] font-bold leading-tight text-[#10393B]">Mein Konto</h1>
+        <h1 class="text-[22px] sm:text-[26px] font-bold leading-tight text-[#10393B]">
+          Mein Konto
+        </h1>
       </header>
+
+      <!-- Mobile identity card -->
+      <div class="mb-6 lg:hidden">
+        <div class="overflow-hidden rounded-2xl border border-[#D1DCDC] bg-white shadow-sm">
+          <div
+            class="h-[60px] sm:h-[80px] bg-linear-to-br from-[#10393B] via-[#155254] to-[#1e6568]"
+          />
+          <div class="-mt-8 sm:-mt-10 flex flex-col items-center px-4 sm:px-5 pb-4 sm:pb-6">
+            <div
+              class="flex size-[64px] sm:size-[76px] items-center justify-center overflow-hidden rounded-xl border-[3px] border-white bg-white shadow-lg"
+            >
+              <img
+                v-if="logoUrl"
+                :src="logoUrl"
+                alt="Firmenlogo"
+                class="size-full object-cover"
+              />
+              <div
+                v-else
+                class="flex size-full items-center justify-center bg-[#EDF6F4] text-custom-green"
+              >
+                <Icon icon="mdi:office-building-outline" class="size-7 sm:size-8" />
+              </div>
+            </div>
+            <p
+              class="mt-3 max-w-full truncate text-center text-[14px] sm:text-[15px] font-bold text-[#10393B]"
+            >
+              {{ companyName || "—" }}
+            </p>
+            <p class="max-w-full truncate text-[11px] sm:text-[12px] text-[#7A9699]">
+              {{ contactEmail }}
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div class="flex items-start gap-8">
         <!-- ── Identity rail ───────────────────────────── -->

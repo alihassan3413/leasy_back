@@ -72,7 +72,7 @@ const onSuccessOk = (): void => {
 <template>
   <div class="flex min-h-145 flex-col">
     <p
-      class="mx-auto mt-16.25 mb-25 max-w-73 text-left text-lg leading-normal font-bold text-primary xl:mt-22.75 xl:mb-35 xl:text-xl"
+      class="mx-auto mt-10 mb-14 max-w-73 text-left text-lg leading-normal font-bold text-primary sm:mt-16.25 sm:mb-25 xl:mt-22.75 xl:mb-35 xl:text-xl"
     >
       Sie können sich als Werkstatt, als Firmenkunde oder auch als Privatkunde registrieren
     </p>
@@ -139,7 +139,7 @@ const onSuccessOk = (): void => {
     <Teleport to="body">
       <div
         v-if="showSuccess"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
       >
         <div class="w-full max-w-sm rounded-[5px] bg-[#ECECEC] p-8 text-center">
           <div

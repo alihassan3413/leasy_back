@@ -119,11 +119,11 @@ async function onSuccessOk(): Promise<void> {
 
 <template>
   <RegisterLayout>
-    <h1 class="text-white text-[32px] font-bold leading-normal not-italic">
+    <h1 class="text-white text-[24px] sm:text-[32px] font-bold leading-normal not-italic">
       Firmenkunden - Registration
     </h1>
 
-    <div class="flex mt-10 gap-7">
+    <div class="flex flex-wrap mt-8 sm:mt-10 gap-x-7 gap-y-2">
       <p class="text-white text-sm leading-normal not-italic font-normal">
         Sie sind bereits LeasyBack Kunde?
       </p>
