@@ -95,7 +95,7 @@ const cancelEdit = () => {
         <button
           v-if="!isEditMode"
           type="button"
-          @click="isEditMode = true"
+          @click="enterEditMode"
           class="flex items-center gap-1.5 rounded-lg border border-[#D1DCDC] bg-white px-3 py-2 text-sm font-semibold text-[#10393B] transition-all hover:border-custom-green hover:bg-[#F0FBF8] hover:text-custom-green"
         >
           <Icon icon="mdi:pencil-outline" class="size-4" />

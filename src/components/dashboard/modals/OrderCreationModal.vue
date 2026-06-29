@@ -136,15 +136,10 @@ async function handleSubmit() {
       },
       userId,
     );
-    // Only show the success dialog for B2B users
-    if (authStore.userRole === "B2B") {
-      successDialogOpen.value = true;
-    } else {
-      // For B2C users, close the modal immediately
-      toast.success("Auftrag erfolgreich erstellt.");
-      emit("success");
-      close();
-    }
+    // Show the success dialog for every role. (Previously B2C relied on a
+    // toast, but no <Toaster> host is mounted app-wide, so B2C users saw no
+    // confirmation at all after creating an order.)
+    successDialogOpen.value = true;
   } catch {
     toast.error("Auftrag konnte nicht erstellt werden.");
   } finally {
