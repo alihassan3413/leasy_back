@@ -28,6 +28,12 @@ export const adminOffersApi = {
     });
   },
 
+  // POST /vehicle/offers/customer/select/{offer_id}
+  // Selects an offer (admin can also select offers)
+  selectOffer(offerId: string): Promise<unknown> {
+    return post(`/vehicle/offers/customer/select/${encodeURIComponent(offerId)}`);
+  },
+
   // POST /admin/offers/cancel/{offer_id}
   // Cancels an offer with a reason. Cancelled offers stay visible to the
   // admin but are hidden from B2B/B2C customers.
