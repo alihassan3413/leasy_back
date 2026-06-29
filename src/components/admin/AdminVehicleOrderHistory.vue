@@ -59,7 +59,18 @@ async function fetchOffers(auftragsnummer: string) {
 
 // Offer pending confirmation (opens the "are you sure" dialog)
 function requestSelect(offerId?: string) {
+  console.log("requestSelect called with offerId:", offerId);
   if (!offerId) return;
+
+  // Find the offer to check if it's published
+  const offer = offersData.value.find((o) => o.originalOffer?.offer_id === offerId);
+  console.log("Found offer:", offer);
+
+  if (!offer || !offer.published) {
+    console.log("Offer is not published, cannot select");
+    return;
+  }
+
   // An offer was already selected — selection is final, do nothing.
   if (acceptedOffer.value) return;
   pendingOfferId.value = offerId;
@@ -583,9 +594,9 @@ async function publishDocument(documentId: string) {
                       : 'border-color: #ECECEC; background: white'
                   "
                 >
-                  <!-- Publish toggle (minimal button in front of each offer) -->
+                  <!-- Publish toggle (minimal button in front of each offer) - only show if no offer is accepted -->
                   <button
-                    v-if="offer.originalOffer"
+                    v-if="offer.originalOffer && !acceptedOffer"
                     @click.stop="!offer.published && publishOffer(offer.originalOffer.offer_id)"
                     :disabled="offer.published || publishingId === offer.originalOffer.offer_id"
                     class="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition-colors disabled:cursor-default"
@@ -614,9 +625,11 @@ async function publishDocument(documentId: string) {
                   <!-- Radio circle / select offer -->
                   <button
                     type="button"
-                    @click.stop="requestSelect(offer.originalOffer?.offer_id)"
+                    @click.stop="offer.published && requestSelect(offer.originalOffer?.offer_id)"
                     :disabled="
-                      !!acceptedOffer || selectingOfferId === offer.originalOffer?.offer_id
+                      !!acceptedOffer ||
+                      !offer.published ||
+                      selectingOfferId === offer.originalOffer?.offer_id
                     "
                     class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
                     :style="
@@ -624,7 +637,7 @@ async function publishDocument(documentId: string) {
                         ? 'border-color: #EF8450; background: #EF8450'
                         : 'border-color: #B7C2C2; background: white'
                     "
-                    title="Angebot auswählen"
+                    :title="offer.published ? 'Angebot auswählen' : 'Zuerst veröffentlichen'"
                   >
                     <div v-if="offer.accepted" class="w-4.5 h-4.5 rounded-full bg-white"></div>
                   </button>
@@ -660,8 +673,8 @@ async function publishDocument(documentId: string) {
                     </div>
                   </div>
 
-                  <!-- 3-dot menu -->
-                  <div class="relative">
+                  <!-- 3-dot menu - only show if no offer is selected OR this is the selected offer -->
+                  <div class="relative" v-if="!acceptedOffer || offer.accepted">
                     <button
                       @click.stop="openOfferMenu = openOfferMenu === offer.id ? null : offer.id"
                       class="text-[#B7C2C2] hover:text-[#2e3e3f] transition-colors"
@@ -672,9 +685,9 @@ async function publishDocument(documentId: string) {
                       v-if="openOfferMenu === offer.id"
                       class="absolute right-0 top-full mt-1 z-50 bg-white rounded-[12px] border border-[#ececec] shadow-lg min-w-[180px] py-2"
                     >
-                      <!-- Publish -->
+                      <!-- Publish - only show if no offer is accepted AND offer is not published -->
                       <button
-                        v-if="offer.originalOffer"
+                        v-if="offer.originalOffer && !acceptedOffer && !offer.published"
                         @click.stop="
                           publishOffer(offer.originalOffer.offer_id);
                           openOfferMenu = null;
@@ -697,9 +710,10 @@ async function publishDocument(documentId: string) {
                         </span>
                       </button> -->
                       <!-- Cancel (not available for selected or already cancelled offers) -->
-                      <div class="h-px bg-[#ececec] my-1"></div>
+                      <div v-if="!acceptedOffer" class="h-px bg-[#ececec] my-1"></div>
                       <button
                         v-if="
+                          !acceptedOffer &&
                           offer.originalOffer &&
                           offer.status !== 'cancelled' &&
                           offer.status !== 'selected'
@@ -716,14 +730,15 @@ async function publishDocument(documentId: string) {
                         </span>
                       </button>
                       <div
-                        v-else-if="offer.status === 'cancelled'"
+                        v-if="!acceptedOffer && offer.status === 'cancelled'"
                         class="px-4 py-2 text-sm text-[#B7C2C2] flex items-center gap-2"
                       >
                         <Icon icon="mdi:cancel" class="size-4" />
                         Cancelled
                       </div>
+                      <!-- Selected - show only if this offer is selected -->
                       <div
-                        v-else-if="offer.status === 'selected'"
+                        v-if="offer.accepted"
                         class="px-4 py-2 text-sm text-[#01b990] flex items-center gap-2"
                       >
                         <Icon icon="mdi:check-circle-outline" class="size-4" />
