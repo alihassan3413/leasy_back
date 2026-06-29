@@ -81,7 +81,7 @@ function close() {
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
       class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
-      style="width: 500px; max-width: 500px"
+      style="width: 500px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
       <div class="relative">
@@ -158,7 +158,7 @@ function close() {
             </div>
 
             <!-- PLZ & Ort -->
-            <div class="grid grid-cols-2 gap-x-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
               <div class="flex flex-col gap-1">
                 <label class="text-sm font-semibold text-black">PLZ</label>
                 <div

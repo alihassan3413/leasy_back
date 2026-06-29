@@ -187,7 +187,7 @@ watch(
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
       class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
-      style="width: 720px; max-width: 720px"
+      style="width: 720px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
       <div class="relative">

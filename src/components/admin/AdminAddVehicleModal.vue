@@ -154,7 +154,7 @@ async function handleSubmit() {
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
       class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
-      style="width: 720px; max-width: 720px"
+      style="width: 720px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
       <div class="relative">
@@ -177,7 +177,7 @@ async function handleSubmit() {
             </p>
           </div>
 
-          <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div class="flex flex-col gap-1">
               <label class="text-sm font-semibold text-black">
                 Kennzeichen

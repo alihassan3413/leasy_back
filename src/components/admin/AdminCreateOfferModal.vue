@@ -271,7 +271,7 @@ async function handleSubmit() {
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
       class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
-      style="width: 720px; max-width: 720px"
+      style="width: 720px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
       <div class="relative">
@@ -293,7 +293,7 @@ async function handleSubmit() {
             </p>
           </div>
 
-          <div class="grid grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
             <!-- Repair Costs -->
             <div class="col-span-2 flex flex-col gap-2">
               <label class="text-sm font-semibold text-black"> Reparaturkosten Gesamt </label>

@@ -165,7 +165,7 @@ function close() {
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
       class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
-      style="width: 720px; max-width: 720px"
+      style="width: 720px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
       <div class="relative">
@@ -187,7 +187,7 @@ function close() {
             </p>
           </div>
 
-          <div class="grid grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
             <!-- Service switches -->
             <div class="flex flex-col gap-1 col-span-2">
               <label class="text-sm font-semibold text-black"> Service wählen </label>
@@ -283,7 +283,7 @@ function close() {
 
             <!-- Termin row -->
             <div class="flex flex-col gap-1 col-span-2">
-              <div class="grid grid-cols-2 gap-x-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
                 <div class="flex flex-col gap-1">
                   <label class="text-sm font-semibold text-black"> Datum </label>
                   <CalendarDateField

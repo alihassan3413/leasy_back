@@ -9,6 +9,15 @@ const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
 
+// `mobileOpen` is controlled by AdminLayout (off-canvas drawer below `lg`).
+defineProps<{
+  mobileOpen?: boolean;
+}>();
+
+const emit = defineEmits<{
+  close: [];
+}>();
+
 const nav = [
   {
     id: "dashboard",
@@ -72,8 +81,10 @@ function isActive(name: string) {
 }
 function navigateTo(name: string) {
   void router.push({ name });
+  emit("close");
 }
 async function logout() {
+  emit("close");
   await auth.logout();
   void router.push({ name: "login" });
 }
@@ -87,8 +98,11 @@ async function logout() {
     Inner scroll is handled by the <nav> having overflow-y-auto.
   -->
   <aside
-    class="sticky top-0 h-screen flex flex-col py-5 rounded-[22px] shrink-0 z-50 transition-[width] duration-300 ease-out"
-    :class="collapsed ? 'w-[78px] px-3' : 'w-[224px] px-4'"
+    class="fixed top-0 left-0 z-[80] h-screen w-[224px] px-4 flex flex-col py-5 rounded-r-[22px] shrink-0 transition-[transform,width] duration-300 ease-out lg:sticky lg:z-50 lg:rounded-[22px] lg:translate-x-0"
+    :class="[
+      mobileOpen ? 'translate-x-0' : '-translate-x-full',
+      collapsed ? 'lg:w-[78px] lg:px-3' : 'lg:w-[224px] lg:px-4',
+    ]"
     style="
       background: linear-gradient(180deg, #10393b 0%, #0d3133 100%);
       box-shadow: 0 8px 30px rgba(16, 57, 59, 0.18);
@@ -114,7 +128,7 @@ async function logout() {
     -->
     <button
       @click="collapsed = !collapsed"
-      class="absolute -right-3 top-7 z-[60] w-6 h-6 rounded-full bg-white border border-[#d8e4e3] flex items-center justify-center text-[#6f8585] hover:text-[#10393b] hover:scale-110 hover:border-[#01B990] transition-all duration-200"
+      class="absolute -right-3 top-7 z-[60] w-6 h-6 rounded-full bg-white border border-[#d8e4e3] hidden lg:flex items-center justify-center text-[#6f8585] hover:text-[#10393b] hover:scale-110 hover:border-[#01B990] transition-all duration-200"
       style="box-shadow: 0 2px 10px rgba(16, 57, 59, 0.15)"
     >
       <svg
