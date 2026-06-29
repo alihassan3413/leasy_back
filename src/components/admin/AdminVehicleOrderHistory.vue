@@ -39,6 +39,8 @@ const uploadDocsOpen = ref(false);
 const realOffers = ref<Offer[]>([]);
 const offersLoading = ref(false);
 const openOfferMenu = ref<string | null>(null);
+const selectingOfferId = ref<string | null>(null);
+const pendingOfferId = ref<string | null>(null);
 
 // Fetch offers when we have an order with auftragsnummer
 async function fetchOffers(auftragsnummer: string) {
@@ -52,6 +54,35 @@ async function fetchOffers(auftragsnummer: string) {
     realOffers.value = [];
   } finally {
     offersLoading.value = false;
+  }
+}
+
+// Offer pending confirmation (opens the "are you sure" dialog)
+function requestSelect(offerId?: string) {
+  if (!offerId) return;
+  // An offer was already selected — selection is final, do nothing.
+  if (acceptedOffer.value) return;
+  pendingOfferId.value = offerId;
+}
+
+function cancelSelect() {
+  pendingOfferId.value = null;
+}
+
+async function confirmSelect() {
+  const offerId = pendingOfferId.value;
+  if (!offerId) return;
+  try {
+    selectingOfferId.value = offerId;
+    await adminOffersApi.selectOffer(offerId);
+    if (firstOrder.value?.auftragsnummer) {
+      await fetchOffers(firstOrder.value.auftragsnummer);
+    }
+  } catch (err) {
+    console.error("Failed to select offer:", err);
+  } finally {
+    selectingOfferId.value = null;
+    pendingOfferId.value = null;
   }
 }
 
@@ -580,19 +611,23 @@ async function publishDocument(documentId: string) {
                     />
                   </button>
 
-                  <!-- Selection indicator (read-only for admin; only the
-                       B2B/B2C customer can select an offer) -->
-                  <div
-                    class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1"
+                  <!-- Radio circle / select offer -->
+                  <button
+                    type="button"
+                    @click.stop="requestSelect(offer.originalOffer?.offer_id)"
+                    :disabled="
+                      !!acceptedOffer || selectingOfferId === offer.originalOffer?.offer_id
+                    "
+                    class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
                     :style="
                       offer.accepted
                         ? 'border-color: #EF8450; background: #EF8450'
                         : 'border-color: #B7C2C2; background: white'
                     "
-                    :title="offer.accepted ? 'Vom Kunden ausgewählt' : ''"
+                    title="Angebot auswählen"
                   >
                     <div v-if="offer.accepted" class="w-4.5 h-4.5 rounded-full bg-white"></div>
-                  </div>
+                  </button>
 
                   <!-- Content -->
                   <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
@@ -939,6 +974,38 @@ async function publishDocument(documentId: string) {
           style="background: #ef4444"
         >
           {{ cancelling ? "Wird storniert..." : "Stornieren" }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Select offer confirmation -->
+  <div
+    v-if="pendingOfferId"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/5 p-4"
+    @click="cancelSelect"
+  >
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" @click.stop>
+      <h3 class="text-[18px] font-bold text-[#2e3e3f]">Angebot auswählen</h3>
+      <p class="mt-3 text-[14px] text-[#5a6b7a] leading-relaxed">
+        Sind Sie sicher, dass Sie dieses Angebot auswählen möchten? Sie können die Auswahl danach
+        nicht mehr ändern.
+      </p>
+      <div class="mt-6 flex justify-end gap-3">
+        <button
+          @click="cancelSelect"
+          :disabled="selectingOfferId !== null"
+          class="px-5 py-2.5 rounded-full text-[14px] font-medium text-[#2e3e3f] border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+        >
+          Abbrechen
+        </button>
+        <button
+          @click="confirmSelect"
+          :disabled="selectingOfferId !== null"
+          class="px-5 py-2.5 rounded-full text-[14px] font-semibold text-white disabled:opacity-50"
+          style="background: #ef8450"
+        >
+          {{ selectingOfferId !== null ? "Wird ausgewählt..." : "Bestätigen" }}
         </button>
       </div>
     </div>
