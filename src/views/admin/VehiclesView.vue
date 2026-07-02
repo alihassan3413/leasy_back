@@ -321,17 +321,17 @@ onBeforeUnmount(() => {
   <div class="flex flex-col gap-5 h-full">
     <!-- ── FLOATING HEADER ── -->
     <header
-      class="flex items-center gap-4 h-[60px] bg-white/70 backdrop-blur border border-[#eaf0ef] rounded-[18px] px-5 shrink-0"
+      class="flex flex-wrap items-center gap-3 sm:gap-4 min-h-[60px] py-2.5 sm:py-0 bg-white/70 backdrop-blur border border-[#eaf0ef] rounded-[18px] px-4 sm:px-5 shrink-0"
       style="box-shadow: 0 4px 18px rgba(16, 57, 59, 0.04)"
     >
-      <div class="flex-1">
+      <div class="flex-1 min-w-0">
         <h1 class="text-[18px] font-extrabold text-[#10393b] tracking-[-0.4px]">
           Fahrzeugverwaltung
         </h1>
       </div>
 
       <!-- User type toggle -->
-      <div class="flex gap-0.5 bg-[#f4f7f6] p-[3px] rounded-[12px]">
+      <div class="flex gap-0.5 bg-[#f4f7f6] p-[3px] rounded-[12px] overflow-x-auto max-w-full">
         <button
           v-for="opt in [
             { label: 'Alle', val: 'all' },
@@ -354,7 +354,7 @@ onBeforeUnmount(() => {
 
     <!-- ── MAIN CARD ── -->
     <section
-      class="flex-1 flex flex-col bg-white border border-[#eef3f2] rounded-[24px] p-6 min-h-0"
+      class="flex-1 flex flex-col bg-white border border-[#eef3f2] rounded-[24px] p-3 sm:p-6 min-h-0"
       style="box-shadow: 0 6px 22px rgba(16, 57, 59, 0.04)"
     >
       <!-- Card header -->
@@ -424,7 +424,7 @@ onBeforeUnmount(() => {
 
       <!-- Table -->
       <div class="flex-1 overflow-auto rounded-[18px] border border-[#eef3f2] min-h-0">
-        <table class="min-w-full border-collapse">
+        <table class="w-full min-w-[820px] border-collapse">
           <thead class="sticky top-0 z-10">
             <tr class="bg-[#f8faf9]">
               <th

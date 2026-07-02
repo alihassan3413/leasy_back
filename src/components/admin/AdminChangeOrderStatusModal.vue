@@ -94,7 +94,7 @@ async function handleSubmit() {
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
       class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
-      style="width: 620px; max-width: 620px"
+      style="width: 620px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
       <div class="relative">
