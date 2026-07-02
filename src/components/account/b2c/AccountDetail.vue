@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { useForm } from "vee-validate";
 import { Icon } from "@iconify/vue";
 import FormTextField from "@/components/ui/form/FormTextField.vue";
@@ -15,10 +15,6 @@ import type { B2CProfileUpdatePayload, B2CProfileCreatePayload } from "@/types";
 const b2cStore = useB2CStore();
 const isEditMode = ref(false);
 const isCreateMode = ref(false);
-
-const fileInput = ref<HTMLInputElement | null>(null);
-const avatarUrl = ref<string | null>(null);
-const avatarFile = ref<File | null>(null);
 
 const anredeOptions = [
   { label: "Herr", value: "Herr" },
@@ -72,23 +68,9 @@ const syncFromProfile = () => {
       },
     },
   });
-  avatarUrl.value = (profile.contact as any).avatar_url ?? null;
 };
 
 watch(() => b2cStore.profile, syncFromProfile, { immediate: true });
-
-const triggerAvatarUpload = () => {
-  if (!isEditMode.value) return;
-  fileInput.value?.click();
-};
-
-const onFileChange = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
-  avatarFile.value = file;
-  avatarUrl.value = URL.createObjectURL(file);
-};
 
 type ResolvedAddress = {
   street?: string;
@@ -176,7 +158,6 @@ const onSubmit = handleSubmit(async (formValues) => {
     }
 
     await b2cStore.fetchProfile();
-    avatarFile.value = null;
     isEditMode.value = false;
   } catch (err) {
     console.error("Failed to save profile:", err);
@@ -186,7 +167,6 @@ const onSubmit = handleSubmit(async (formValues) => {
 
 const cancelEdit = () => {
   syncFromProfile();
-  avatarFile.value = null;
   isEditMode.value = false;
 };
 
@@ -337,34 +317,8 @@ const formatAddressLine2 = () => {
     <!-- ════════════════ EDIT MODE ════════════════ -->
     <form v-else @submit.prevent="onSubmit">
       <div class="space-y-6 px-4 py-6 sm:px-8 sm:py-7">
-        <!-- Avatar + contact -->
+        <!-- Contact fields -->
         <div class="flex flex-col gap-5 items-center sm:flex-row sm:items-end sm:gap-8">
-          <div class="shrink-0">
-            <button
-              type="button"
-              @click="triggerAvatarUpload"
-              class="group relative block size-16 sm:size-20 overflow-hidden rounded-full ring-2 ring-[#D1DCDC] ring-offset-2 transition-all hover:ring-custom-green"
-            >
-              <img
-                :src="avatarUrl || profileImage"
-                alt="Profilbild"
-                class="size-full object-cover"
-              />
-              <span
-                class="absolute inset-0 flex items-center justify-center bg-[#10393B]/50 opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <Icon icon="mdi:camera-outline" class="size-5 sm:size-6 text-white" />
-              </span>
-            </button>
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/*"
-              class="hidden"
-              @change="onFileChange"
-            />
-          </div>
-
           <div
             class="flex justify-center sm:justify-start min-w-0 flex-1 flex-wrap gap-x-5 sm:gap-x-[30px] gap-y-4"
           >

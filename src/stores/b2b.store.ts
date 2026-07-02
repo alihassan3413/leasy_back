@@ -46,7 +46,7 @@ export const useB2BStore = defineStore("b2b", () => {
       clearTimeout(logoRefreshTimer);
     }
 
-    const refreshBeforeExpiry = Math.max((expiresInSeconds - 300) * 1000, 1000);
+    const refreshBeforeExpiry = Math.max((expiresInSeconds - 600) * 1000, 1000);
 
     logoRefreshTimer = setTimeout(() => {
       refreshLogoSignedUrl();
