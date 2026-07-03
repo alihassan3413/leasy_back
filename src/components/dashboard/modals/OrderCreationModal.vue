@@ -220,17 +220,6 @@ function closeSuccessDialog() {
                   />
                   <span class="text-sm md:text-base text-gray-800">TÜV SÜD</span>
                 </label>
-                <!-- DEKRA -->
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    value="dekra"
-                    v-model="selectedService"
-                    class="accent-primary size-3 md:size-4"
-                    @change="fetchStations"
-                  />
-                  <span class="text-sm md:text-base text-gray-800">DEKRA</span>
-                </label>
               </div>
             </div>
 
