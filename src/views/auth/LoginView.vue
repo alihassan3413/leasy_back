@@ -94,7 +94,7 @@ const onSubmit = handleSubmit(async (values) => {
         </p>
 
         <RouterLink
-          to="/auth/forgot-password"
+          to="/account/forgot-password"
           class="mt-1 block text-[14px] font-bold text-custom-green underline decoration-[1.12px] underline-offset-[2.8px]"
         >
           Passwort vergessen?
@@ -114,7 +114,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     <p class="mt-5 text-center text-sm text-custom-black">
       Sind Sie noch kein Kunde bei uns?
-      <RouterLink to="/auth/register" class="text-custom-orange"> Hier registrieren </RouterLink>
+      <RouterLink to="/account/register" class="text-custom-orange"> Hier registrieren </RouterLink>
     </p>
   </div>
 </template>

@@ -65,7 +65,7 @@ const onSubmit = handleSubmit(async (values) => {
 const onSuccessOk = (): void => {
   showSuccess.value = false;
 
-  void router.push("/auth/login");
+  void router.push("/account/login");
 };
 </script>
 
@@ -133,7 +133,7 @@ const onSuccessOk = (): void => {
 
     <p class="mt-5 text-center text-sm font-medium text-custom-black">
       Sind Sie schon Kunde bei uns?
-      <RouterLink to="/auth/login" class="font-medium text-custom-orange"> Zum Login </RouterLink>
+      <RouterLink to="/account/login" class="font-medium text-custom-orange"> Zum Login </RouterLink>
     </p>
 
     <Teleport to="body">

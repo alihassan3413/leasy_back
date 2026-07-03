@@ -31,11 +31,11 @@ const dashboardForCurrentUser = (): RouteLocationRaw => {
 export const routes: RouteRecordRaw[] = [
   // ─── Guest-only auth pages ──────────────────────────────────────
   {
-    path: "/auth",
+    path: "/account",
     component: () => import("@/layouts/AuthLayout.vue"),
     meta: { guestOnly: true },
     children: [
-      { path: "", redirect: "/auth/login" },
+      { path: "", redirect: "/account/login" },
       {
         path: "login",
         name: "login",
@@ -83,7 +83,7 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: "B2C Konto", roles: ["B2C"] },
       },
       {
-        path: "b2b",
+        path: "b2b-company",
         name: "b2b-account",
         component: () => import("@/views/account/B2bAccountView.vue"),
         meta: { title: "B2B Konto", roles: ["B2B"] },
@@ -105,7 +105,7 @@ export const routes: RouteRecordRaw[] = [
 
   // ─── Admin (completely separate — uses AdminLayout, NO AppLayout) ─
   {
-    path: "/admin",
+    path: "/admin-panel",
     component: () => import("@/layouts/AdminLayout.vue"),
     meta: { requiresAuth: true, roles: ["ADMIN"] },
     children: [
