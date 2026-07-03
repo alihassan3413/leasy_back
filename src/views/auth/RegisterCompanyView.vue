@@ -129,7 +129,7 @@ async function onSuccessOk(): Promise<void> {
       </p>
 
       <RouterLink
-        to="/auth/login"
+        to="/account/login"
         class="text-custom-orange text-sm font-bold leading-normal not-italic"
       >
         Jetzt einloggen

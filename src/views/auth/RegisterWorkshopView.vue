@@ -121,7 +121,7 @@ const onSubmit = handleSubmit(async (values: any) => {
             Sie sind bereits LeasyBack Kunde?
           </p>
           <RouterLink
-            to="/auth/login"
+            to="/account/login"
             class="text-custom-orange text-sm font-bold leading-normal not-italic"
           >
             Jetzt einloggen

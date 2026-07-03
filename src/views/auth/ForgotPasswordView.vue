@@ -56,7 +56,7 @@ const onSubmit = handleSubmit(async (values) => {
 
       <div class="text-center">
         <RouterLink
-          to="/auth/login"
+          to="/account/login"
           class="text-[14px] font-bold text-custom-green underline decoration-[1.12px] underline-offset-[2.8px]"
         >
           Zurück zum Login
