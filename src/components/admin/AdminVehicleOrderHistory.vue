@@ -386,10 +386,21 @@ const groupedDocuments = computed(() => {
   return groups;
 });
 
-async function deleteDocument(documentId: string) {
+async function deleteDocument(doc: any) {
   try {
     if (!props.vehicle?.vehicle_id) return;
-    await vehicleApi.deleteVehicleDocument(props.vehicle.vehicle_id, documentId);
+    console.log("DEBUG deleteDocument - doc:", doc);
+    const docTitle = (doc?.document_title || doc?.title || "").toLowerCase();
+    console.log("DEBUG deleteDocument - docTitle:", docTitle);
+    // Check document title or is_report flag
+    if (docTitle.includes("gutachten") || docTitle.includes("rechnung") || doc.is_report) {
+      console.log("DEBUG deleteDocument - Using report API");
+      await adminVehiclesApi.deleteReport(doc.id);
+    } else {
+      console.log("DEBUG deleteDocument - Using regular document API");
+      // For other documents use regular document API
+      await vehicleApi.deleteVehicleDocument(props.vehicle.vehicle_id, doc.id);
+    }
     emit("refreshDocs");
   } catch (err) {
     console.error("Failed to delete vehicle document:", err);
@@ -544,7 +555,7 @@ async function publishDocument(documentId: string) {
                         <Icon icon="mdi:eye-outline" class="size-[18.5px] shrink-0" />
                       </button>
                       <button
-                        @click="deleteDocument(doc.id)"
+                        @click="deleteDocument(doc)"
                         class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
                       >
                         <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />

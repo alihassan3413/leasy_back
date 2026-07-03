@@ -643,17 +643,13 @@ watch(
             v-if="i < (vehicle.timeline || []).length - 1"
             class="absolute left-2 top-5 w-0.5 h-full"
             :style="
-              i >= (vehicle.timeline || []).length - 1
-                ? 'background:#01B990'
-                : 'background:#B7C2C2'
+              i >= (vehicle.timeline || []).length - 1 ? 'background:#01B990' : 'background:#B7C2C2'
             "
           />
           <div
             class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
             :style="
-              i >= (vehicle.timeline || []).length - 1
-                ? 'background:#01B990'
-                : 'background:#B7C2C2'
+              i >= (vehicle.timeline || []).length - 1 ? 'background:#01B990' : 'background:#B7C2C2'
             "
           />
           <div class="min-w-0 flex-1 pl-5">
@@ -688,7 +684,10 @@ watch(
     </div>
 
     <!-- Vehicle Docs Card -->
-    <div class="relative flex flex-col rounded-[16px] border bg-white w-full" style="border-color: #ececec">
+    <div
+      class="relative flex flex-col rounded-[16px] border bg-white w-full"
+      style="border-color: #ececec"
+    >
       <button
         @click="uploadDocsOpen = true"
         class="absolute right-5 top-5 transition-opacity hover:opacity-60"
@@ -840,7 +839,10 @@ watch(
     </div>
 
     <!-- Zugewiesen an Card -->
-    <div class="relative flex flex-col rounded-[24px] border bg-white p-8 w-full" style="border-color: #ececec">
+    <div
+      class="relative flex flex-col rounded-[24px] border bg-white p-8 w-full"
+      style="border-color: #ececec"
+    >
       <div class="pb-6">
         <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Zugewiesen an</p>
       </div>

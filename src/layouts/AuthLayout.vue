@@ -5,7 +5,10 @@ import leasybackLogo from "@/assets/logo/leasyback-logo.svg";
 <template>
   <div class="relative flex min-h-screen overflow-hidden">
     <!-- Left background -->
-    <div class="absolute left-0 top-0 z-0 h-full w-full lg:w-1/2" style="background-color: #fafafa" />
+    <div
+      class="absolute left-0 top-0 z-0 h-full w-full lg:w-1/2"
+      style="background-color: #fafafa"
+    />
 
     <!-- Paths on the LEFT side (behind form) -->
     <img
@@ -22,7 +25,9 @@ import leasybackLogo from "@/assets/logo/leasyback-logo.svg";
     />
 
     <!-- Left side — form -->
-    <div class="relative flex w-full items-center justify-center px-4 py-8 sm:px-6 sm:py-12 lg:w-1/2">
+    <div
+      class="relative flex w-full items-center justify-center px-4 py-8 sm:px-6 sm:py-12 lg:w-1/2"
+    >
       <div class="relative z-20 w-full max-w-[420px]">
         <div
           class="rounded-[10px] bg-white border px-5 pb-7 sm:px-9 sm:pb-9 border-green-gray shadow-[0_4px_4px_rgba(0,0,0,0.25)]"

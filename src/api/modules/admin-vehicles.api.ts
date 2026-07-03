@@ -1,4 +1,4 @@
-import { get, post, patch } from "../client/request";
+import { get, post, patch, del } from "../client/request";
 import type { AdminVehicleListResponse, VehicleDocument } from "@/types";
 
 export const adminVehiclesApi = {
@@ -65,5 +65,9 @@ export const adminVehiclesApi = {
     return patch(`/admin/vehicle/report/publish/${encodeURIComponent(documentId)}`, {
       published,
     });
+  },
+
+  deleteReport(documentId: string): Promise<unknown> {
+    return del(`/admin/vehicle/report/delete/${encodeURIComponent(documentId)}`);
   },
 };

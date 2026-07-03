@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import FormTextField from '@/components/ui/form/FormTextField.vue'
-import FormSelectField from '../ui/form/FormSelectField.vue';
-import { dialingCodeOptions } from '@/config/dialingCodes';
+import FormTextField from "@/components/ui/form/FormTextField.vue";
+import FormSelectField from "../ui/form/FormSelectField.vue";
+import { dialingCodeOptions } from "@/config/dialingCodes";
 
 const anredeOptions = [
   { label: "Herr", value: "herr" },
@@ -10,8 +10,6 @@ const anredeOptions = [
 ];
 
 const vorwahlOptions = dialingCodeOptions;
-
-
 </script>
 
 <template>

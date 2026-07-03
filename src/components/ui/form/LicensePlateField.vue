@@ -22,9 +22,7 @@ const { value: numbers, errorMessage: numbersError } = useField<string>(props.nu
     <p class="mb-1.5 text-sm font-bold text-primary">
       Kennzeichen
 
-      <span class="ml-1 text-[10px] font-normal text-green-gray">
-        *(Format: ABC DE 12H)
-      </span>
+      <span class="ml-1 text-[10px] font-normal text-green-gray"> *(Format: ABC DE 12H) </span>
     </p>
 
     <div class="flex items-stretch rounded-[5px] border border-green-gray">

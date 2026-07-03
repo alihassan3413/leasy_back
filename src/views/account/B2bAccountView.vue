@@ -58,12 +58,7 @@ const scrollTo = (id: string) => {
             <div
               class="flex size-[64px] sm:size-[76px] items-center justify-center overflow-hidden rounded-xl border-[3px] border-white bg-white shadow-lg"
             >
-              <img
-                v-if="logoUrl"
-                :src="logoUrl"
-                alt="Firmenlogo"
-                class="size-full object-cover"
-              />
+              <img v-if="logoUrl" :src="logoUrl" alt="Firmenlogo" class="size-full object-cover" />
               <div
                 v-else
                 class="flex size-full items-center justify-center bg-[#EDF6F4] text-custom-green"

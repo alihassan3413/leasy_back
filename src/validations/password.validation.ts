@@ -11,8 +11,5 @@ export const changePasswordSchema = yup.object({
     .matches(/[A-Z]/, "Mindestens ein Großbuchstabe erforderlich.")
     .matches(/[a-z]/, "Mindestens ein Kleinbuchstabe erforderlich.")
     .matches(/[0-9]/, "Mindestens eine Zahl erforderlich.")
-    .notOneOf(
-      [yup.ref("oldPassword")],
-      "Das neue Passwort muss sich vom alten unterscheiden.",
-    ),
+    .notOneOf([yup.ref("oldPassword")], "Das neue Passwort muss sich vom alten unterscheiden."),
 });

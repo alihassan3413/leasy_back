@@ -45,10 +45,7 @@ export const authApi = {
 
   // Authenticated change of the logged-in user's password.
   changePassword(payload: ChangePasswordPayload) {
-    return post<ChangePasswordResponse, ChangePasswordPayload>(
-      '/auth/changepassword',
-      payload,
-    )
+    return post<ChangePasswordResponse, ChangePasswordPayload>("/auth/changepassword", payload);
   },
 
   refreshToken(refreshToken: string) {

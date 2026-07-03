@@ -143,7 +143,7 @@ async function deleteDocument(documentId: string) {
   uploadError.value = "";
 
   try {
-    await vehicleApi.deleteVehicleDocument(props.vehicleId, documentId);
+    await adminVehiclesApi.deleteReport(documentId);
     documents.value = documents.value.filter((doc) => doc.id !== documentId);
 
     // refresh vehicle lists
