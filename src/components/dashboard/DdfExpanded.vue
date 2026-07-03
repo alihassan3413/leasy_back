@@ -59,6 +59,36 @@ const groupedDocuments = computed(() => {
   return groups;
 });
 
+// Documents whose type is a report (Gutachten/Nachgutachten) or invoice
+// (Rechnung) are uploaded by admins and must NOT be deletable by B2B/B2C users.
+// Only the vehicle documents the user uploads themselves can be deleted.
+const NON_DELETABLE_DOCUMENT_TYPES = new Set([
+  "gutachten",
+  "nachgutachten",
+  "rechnung",
+  "report",
+  "invoice",
+]);
+
+function canDeleteDocument(doc: any): boolean {
+  // Admin-uploaded reports/invoices carry the is_report flag.
+  if (doc?.is_report) return false;
+  // Match by canonical document_type ...
+  const type = (doc?.document_type ?? "").trim().toLowerCase();
+  if (NON_DELETABLE_DOCUMENT_TYPES.has(type)) return false;
+  // ... and, as a fallback, by the document title/file name (mirrors the admin
+  // logic), since report/invoice docs don't always carry a canonical type.
+  const title = `${doc?.file_name ?? ""} ${doc?.document_title ?? ""} ${doc?.title ?? ""}`
+    .toLowerCase();
+  return !(
+    title.includes("gutachten") ||
+    title.includes("nachgutachten") ||
+    title.includes("rechnung") ||
+    title.includes("report") ||
+    title.includes("invoice")
+  );
+}
+
 // Mock data for offers if backend doesn't provide any
 const mockOffers: Offer[] = [
   {
@@ -333,6 +363,9 @@ async function loadDocuments() {
               document_type: doc.document_type,
               file_name: doc.document_title,
               created_at: doc.created_at,
+              // Order report documents are admin-uploaded (reports/invoices);
+              // flag them so users cannot delete them.
+              is_report: true,
               url:
                 cleanS3Url ||
                 (doc.s3_bucket && doc.s3_key
@@ -537,6 +570,7 @@ watch(
                         <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
                       </a>
                       <button
+                        v-if="canDeleteDocument(doc)"
                         @click="deleteDocument(doc.id)"
                         class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
                       >
@@ -933,6 +967,7 @@ watch(
                 <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
               </a>
               <button
+                v-if="canDeleteDocument(doc)"
                 @click="deleteDocument(doc.id)"
                 class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
               >
@@ -1206,3 +1241,10 @@ watch(
     </div>
   </div>
 </template>
+
+<style scoped>
+/* All interactive buttons should show the pointer cursor. */
+button:not(:disabled) {
+  cursor: pointer;
+}
+</style>
