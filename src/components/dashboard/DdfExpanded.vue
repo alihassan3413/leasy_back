@@ -226,6 +226,23 @@ const selectingOfferId = ref<string | null>(null);
 
 const auftragsnummer = computed(() => props.vehicle.orders?.[0]?.auftragsnummer || "");
 
+// Inspection location (Besichtigungsort) comes from the first order's request payload.
+const besichtigungsort = computed(
+  () => props.vehicle.orders?.[0]?.request_payload?.besichtigungsort ?? null,
+);
+
+const terminFormatted = computed(() => {
+  const termin = besichtigungsort.value?.termin;
+  if (!termin) return "";
+  const d = new Date(termin);
+  return (
+    d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+    " · " +
+    d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) +
+    " Uhr"
+  );
+});
+
 const hasRealOffers = computed(() => realOffers.value.length > 0);
 
 async function loadOffers() {
@@ -652,132 +669,74 @@ watch(
           </div>
         </div>
 
-        <!-- Column 3: Assigned To + Vehicle Specs -->
+        <!-- Column 3: Besichtigungsort + Vehicle Specs -->
         <div class="flex flex-col 2xl:flex-row gap-4 w-[325px] 2xl:w-full">
-          <!-- Assigned To Card -->
+          <!-- Besichtigungsort Card -->
           <div
             class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
             style="border-color: #ececec"
           >
             <div class="pb-6">
-              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Zugewiesen an</p>
-            </div>
-
-            <!-- Avatar + Name row -->
-            <div class="flex items-start gap-6 pb-6" v-if="vehicle.orders.length > 0">
-              <Avatar class="size-[64px] shrink-0">
-                <AvatarFallback
-                  class="text-xl font-bold"
-                  style="background-color: #d9d9d9; color: #2e3e3f"
-                >
-                  {{
-                    vehicle.orders[0].request_payload?.ansprechpartner?.name
-                      ? vehicle.orders[0].request_payload?.ansprechpartner?.name[0]
-                      : "M"
-                  }}
-                </AvatarFallback>
-              </Avatar>
-              <div class="flex flex-col gap-2 pt-2">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">
-                  {{
-                    vehicle.orders[0].request_payload?.ansprechpartner?.name || "Marcus Dietrich"
-                  }}
-                </p>
-                <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-6 pb-6" v-else>
-              <Avatar class="size-[64px] shrink-0">
-                <AvatarFallback
-                  class="text-xl font-bold"
-                  style="background-color: #d9d9d9; color: #2e3e3f"
-                >
-                  M
-                </AvatarFallback>
-              </Avatar>
-              <div class="flex flex-col gap-2 pt-2">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">Marcus Dietrich</p>
-                <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
-              </div>
-            </div>
-
-            <!-- Last Activity -->
-            <div class="pb-5">
-              <p
-                class="text-[10px] font-medium uppercase"
-                style="color: #8f9ba7; letter-spacing: 0.5px"
-              >
-                Letzte Aktivität
+              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
+                Besichtigungsort
               </p>
-              <div class="flex items-center justify-between pt-2" v-if="vehicle.orders.length > 0">
-                <p class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{
-                    new Date(vehicle.orders[0].created_at).toLocaleDateString("de-DE", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })
-                  }}
-                  · Auftrag erstellt
-                </p>
-                <p class="text-[14px] font-bold" style="color: #2e3e3f">
-                  {{ getOrderStatusLabel(vehicle.orders[0].order_status).label }}
-                </p>
-              </div>
-              <div class="flex items-center justify-between pt-2" v-else>
-                <p class="text-[14px] font-normal" style="color: #2e3e3f">Keine Aktivität</p>
-              </div>
             </div>
 
-            <!-- Divider -->
-            <div class="h-px bg-gray-200 mb-5"></div>
+            <template v-if="besichtigungsort">
+              <!-- Name row -->
+              <div class="flex items-center gap-5 pb-6">
+                <div
+                  class="flex size-[56px] shrink-0 items-center justify-center rounded-full"
+                  style="background-color: rgba(1, 185, 144, 0.1)"
+                >
+                  <Icon icon="mdi:office-building-outline" class="size-7" style="color: #01b990" />
+                </div>
+                <p class="text-[18px] font-bold" style="color: #2e3e3f">
+                  {{ besichtigungsort.name }}
+                </p>
+              </div>
 
-            <!-- Contact Fields -->
-            <div class="flex flex-col gap-4" v-if="vehicle.orders.length > 0">
-              <div class="flex items-center gap-4">
-                <Icon
-                  icon="mdi:phone-outline"
-                  class="size-[18px] shrink-0"
-                  style="color: #5a6b7a"
-                />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{ vehicle.orders[0].request_payload?.ansprechpartner?.telefon || "17655874354" }}
-                </span>
+              <!-- Termin -->
+              <div class="pb-5">
+                <p
+                  class="text-[10px] font-medium uppercase"
+                  style="color: #8f9ba7; letter-spacing: 0.5px"
+                >
+                  Termin
+                </p>
+                <div class="flex items-center gap-3 pt-2">
+                  <Icon
+                    icon="mdi:calendar-clock-outline"
+                    class="size-[18px] shrink-0"
+                    style="color: #5a6b7a"
+                  />
+                  <p class="text-[14px] font-bold" style="color: #2e3e3f">
+                    {{ terminFormatted || "Kein Termin" }}
+                  </p>
+                </div>
               </div>
-              <div class="flex items-center gap-4">
-                <Icon
-                  icon="mdi:map-marker-outline"
-                  class="size-[18px] shrink-0"
-                  style="color: #5a6b7a"
-                />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{
-                    vehicle.orders[0].request_payload?.besichtigungsort?.strasse || "Radestraße 12"
-                  }},
-                  {{ vehicle.orders[0].request_payload?.besichtigungsort?.plz || "35037" }}
-                  {{ vehicle.orders[0].request_payload?.besichtigungsort?.ort || "Marburg" }}
-                </span>
-              </div>
-            </div>
-            <div class="flex flex-col gap-4" v-else>
-              <div class="flex items-center gap-4">
-                <Icon
-                  icon="mdi:phone-outline"
-                  class="size-[18px] shrink-0"
-                  style="color: #5a6b7a"
-                />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f"> 17655874354 </span>
-              </div>
-              <div class="flex items-center gap-4">
+
+              <!-- Divider -->
+              <div class="h-px bg-gray-200 mb-5"></div>
+
+              <!-- Address -->
+              <div class="flex items-start gap-4">
                 <Icon
                   icon="mdi:map-marker-outline"
-                  class="size-[18px] shrink-0"
+                  class="size-[18px] shrink-0 mt-0.5"
                   style="color: #5a6b7a"
                 />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  Radestraße 12, 35037 Marburg
+                <span class="text-[14px] font-normal leading-relaxed" style="color: #2e3e3f">
+                  {{ besichtigungsort.strasse }}<br />
+                  {{ besichtigungsort.plz }} {{ besichtigungsort.ort }}
+                  <template v-if="besichtigungsort.land">
+                    ({{ besichtigungsort.land.toUpperCase() }})
+                  </template>
                 </span>
               </div>
+            </template>
+            <div v-else class="text-[14px] font-normal" style="color: #b7c2c2">
+              Kein Besichtigungsort verfügbar
             </div>
           </div>
 
@@ -1091,115 +1050,70 @@ watch(
       </div>
     </div>
 
-    <!-- Assigned To Card -->
+    <!-- Besichtigungsort Card -->
     <div
       class="relative flex flex-col rounded-[24px] border bg-white p-6"
       style="border-color: #ececec"
     >
       <div class="pb-4">
-        <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Zugewiesen an</p>
+        <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Besichtigungsort</p>
       </div>
 
-      <!-- Avatar + Name row -->
-      <div class="flex items-start gap-4 pb-4" v-if="vehicle.orders.length > 0">
-        <Avatar class="size-[50px] shrink-0">
-          <AvatarFallback
-            class="text-lg font-bold"
-            style="background-color: #d9d9d9; color: #2e3e3f"
+      <template v-if="besichtigungsort">
+        <!-- Name row -->
+        <div class="flex items-center gap-4 pb-4">
+          <div
+            class="flex size-[48px] shrink-0 items-center justify-center rounded-full"
+            style="background-color: rgba(1, 185, 144, 0.1)"
           >
-            {{
-              vehicle.orders[0].request_payload?.ansprechpartner?.name
-                ? vehicle.orders[0].request_payload?.ansprechpartner?.name[0]
-                : "M"
-            }}
-          </AvatarFallback>
-        </Avatar>
-        <div class="flex flex-col gap-1 pt-1">
-          <p class="text-[15px] font-bold" style="color: #2e3e3f">
-            {{ vehicle.orders[0].request_payload?.ansprechpartner?.name || "Marcus Dietrich" }}
+            <Icon icon="mdi:office-building-outline" class="size-6" style="color: #01b990" />
+          </div>
+          <p class="text-[16px] font-bold" style="color: #2e3e3f">
+            {{ besichtigungsort.name }}
           </p>
-          <p class="text-[11px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
         </div>
-      </div>
-      <div class="flex items-start gap-4 pb-4" v-else>
-        <Avatar class="size-[50px] shrink-0">
-          <AvatarFallback
-            class="text-lg font-bold"
-            style="background-color: #d9d9d9; color: #2e3e3f"
+
+        <!-- Termin -->
+        <div class="pb-4">
+          <p
+            class="text-[10px] font-medium uppercase"
+            style="color: #8f9ba7; letter-spacing: 0.5px"
           >
-            M
-          </AvatarFallback>
-        </Avatar>
-        <div class="flex flex-col gap-1 pt-1">
-          <p class="text-[15px] font-bold" style="color: #2e3e3f">Marcus Dietrich</p>
-          <p class="text-[11px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
-        </div>
-      </div>
-
-      <!-- Last Activity -->
-      <div class="pb-4">
-        <p class="text-[10px] font-medium uppercase" style="color: #8f9ba7; letter-spacing: 0.5px">
-          Letzte Aktivität
-        </p>
-        <div class="flex flex-col gap-1 pt-2" v-if="vehicle.orders.length > 0">
-          <p class="text-[13px] font-normal" style="color: #2e3e3f">
-            {{
-              new Date(vehicle.orders[0].created_at).toLocaleDateString("de-DE", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              })
-            }}
-            · Auftrag erstellt
+            Termin
           </p>
-          <p class="text-[13px] font-bold" style="color: #2e3e3f">
-            {{ getOrderStatusLabel(vehicle.orders[0].order_status).label }}
-          </p>
+          <div class="flex items-center gap-3 pt-2">
+            <Icon
+              icon="mdi:calendar-clock-outline"
+              class="size-[16px] shrink-0"
+              style="color: #5a6b7a"
+            />
+            <p class="text-[13px] font-bold" style="color: #2e3e3f">
+              {{ terminFormatted || "Kein Termin" }}
+            </p>
+          </div>
         </div>
-        <div class="flex items-center justify-between pt-2" v-else>
-          <p class="text-[13px] font-normal" style="color: #2e3e3f">Keine Aktivität</p>
-        </div>
-      </div>
 
-      <!-- Divider -->
-      <div class="h-px bg-gray-200 mb-4"></div>
+        <!-- Divider -->
+        <div class="h-px bg-gray-200 mb-4"></div>
 
-      <!-- Contact Fields -->
-      <div class="flex flex-col gap-3" v-if="vehicle.orders.length > 0">
-        <div class="flex items-center gap-3">
-          <Icon icon="mdi:phone-outline" class="size-[16px] shrink-0" style="color: #5a6b7a" />
-          <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            {{ vehicle.orders[0].request_payload?.ansprechpartner?.telefon || "17655874354" }}
-          </span>
-        </div>
+        <!-- Address -->
         <div class="flex items-start gap-3">
           <Icon
             icon="mdi:map-marker-outline"
             class="size-[16px] shrink-0 mt-0.5"
             style="color: #5a6b7a"
           />
-          <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            {{ vehicle.orders[0].request_payload?.besichtigungsort?.strasse || "Radestraße 12" }},
-            {{ vehicle.orders[0].request_payload?.besichtigungsort?.plz || "35037" }}
-            {{ vehicle.orders[0].request_payload?.besichtigungsort?.ort || "Marburg" }}
+          <span class="text-[13px] font-normal leading-relaxed" style="color: #2e3e3f">
+            {{ besichtigungsort.strasse }}<br />
+            {{ besichtigungsort.plz }} {{ besichtigungsort.ort }}
+            <template v-if="besichtigungsort.land">
+              ({{ besichtigungsort.land.toUpperCase() }})
+            </template>
           </span>
         </div>
-      </div>
-      <div class="flex flex-col gap-3" v-else>
-        <div class="flex items-center gap-3">
-          <Icon icon="mdi:phone-outline" class="size-[16px] shrink-0" style="color: #5a6b7a" />
-          <span class="text-[13px] font-normal" style="color: #2e3e3f"> 17655874354 </span>
-        </div>
-        <div class="flex items-start gap-3">
-          <Icon
-            icon="mdi:map-marker-outline"
-            class="size-[16px] shrink-0 mt-0.5"
-            style="color: #5a6b7a"
-          />
-          <span class="text-[13px] font-normal" style="color: #2e3e3f">
-            Radestraße 12, 35037 Marburg
-          </span>
-        </div>
+      </template>
+      <div v-else class="text-[13px] font-normal" style="color: #b7c2c2">
+        Kein Besichtigungsort verfügbar
       </div>
     </div>
 

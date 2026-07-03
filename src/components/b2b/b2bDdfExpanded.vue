@@ -166,6 +166,21 @@ const latestOrder = computed(() => {
   return lastOrder;
 });
 
+// Inspection location (Besichtigungsort) comes from the latest order's request payload.
+const besichtigungsort = computed(() => latestOrder.value?.request_payload?.besichtigungsort ?? null);
+
+const terminFormatted = computed(() => {
+  const termin = besichtigungsort.value?.termin;
+  if (!termin) return "";
+  const d = new Date(termin);
+  return (
+    d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+    " · " +
+    d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) +
+    " Uhr"
+  );
+});
+
 async function loadDocuments() {
   try {
     if (!props.vehicle?.id) return;
@@ -475,76 +490,74 @@ watch(
           </div>
         </div>
 
-        <!-- Column 3: Zugewiesen an + Fahrzeug Daten -->
+        <!-- Column 3: Besichtigungsort + Fahrzeug Daten -->
         <div class="flex flex-col 2xl:flex-row gap-4 w-[325px] 2xl:w-full">
-          <!-- Zugewiesen an Card -->
+          <!-- Besichtigungsort Card -->
           <div
             class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
             style="border-color: #ececec"
           >
             <div class="pb-6">
-              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Zugewiesen an</p>
-            </div>
-
-            <!-- Avatar + Name row -->
-            <div class="flex items-start gap-6 pb-6">
-              <Avatar class="size-[64px] shrink-0">
-                <AvatarFallback
-                  class="text-xl font-bold"
-                  style="background-color: #d9d9d9; color: #2e3e3f"
-                >
-                  {{ vehicle.driverFirstName ? vehicle.driverFirstName[0] : "M" }}
-                </AvatarFallback>
-              </Avatar>
-              <div class="flex flex-col gap-2 pt-2">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">
-                  {{ vehicle.driverFirstName || "Marcus" }}
-                  {{ vehicle.driverLastName || "Dietrich" }}
-                </p>
-                <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
-              </div>
-            </div>
-
-            <!-- Last Activity -->
-            <div class="pb-5">
-              <p
-                class="text-[10px] font-medium uppercase"
-                style="color: #8f9ba7; letter-spacing: 0.5px"
-              >
-                Letzte Aktivität
+              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
+                Besichtigungsort
               </p>
-              <div class="flex items-center justify-between pt-2">
-                <p class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{ vehicle.lastActivity || "Keine Aktivität" }}
-                </p>
-              </div>
             </div>
 
-            <!-- Divider -->
-            <div class="h-px bg-gray-200 mb-5"></div>
-
-            <!-- Contact Fields -->
-            <div class="flex flex-col gap-4">
-              <div class="flex items-center gap-4">
-                <Icon
-                  icon="mdi:phone-outline"
-                  class="size-[18px] shrink-0"
-                  style="color: #5a6b7a"
-                />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{ vehicle.driverPhone || "17655874354" }}
-                </span>
+            <template v-if="besichtigungsort">
+              <!-- Name row -->
+              <div class="flex items-center gap-5 pb-6">
+                <div
+                  class="flex size-[56px] shrink-0 items-center justify-center rounded-full"
+                  style="background-color: rgba(1, 185, 144, 0.1)"
+                >
+                  <Icon icon="mdi:office-building-outline" class="size-7" style="color: #01b990" />
+                </div>
+                <p class="text-[18px] font-bold" style="color: #2e3e3f">
+                  {{ besichtigungsort.name }}
+                </p>
               </div>
-              <div class="flex items-center gap-4">
+
+              <!-- Termin -->
+              <div class="pb-5">
+                <p
+                  class="text-[10px] font-medium uppercase"
+                  style="color: #8f9ba7; letter-spacing: 0.5px"
+                >
+                  Termin
+                </p>
+                <div class="flex items-center gap-3 pt-2">
+                  <Icon
+                    icon="mdi:calendar-clock-outline"
+                    class="size-[18px] shrink-0"
+                    style="color: #5a6b7a"
+                  />
+                  <p class="text-[14px] font-bold" style="color: #2e3e3f">
+                    {{ terminFormatted || "Kein Termin" }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Divider -->
+              <div class="h-px bg-gray-200 mb-5"></div>
+
+              <!-- Address -->
+              <div class="flex items-start gap-4">
                 <Icon
                   icon="mdi:map-marker-outline"
-                  class="size-[18px] shrink-0"
+                  class="size-[18px] shrink-0 mt-0.5"
                   style="color: #5a6b7a"
                 />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{ vehicle.usageAddress || "Radestraße 12, 35037 Marburg" }}
+                <span class="text-[14px] font-normal leading-relaxed" style="color: #2e3e3f">
+                  {{ besichtigungsort.strasse }}<br />
+                  {{ besichtigungsort.plz }} {{ besichtigungsort.ort }}
+                  <template v-if="besichtigungsort.land">
+                    ({{ besichtigungsort.land.toUpperCase() }})
+                  </template>
                 </span>
               </div>
+            </template>
+            <div v-else class="text-[14px] font-normal" style="color: #b7c2c2">
+              Kein Besichtigungsort verfügbar
             </div>
           </div>
 
@@ -838,54 +851,70 @@ watch(
       </div>
     </div>
 
-    <!-- Zugewiesen an Card -->
+    <!-- Besichtigungsort Card -->
     <div
       class="relative flex flex-col rounded-[24px] border bg-white p-8 w-full"
       style="border-color: #ececec"
     >
       <div class="pb-6">
-        <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Zugewiesen an</p>
+        <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Besichtigungsort</p>
       </div>
-      <div class="flex items-start gap-6 pb-6">
-        <Avatar class="size-[64px] shrink-0">
-          <AvatarFallback
-            class="text-xl font-bold"
-            style="background-color: #d9d9d9; color: #2e3e3f"
+
+      <template v-if="besichtigungsort">
+        <!-- Name row -->
+        <div class="flex items-center gap-5 pb-6">
+          <div
+            class="flex size-[56px] shrink-0 items-center justify-center rounded-full"
+            style="background-color: rgba(1, 185, 144, 0.1)"
           >
-            {{ vehicle.driverFirstName ? vehicle.driverFirstName[0] : "M" }}
-          </AvatarFallback>
-        </Avatar>
-        <div class="flex flex-col gap-2 pt-2">
-          <p class="text-[16px] font-bold" style="color: #2e3e3f">
-            {{ vehicle.driverFirstName || "Marcus" }} {{ vehicle.driverLastName || "Dietrich" }}
-          </p>
-          <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
-        </div>
-      </div>
-      <div class="pb-5">
-        <p class="text-[10px] font-medium uppercase" style="color: #8f9ba7; letter-spacing: 0.5px">
-          Letzte Aktivität
-        </p>
-        <div class="flex items-center justify-between pt-2">
-          <p class="text-[14px] font-normal" style="color: #2e3e3f">
-            {{ vehicle.lastActivity || "Keine Aktivität" }}
+            <Icon icon="mdi:office-building-outline" class="size-7" style="color: #01b990" />
+          </div>
+          <p class="text-[18px] font-bold" style="color: #2e3e3f">
+            {{ besichtigungsort.name }}
           </p>
         </div>
-      </div>
-      <div class="h-px bg-gray-200 mb-5"></div>
-      <div class="flex flex-col gap-4">
-        <div class="flex items-center gap-4">
-          <Icon icon="mdi:phone-outline" class="size-[18px] shrink-0" style="color: #5a6b7a" />
-          <span class="text-[14px] font-normal" style="color: #2e3e3f">
-            {{ vehicle.driverPhone || "17655874354" }}
+
+        <!-- Termin -->
+        <div class="pb-5">
+          <p
+            class="text-[10px] font-medium uppercase"
+            style="color: #8f9ba7; letter-spacing: 0.5px"
+          >
+            Termin
+          </p>
+          <div class="flex items-center gap-3 pt-2">
+            <Icon
+              icon="mdi:calendar-clock-outline"
+              class="size-[18px] shrink-0"
+              style="color: #5a6b7a"
+            />
+            <p class="text-[14px] font-bold" style="color: #2e3e3f">
+              {{ terminFormatted || "Kein Termin" }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="h-px bg-gray-200 mb-5"></div>
+
+        <!-- Address -->
+        <div class="flex items-start gap-4">
+          <Icon
+            icon="mdi:map-marker-outline"
+            class="size-[18px] shrink-0 mt-0.5"
+            style="color: #5a6b7a"
+          />
+          <span class="text-[14px] font-normal leading-relaxed" style="color: #2e3e3f">
+            {{ besichtigungsort.strasse }}<br />
+            {{ besichtigungsort.plz }} {{ besichtigungsort.ort }}
+            <template v-if="besichtigungsort.land">
+              ({{ besichtigungsort.land.toUpperCase() }})
+            </template>
           </span>
         </div>
-        <div class="flex items-center gap-4">
-          <Icon icon="mdi:map-marker-outline" class="size-[18px] shrink-0" style="color: #5a6b7a" />
-          <span class="text-[14px] font-normal" style="color: #2e3e3f">
-            {{ vehicle.usageAddress || "Radestraße 12, 35037 Marburg" }}
-          </span>
-        </div>
+      </template>
+      <div v-else class="text-[14px] font-normal" style="color: #b7c2c2">
+        Kein Besichtigungsort verfügbar
       </div>
     </div>
 
