@@ -388,9 +388,6 @@ watch(
               <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
                 {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
               </p>
-              <button class="text-[#01b990] hover:opacity-70">
-                <Icon icon="mdi:dots-vertical" class="size-4.5" />
-              </button>
             </div>
 
             <!-- Timeline rows -->
@@ -849,9 +846,6 @@ watch(
         <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
           {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
         </p>
-        <button class="text-[#01b990] hover:opacity-70">
-          <Icon icon="mdi:dots-vertical" class="size-4.5" />
-        </button>
       </div>
 
       <!-- Timeline rows -->

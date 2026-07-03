@@ -5,6 +5,7 @@ import { useField, useForm } from "vee-validate";
 
 import Button from "@/components/ui/Button.vue";
 import TextInput from "@/components/ui/form/TextInput.vue";
+import leasybackLogoDark from "@/assets/logo/leasyback-logo-dark.svg";
 import { useAuthStore } from "@/stores/auth.store";
 import { loginSchema } from "@/validations/auth/login.schema";
 import type { LoginPayload } from "@/types";
@@ -52,12 +53,18 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div class="flex min-h-145 flex-col">
+  <div class="flex flex-col lg:min-h-145">
     <p
       class="mx-auto mt-10 mb-14 max-w-73 text-left text-lg font-bold text-primary sm:mt-16.25 sm:mb-25 xl:mt-22.75 xl:mb-35 xl:text-xl"
     >
       Hallo! Willkommen zurück!
     </p>
+
+    <img
+      :src="leasybackLogoDark"
+      alt="LeasyBack"
+      class="mx-auto -mt-6 mb-8 h-auto w-full max-w-55 lg:hidden"
+    />
 
     <div class="flex-1" />
 

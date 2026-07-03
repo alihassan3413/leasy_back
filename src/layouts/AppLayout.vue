@@ -17,6 +17,8 @@ interface NavItem {
   aliases?: string[];
 }
 
+// Settings & payment entries are commented out for now (pages hidden, routes
+// disabled in routes.ts) — re-enable together.
 const navByRole: Record<UserRole, NavItem[]> = {
   B2C: [
     {
@@ -24,9 +26,9 @@ const navByRole: Record<UserRole, NavItem[]> = {
       icon: "mdi:view-dashboard-outline",
       name: "dashboard-b2c",
     },
-    { label: "Zahlungsverlauf", icon: "fa6-solid:list-check", name: "payment" },
+    // { label: "Zahlungsverlauf", icon: "fa6-solid:list-check", name: "payment" },
     { label: "Mein Konto", icon: "mdi:account-outline", name: "b2c-account" },
-    { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
+    // { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
   ],
   B2B: [
     {
@@ -34,13 +36,13 @@ const navByRole: Record<UserRole, NavItem[]> = {
       icon: "mdi:view-dashboard-outline",
       name: "dashboard-b2b",
     },
-    { label: "Zahlungsverlauf", icon: "fa6-solid:list-check", name: "payment" },
+    // { label: "Zahlungsverlauf", icon: "fa6-solid:list-check", name: "payment" },
     { label: "Mein Konto", icon: "mdi:account-outline", name: "b2b-account" },
-    { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
+    // { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
   ],
   WORKSHOP: [
-    { label: "Zahlungsverlauf", icon: "fa6-solid:list-check", name: "payment" },
-    { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
+    // { label: "Zahlungsverlauf", icon: "fa6-solid:list-check", name: "payment" },
+    // { label: "Einstellungen", icon: "mdi:cog-outline", name: "setting" },
   ],
   ADMIN: [],
 };

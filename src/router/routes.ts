@@ -88,18 +88,20 @@ export const routes: RouteRecordRaw[] = [
         component: () => import("@/views/account/B2bAccountView.vue"),
         meta: { title: "B2B Konto", roles: ["B2B"] },
       },
-      {
-        path: "setting",
-        name: "setting",
-        component: () => import("@/views/setting/SettingView.vue"),
-        meta: { title: "Einstellungen" },
-      },
-      {
-        path: "payment",
-        name: "payment",
-        component: () => import("@/views/payment/HistoryB2c.vue"),
-        meta: { title: "Zahlungen" },
-      },
+      // Settings & payment pages hidden for now (unfinished) — re-enable together
+      // with their nav items in AppSidebar.vue / AppLayout.vue.
+      // {
+      //   path: "setting",
+      //   name: "setting",
+      //   component: () => import("@/views/setting/SettingView.vue"),
+      //   meta: { title: "Einstellungen" },
+      // },
+      // {
+      //   path: "payment",
+      //   name: "payment",
+      //   component: () => import("@/views/payment/HistoryB2c.vue"),
+      //   meta: { title: "Zahlungen" },
+      // },
     ],
   },
 

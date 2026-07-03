@@ -356,14 +356,14 @@ function close() {
 }
 
 .inverted-corner-top-right {
-  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 0%);
+  --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
   --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
 
   mask:
     calc(100% - var(--_d) - var(--x)) 0 var(--_m),
     100% calc(var(--_d) + var(--y)) var(--_m),
-    radial-gradient(var(--s) at 100% 0, #0000 99%, #000 calc(100% + 0.5px))
+    radial-gradient(var(--s) at 100% 0, #0000 99%, #000 calc(100% + 1px))
       calc(-1 * var(--r) - var(--x)) calc(var(--r) + var(--y)),
     var(--_g) calc(-1 * var(--_d) - var(--x)) 0,
     var(--_g) 0 calc(var(--_d) + var(--y));
