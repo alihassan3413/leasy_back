@@ -78,7 +78,8 @@ function handleCardAction(vehicle: Vehicle, action: string) {
           <TableHead class="px-4 text-[13px] font-medium text-white">Leasingende</TableHead>
           <TableHead class="px-4 text-[13px] font-medium text-white">Rückgabestart</TableHead>
           <TableHead class="px-4 text-[13px] font-medium text-white">Status</TableHead>
-          <TableHead class="px-4 text-[13px] font-medium text-white">Fahrzeugnutzer</TableHead>
+          <!-- Fahrzeugnutzer column hidden for now -->
+          <!-- <TableHead class="px-4 text-[13px] font-medium text-white">Fahrzeugnutzer</TableHead> -->
           <TableHead class="px-4 text-[13px] font-medium text-white text-right">Optionen</TableHead>
         </TableRow>
       </TableHeader>
@@ -137,10 +138,11 @@ function handleCardAction(vehicle: Vehicle, action: string) {
             <Icon icon="mdi:calendar-outline" class="w-4 h-4" />
             <span>Rückgabestart: {{ vehicle.returnStart }}</span>
           </div>
-          <div class="flex items-center gap-1">
+          <!-- Fahrzeugnutzer hidden for now -->
+          <!-- <div class="flex items-center gap-1">
             <Icon icon="mdi:account-outline" class="w-4 h-4" />
             <span>Fahrzeugnutzer: {{ vehicle.driver || "N/A" }}</span>
-          </div>
+          </div> -->
         </div>
       </div>
 

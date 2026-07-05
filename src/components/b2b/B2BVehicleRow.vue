@@ -97,9 +97,10 @@ function handleAction(action: string) {
         <span class="text-[14px] text-gray-600">{{ vehicleStatus.label }}</span>
       </div>
     </TableCell>
-    <TableCell class="h-[52px] truncate px-4 text-[14px] text-gray-600">
+    <!-- Fahrzeugnutzer column hidden for now -->
+    <!-- <TableCell class="h-[52px] truncate px-4 text-[14px] text-gray-600">
       {{ vehicle.driver || "N/A" }}
-    </TableCell>
+    </TableCell> -->
     <TableCell class="h-[52px] px-4 text-right">
       <div class="flex items-center justify-end gap-1">
         <!-- Start Process button -->
