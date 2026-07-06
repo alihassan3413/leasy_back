@@ -133,7 +133,9 @@ const onSuccessOk = (): void => {
 
     <p class="mt-5 text-center text-sm font-medium text-custom-black">
       Sind Sie schon Kunde bei uns?
-      <RouterLink to="/account/login" class="font-medium text-custom-orange"> Zum Login </RouterLink>
+      <RouterLink to="/account/login" class="font-medium text-custom-orange">
+        Zum Login
+      </RouterLink>
     </p>
 
     <Teleport to="body">

@@ -236,7 +236,8 @@ const timelineData = computed(() => {
     }
 
     // Partner step (Besichtigungsort)
-    const insp = detailOrder?.request_payload?.besichtigungsort ?? orderPayload.value?.besichtigungsort;
+    const insp =
+      detailOrder?.request_payload?.besichtigungsort ?? orderPayload.value?.besichtigungsort;
     if (insp?.termin) {
       itemsWithDates.push({
         date: new Date(insp.termin),

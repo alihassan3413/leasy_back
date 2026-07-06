@@ -164,9 +164,7 @@ async function openCreateOffer(vehicle: AdminVehicle) {
   if (vehicle.current_auftragsnummer) {
     try {
       const response = await adminOffersApi.list(vehicle.current_auftragsnummer);
-      const alreadyAccepted = (response.offers || []).some(
-        (o) => o.offer_status === "selected",
-      );
+      const alreadyAccepted = (response.offers || []).some((o) => o.offer_status === "selected");
       if (alreadyAccepted) {
         offerWarningOpen.value = true;
         return;
@@ -725,7 +723,11 @@ onBeforeUnmount(() => {
                               : 'text-[#10393b] hover:bg-[#f6f9f8]'
                           "
                           :disabled="hasActiveOrder(v)"
-                          :title="hasActiveOrder(v) ? 'Für dieses Fahrzeug wurde bereits ein Auftrag erstellt' : ''"
+                          :title="
+                            hasActiveOrder(v)
+                              ? 'Für dieses Fahrzeug wurde bereits ein Auftrag erstellt'
+                              : ''
+                          "
                           @click.stop="openCreateOrder(v)"
                         >
                           <span class="flex items-center gap-2">
@@ -885,7 +887,8 @@ onBeforeUnmount(() => {
           </div>
           <h2 class="text-[18px] font-bold text-[#10393b]">Angebot bereits akzeptiert</h2>
           <p class="text-sm text-[#5b6b6c]">
-            Der Kunde hat bereits ein Angebot akzeptiert. Es kann kein neues Angebot erstellt werden.
+            Der Kunde hat bereits ein Angebot akzeptiert. Es kann kein neues Angebot erstellt
+            werden.
           </p>
           <button
             class="mt-2 h-10 w-full rounded-full text-sm font-semibold text-white transition-colors"

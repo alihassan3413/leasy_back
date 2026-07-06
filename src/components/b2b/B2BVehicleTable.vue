@@ -76,7 +76,9 @@ function handleCardAction(vehicle: Vehicle, action: string) {
           <TableHead class="w-[20%] px-4 text-[13px] font-medium text-white">Kennzeichen</TableHead>
           <TableHead class="w-[24%] px-4 text-[13px] font-medium text-white">Modell</TableHead>
           <TableHead class="w-[16%] px-4 text-[13px] font-medium text-white">Leasingende</TableHead>
-          <TableHead class="w-[16%] px-4 text-[13px] font-medium text-white">Rückgabestart</TableHead>
+          <TableHead class="w-[16%] px-4 text-[13px] font-medium text-white"
+            >Rückgabestart</TableHead
+          >
           <TableHead class="w-[14%] px-4 text-[13px] font-medium text-white">Status</TableHead>
           <!-- Fahrzeugnutzer column hidden for now -->
           <!-- <TableHead class="px-4 text-[13px] font-medium text-white">Fahrzeugnutzer</TableHead> -->

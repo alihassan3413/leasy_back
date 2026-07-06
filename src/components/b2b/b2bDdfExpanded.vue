@@ -75,8 +75,8 @@ function canDeleteDocument(doc: any): boolean {
   if (NON_DELETABLE_DOCUMENT_TYPES.has(type)) return false;
   // ... and, as a fallback, by the document title/file name (mirrors the admin
   // logic), since report/invoice docs don't always carry a canonical type.
-  const title = `${doc?.file_name ?? ""} ${doc?.document_title ?? ""} ${doc?.title ?? ""}`
-    .toLowerCase();
+  const title =
+    `${doc?.file_name ?? ""} ${doc?.document_title ?? ""} ${doc?.title ?? ""}`.toLowerCase();
   return !(
     title.includes("gutachten") ||
     title.includes("nachgutachten") ||
@@ -197,7 +197,9 @@ const latestOrder = computed(() => {
 });
 
 // Inspection location (Besichtigungsort) comes from the latest order's request payload.
-const besichtigungsort = computed(() => latestOrder.value?.request_payload?.besichtigungsort ?? null);
+const besichtigungsort = computed(
+  () => latestOrder.value?.request_payload?.besichtigungsort ?? null,
+);
 
 const terminFormatted = computed(() => {
   const termin = besichtigungsort.value?.termin;
@@ -547,7 +549,10 @@ watch(
                 >
                   <Icon icon="mdi:office-building-outline" class="size-7" style="color: #01b990" />
                 </div>
-                <p class="text-[18px] font-bold min-w-0 flex-1 wrap-break-word" style="color: #2e3e3f">
+                <p
+                  class="text-[18px] font-bold min-w-0 flex-1 wrap-break-word"
+                  style="color: #2e3e3f"
+                >
                   {{ besichtigungsort.name }}
                 </p>
               </div>

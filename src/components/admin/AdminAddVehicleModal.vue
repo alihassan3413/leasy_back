@@ -35,6 +35,7 @@ const fin = ref("");
 const rueckgabestart = ref("");
 // const status = ref(""); // hidden per QA together with the Status field in the template
 const fahrzeugnutzer = ref("");
+const leasinggeber = ref("");
 
 const markeOpen = ref(false);
 const nutzerOpen = ref(false);
@@ -70,6 +71,7 @@ watch(
       city.value = district.value = number.value = "";
       marke.value = modell.value = leasingende.value = "";
       fin.value = rueckgabestart.value = fahrzeugnutzer.value = "";
+      leasinggeber.value = "";
     }
   },
 );
@@ -103,6 +105,7 @@ const isFormValid = computed(() => {
     leasingende.value !== "" &&
     rueckgabestart.value !== "" &&
     fin.value.trim() !== "" &&
+    leasinggeber.value.trim() !== "" &&
     plateError.value === "" &&
     finError.value === ""
   );
@@ -124,6 +127,7 @@ async function handleSubmit() {
     leasing_end_date: leasingende.value,
     vin: fin.value.trim().toUpperCase(),
     first_registration_date: rueckgabestart.value,
+    leasinggeber: leasinggeber.value,
   };
 
   if (props.targetUser) {
@@ -303,6 +307,18 @@ async function handleSubmit() {
                   class="absolute right-4 text-gray-400 pointer-events-none"
                 />
               </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black">
+                Leasinggeber
+                <span class="text-[10px] font-medium text-gray-500 ml-2">*</span>
+              </label>
+              <input
+                v-model="leasinggeber"
+                class="h-10 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
+                placeholder="Leasinggeber eingeben"
+              />
             </div>
 
             <div class="relative flex flex-col gap-1">

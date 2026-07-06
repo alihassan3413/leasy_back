@@ -187,7 +187,9 @@ function close() {
             </p>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1"
+          >
             <!-- Service switches -->
             <div class="flex flex-col gap-1 col-span-2">
               <label class="text-sm font-semibold text-black"> Service wählen </label>

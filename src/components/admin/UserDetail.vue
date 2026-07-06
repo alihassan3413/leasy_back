@@ -227,7 +227,10 @@ function onKeydown(e: KeyboardEvent) {
           </div>
 
           <!-- ━━━ INFO STRIP ━━━ -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 shrink-0" style="border-bottom: 1px solid #eef3f2">
+          <div
+            class="grid grid-cols-1 sm:grid-cols-3 shrink-0"
+            style="border-bottom: 1px solid #eef3f2"
+          >
             <!-- Address -->
             <div class="px-6 py-4" style="border-right: 1px solid #eef3f2">
               <p class="text-[10px] font-bold text-[#9bb0af] uppercase tracking-[0.12em] mb-1.5">

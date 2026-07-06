@@ -293,7 +293,9 @@ async function handleSubmit() {
             </p>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1"
+          >
             <!-- Repair Costs -->
             <div class="col-span-2 flex flex-col gap-2">
               <label class="text-sm font-semibold text-black"> Reparaturkosten Gesamt </label>

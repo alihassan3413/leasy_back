@@ -98,7 +98,6 @@ const scrollTo = (id: string) => {
                 />
                 <div
                   v-else
-                  
                   class="flex size-full items-center justify-center bg-[#EDF6F4] text-custom-green"
                 >
                   <Icon icon="mdi:office-building-outline" class="size-8" />
