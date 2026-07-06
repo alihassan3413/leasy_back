@@ -33,7 +33,7 @@ const modell = ref("");
 const leasingende = ref("");
 const fin = ref("");
 const rueckgabestart = ref("");
-const status = ref("");
+// const status = ref(""); // hidden per QA together with the Status field in the template
 const fahrzeugnutzer = ref("");
 
 const markeOpen = ref(false);
@@ -69,7 +69,7 @@ watch(
     if (!opened) {
       city.value = district.value = number.value = "";
       marke.value = modell.value = leasingende.value = "";
-      fin.value = rueckgabestart.value = status.value = fahrzeugnutzer.value = "";
+      fin.value = rueckgabestart.value = fahrzeugnutzer.value = "";
     }
   },
 );
@@ -349,10 +349,14 @@ async function handleSubmit() {
                   type="date"
                   class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
                 />
-                <Icon icon="mdi:calendar-outline" class="absolute right-4 text-gray-400" />
+                <Icon
+                  icon="mdi:calendar-outline"
+                  class="absolute right-4 text-gray-400 pointer-events-none"
+                />
               </div>
             </div>
 
+            <!-- Hidden per QA: dropdown was never functional and status is not part of the create payload
             <div class="relative flex flex-col gap-1">
               <label class="text-sm font-semibold text-black"> Status </label>
               <div
@@ -364,6 +368,7 @@ async function handleSubmit() {
                 <Icon icon="mdi:chevron-down" class="text-gray-400" />
               </div>
             </div>
+            -->
           </div>
 
           <div class="mt-8 flex justify-center">
