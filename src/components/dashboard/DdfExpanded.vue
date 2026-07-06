@@ -227,6 +227,33 @@ const timelineData = computed(() => {
       }
     });
 
+    // Add order status updates (e.g. when an admin changes an order's status)
+    if (firstOrder.status_updates) {
+      firstOrder.status_updates.forEach((update) => {
+        const newLabel = getOrderStatusLabel(update.new_status).label;
+        itemsWithDates.push({
+          date: new Date(update.created_at),
+          datetime:
+            new Date(update.created_at).toLocaleDateString("de-DE", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }) +
+            "\n" +
+            new Date(update.created_at).toLocaleTimeString("de-DE", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }) +
+            " Uhr",
+          label: "Status aktualisiert",
+          sublabel: update.old_status
+            ? `${getOrderStatusLabel(update.old_status).label} → ${newLabel}`
+            : newLabel,
+          completed: true,
+        });
+      });
+    }
+
     // Sort items chronologically (oldest first - normal timeline order)
     itemsWithDates.sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -534,7 +561,11 @@ watch(
                 @click="uploadDocsOpen = true"
                 class="absolute right-5 top-5 transition-opacity hover:opacity-60"
               >
-                <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
+                <Icon
+                  icon="mdi:file-upload-outline"
+                  class="size-[18.5px] shrink-0"
+                  style="color: #01b990"
+                />
               </button>
               <div class="p-6">
                 <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeugdokumente</p>
@@ -931,7 +962,11 @@ watch(
         @click="uploadDocsOpen = true"
         class="absolute right-4 top-4 transition-opacity hover:opacity-60"
       >
-        <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
+        <Icon
+          icon="mdi:file-upload-outline"
+          class="size-[18.5px] shrink-0"
+          style="color: #01b990"
+        />
       </button>
       <div class="p-4">
         <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeugdokumente</p>

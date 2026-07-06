@@ -19,7 +19,11 @@ export interface Offer {
 }
 
 export interface OrderStatusUpdate {
-  // Define properties based on API response if needed
+  id: string;
+  created_at: string;
+  new_status: string;
+  old_status: string | null;
+  bewertung_id: string | null;
 }
 
 export interface OrderConfirmation {

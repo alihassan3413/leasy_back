@@ -30,12 +30,13 @@ const documentTitle = ref("Gutachten");
 
 // Canonical lowercase document_type values — these drive the grouping/heading in
 // the Vehicle Docs panel (AdminVehicleOrderHistory), so they must match the keys
-// in its DOCUMENT_TYPE_LABELS map.
+// in its DOCUMENT_TYPE_LABELS map. "Rechnung" is intentionally excluded here:
+// invoices are handled exclusively by AdminUploadInvoiceModal, so report uploads
+// can never leak into the invoice ("Rechnung") section.
 const documentTypeOptions = [
   { label: "Leasingvertrag", value: "leasingvertrag" },
   { label: "Vorschaden", value: "vorschaden" },
   { label: "Gutachten", value: "gutachten" },
-  { label: "Rechnung", value: "rechnung" },
   { label: "Sonstiges", value: "sonstiges" },
 ];
 

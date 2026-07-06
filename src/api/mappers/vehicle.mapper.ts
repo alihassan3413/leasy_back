@@ -1,5 +1,6 @@
 import type { VehicleStatusResponse } from "@/types";
 import type { Vehicle } from "@/components/dashboard/vehicle.types";
+import { getOrderStatusLabel } from "@/lib/status";
 
 export const mapVehicleResponseToVehicle = (response: VehicleStatusResponse): Vehicle => {
   const formatDate = (dateStr: string) => {
@@ -47,13 +48,16 @@ export const mapVehicleResponseToVehicle = (response: VehicleStatusResponse): Ve
       });
     }
 
-    // Add status updates
+    // Add status updates (e.g. when an admin changes an order's status)
     if (latestOrder.status_updates) {
       latestOrder.status_updates.forEach((update) => {
+        const newLabel = getOrderStatusLabel(update.new_status).label;
         timeline.push({
           datetime: formatDateTime(update.created_at),
-          label: "Status Update",
-          sublabel: update.bewertung_id ? `Bewertung ID: ${update.bewertung_id}` : "",
+          label: "Status aktualisiert",
+          sublabel: update.old_status
+            ? `${getOrderStatusLabel(update.old_status).label} → ${newLabel}`
+            : newLabel,
         });
       });
     }
