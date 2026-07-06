@@ -28,16 +28,12 @@ const documents = ref<VehicleDocument[]>([]);
 const documentType = ref("rechnung");
 const documentTitle = ref("Rechnung");
 
-// Canonical lowercase document_type values — these drive the grouping/heading in
-// the Vehicle Docs panel (AdminVehicleOrderHistory), so they must match the keys
-// in its DOCUMENT_TYPE_LABELS map.
-const documentTypeOptions = [
-  { label: "Leasingvertrag", value: "leasingvertrag" },
-  { label: "Vorschaden", value: "vorschaden" },
-  { label: "Gutachten", value: "gutachten" },
-  { label: "Rechnung", value: "rechnung" },
-  { label: "Sonstiges", value: "sonstiges" },
-];
+// The document_type drives the grouping/heading in the Vehicle Docs panel
+// (AdminVehicleOrderHistory), so it must match the keys in its
+// DOCUMENT_TYPE_LABELS map. This is the *invoice* upload modal, so the type is
+// locked to "rechnung" — invoices always land in their own "Rechnung" section
+// and can never be confused with admin-uploaded reports.
+const documentTypeOptions = [{ label: "Rechnung", value: "rechnung" }];
 
 // Title shown for the document must match the selected type, otherwise the row
 // label in the Vehicle Docs panel contradicts the section it lands under.
@@ -212,17 +208,15 @@ watch(
 
           <!-- Body -->
           <div class="flex flex-col gap-3 px-6 pb-6">
-            <!-- Document Type -->
+            <!-- Document Type — locked to "Rechnung" so invoices always land in
+                 their own section, never mixed with reports. -->
             <div class="flex flex-col gap-2">
               <span class="text-sm font-semibold text-black">Dokumententyp</span>
-              <select
-                v-model="documentType"
-                class="h-9 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
+              <div
+                class="flex h-9 items-center rounded-full border border-gray-200 bg-gray-100 px-4 text-sm text-gray-600"
               >
-                <option v-for="opt in documentTypeOptions" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </select>
+                Rechnung
+              </div>
             </div>
 
             <!-- Upload invoice section -->

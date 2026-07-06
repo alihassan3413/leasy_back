@@ -424,6 +424,8 @@ async function handleSubmit() {
               </div>
             </div>
 
+            <!-- Fahrzeugnutzer hidden for now -->
+            <!--
             <div class="relative flex flex-col gap-1">
               <label class="text-sm font-semibold text-black"> Fahrzeugnutzer </label>
               <div
@@ -457,6 +459,7 @@ async function handleSubmit() {
                 </div>
               </div>
             </div>
+            -->
 
             <div class="flex flex-col gap-1">
               <label class="text-sm font-semibold text-black"> Rückgabestart </label>

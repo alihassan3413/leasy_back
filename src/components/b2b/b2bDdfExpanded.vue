@@ -354,7 +354,11 @@ watch(
                 @click="uploadDocsOpen = true"
                 class="absolute right-5 top-5 transition-opacity hover:opacity-60"
               >
-                <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
+                <Icon
+                  icon="mdi:file-upload-outline"
+                  class="size-[18.5px] shrink-0"
+                  style="color: #01b990"
+                />
               </button>
               <div class="px-6 pt-6">
                 <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeug Dokumente</p>
@@ -736,7 +740,11 @@ watch(
         @click="uploadDocsOpen = true"
         class="absolute right-5 top-5 transition-opacity hover:opacity-60"
       >
-        <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
+        <Icon
+          icon="mdi:file-upload-outline"
+          class="size-[18.5px] shrink-0"
+          style="color: #01b990"
+        />
       </button>
       <div class="px-6 pt-6">
         <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeug Dokumente</p>

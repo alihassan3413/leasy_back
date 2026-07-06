@@ -605,9 +605,9 @@ async function publishDocument(documentId: string) {
                       : 'border-color: #ECECEC; background: white'
                   "
                 >
-                  <!-- Publish toggle (minimal button in front of each offer) - only show if no offer is accepted -->
+                  <!-- Publish toggle (minimal button in front of each offer) - only show if no offer is accepted and this offer is not cancelled -->
                   <button
-                    v-if="offer.originalOffer && !acceptedOffer"
+                    v-if="offer.originalOffer && !acceptedOffer && offer.status !== 'cancelled'"
                     @click.stop="!offer.published && publishOffer(offer.originalOffer.offer_id)"
                     :disabled="offer.published || publishingId === offer.originalOffer.offer_id"
                     class="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition-colors disabled:cursor-default"
@@ -696,9 +696,14 @@ async function publishDocument(documentId: string) {
                       v-if="openOfferMenu === offer.id"
                       class="absolute right-0 top-full mt-1 z-50 bg-white rounded-[12px] border border-[#ececec] shadow-lg min-w-[180px] py-2"
                     >
-                      <!-- Publish - only show if no offer is accepted AND offer is not published -->
+                      <!-- Publish - only show if no offer is accepted, offer is not published, and offer is not cancelled -->
                       <button
-                        v-if="offer.originalOffer && !acceptedOffer && !offer.published"
+                        v-if="
+                          offer.originalOffer &&
+                          !acceptedOffer &&
+                          !offer.published &&
+                          offer.status !== 'cancelled'
+                        "
                         @click.stop="
                           publishOffer(offer.originalOffer.offer_id);
                           openOfferMenu = null;

@@ -4,7 +4,7 @@ import { Icon } from "@iconify/vue";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { adminVehiclesApi, vehicleApi, adminOrdersApi } from "@/api";
+import { adminVehiclesApi, vehicleApi, adminOrdersApi, adminOffersApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
 import { orderStatusOptions, orderStatusFilterOptions, orderStatusLabels } from "@/lib/status";
 import type { AdminVehicle, AdminOrder } from "@/types";
@@ -55,6 +55,8 @@ const orderModalOpen = ref(false);
 const selectedVehicle = ref<AdminVehicle | null>(null);
 // Offer creation modal
 const offerModalOpen = ref(false);
+// Warning shown when trying to create an offer after the client already accepted one
+const offerWarningOpen = ref(false);
 // 3-dot menu state
 const openMenuId = ref<string | null>(null);
 // Status update modal
@@ -65,7 +67,14 @@ const modalStatusOptions = orderStatusOptions;
 const uploadReportOpen = ref(false);
 const uploadInvoiceOpen = ref(false);
 
+// An order is considered "already placed" once the vehicle has a current order.
+function hasActiveOrder(vehicle: AdminVehicle) {
+  return !!vehicle.current_order_id;
+}
+
 function openCreateOrder(vehicle: AdminVehicle) {
+  // Block creating a second order when one is already placed on this vehicle.
+  if (hasActiveOrder(vehicle)) return;
   selectedVehicle.value = vehicle;
   orderModalOpen.value = true;
   openMenuId.value = null;
@@ -147,10 +156,28 @@ function openUploadInvoice(vehicle: AdminVehicle) {
   openMenuId.value = null;
 }
 
-function openCreateOffer(vehicle: AdminVehicle) {
+async function openCreateOffer(vehicle: AdminVehicle) {
+  openMenuId.value = null;
+
+  // If the client has already accepted (selected) an offer for this vehicle,
+  // no new offer may be created — warn the admin instead of opening the form.
+  if (vehicle.current_auftragsnummer) {
+    try {
+      const response = await adminOffersApi.list(vehicle.current_auftragsnummer);
+      const alreadyAccepted = (response.offers || []).some(
+        (o) => o.offer_status === "selected",
+      );
+      if (alreadyAccepted) {
+        offerWarningOpen.value = true;
+        return;
+      }
+    } catch (err) {
+      console.error("Failed to check existing offers:", err);
+    }
+  }
+
   selectedVehicle.value = vehicle;
   offerModalOpen.value = true;
-  openMenuId.value = null;
 }
 
 function onOrderSuccess() {
@@ -691,7 +718,14 @@ onBeforeUnmount(() => {
                         </button>
                         <div class="h-px bg-[#eef3f2] my-1"></div>
                         <button
-                          class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
+                          class="w-full text-left px-4 py-2 text-sm transition-colors"
+                          :class="
+                            hasActiveOrder(v)
+                              ? 'text-[#B7C2C2] cursor-not-allowed'
+                              : 'text-[#10393b] hover:bg-[#f6f9f8]'
+                          "
+                          :disabled="hasActiveOrder(v)"
+                          :title="hasActiveOrder(v) ? 'Für dieses Fahrzeug wurde bereits ein Auftrag erstellt' : ''"
                           @click.stop="openCreateOrder(v)"
                         >
                           <span class="flex items-center gap-2">
@@ -838,6 +872,31 @@ onBeforeUnmount(() => {
       @update:open="offerModalOpen = $event"
       @success="loadVehicles"
     />
+
+    <!-- Warning: an offer was already accepted by the client -->
+    <Dialog :open="offerWarningOpen" @update:open="offerWarningOpen = $event">
+      <DialogContent class="p-0 gap-0 overflow-hidden rounded-[16px]" style="max-width: 420px">
+        <div class="flex flex-col items-center gap-4 p-8 text-center">
+          <div
+            class="flex h-14 w-14 items-center justify-center rounded-full"
+            style="background: rgba(239, 68, 68, 0.1)"
+          >
+            <Icon icon="mdi:alert-circle-outline" class="size-8 text-[#EF4444]" />
+          </div>
+          <h2 class="text-[18px] font-bold text-[#10393b]">Angebot bereits akzeptiert</h2>
+          <p class="text-sm text-[#5b6b6c]">
+            Der Kunde hat bereits ein Angebot akzeptiert. Es kann kein neues Angebot erstellt werden.
+          </p>
+          <button
+            class="mt-2 h-10 w-full rounded-full text-sm font-semibold text-white transition-colors"
+            style="background: #ef8450"
+            @click="offerWarningOpen = false"
+          >
+            Verstanden
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
