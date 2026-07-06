@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useAdminStore } from "@/stores/admin.store";
-import { useAuthStore } from "@/stores/auth.store";
+// import { useAuthStore } from "@/stores/auth.store"; // hidden per QA with the floating header
 import { adminOrdersApi, adminUsersApi, adminVehiclesApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
 import UserDetailModal from "@/components/admin/UserDetail.vue";
@@ -10,7 +10,7 @@ import type { AdminOrder, AdminUser, AdminVehicle } from "@/types";
 type PanelType = "orders" | "users" | "vehicles";
 
 const adminStore = useAdminStore();
-const auth = useAuthStore();
+// const auth = useAuthStore(); // hidden per QA with the floating header
 
 // ─────────────────────────────────────────────────────────────────
 // Header
@@ -23,27 +23,29 @@ const today = new Intl.DateTimeFormat("de-DE", {
   year: "numeric",
 }).format(new Date());
 
-const headerUserName = computed(() => {
-  const user = auth.user as any;
-
-  if (!user) return "Administrator";
-
-  if (user.first_name && user.last_name) {
-    return `${user.first_name} ${user.last_name}`;
-  }
-
-  return user.name ?? user.email ?? user.user_email ?? "Administrator";
-});
-
-const headerInitials = computed(() => {
-  const parts = headerUserName.value.trim().split(/\s+/);
-
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  }
-
-  return headerUserName.value.slice(0, 2).toUpperCase();
-});
+// Hidden per QA together with the floating header in the template (identity is
+// already shown in the sidebar footer).
+// const headerUserName = computed(() => {
+//   const user = auth.user as any;
+//
+//   if (!user) return "Administrator";
+//
+//   if (user.first_name && user.last_name) {
+//     return `${user.first_name} ${user.last_name}`;
+//   }
+//
+//   return user.name ?? user.email ?? user.user_email ?? "Administrator";
+// });
+//
+// const headerInitials = computed(() => {
+//   const parts = headerUserName.value.trim().split(/\s+/);
+//
+//   if (parts.length >= 2) {
+//     return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+//   }
+//
+//   return headerUserName.value.slice(0, 2).toUpperCase();
+// });
 
 // ─────────────────────────────────────────────────────────────────
 // Active dashboard panel
@@ -517,7 +519,8 @@ onMounted(async () => {
 
 <template>
   <div class="flex h-full flex-col gap-5">
-    <!-- Floating header -->
+    <!-- Floating header — hidden per QA: the bell had no notifications feature behind it,
+         and the profile chip duplicates the identity shown in the sidebar footer
     <header
       class="flex h-[60px] shrink-0 items-center gap-4 rounded-[18px] border border-[#eaf0ef] bg-white/70 px-4 backdrop-blur"
       style="box-shadow: 0 4px 18px rgba(16, 57, 59, 0.04)"
@@ -546,9 +549,7 @@ onMounted(async () => {
           ></span>
         </button>
 
-        <div
-          class="flex cursor-pointer items-center gap-2.5 rounded-[12px] bg-[#f4f7f6] py-1 pl-1 pr-3 transition-all hover:bg-[#eaf0ef]"
-        >
+        <div class="flex items-center gap-2.5 rounded-[12px] bg-[#f4f7f6] py-1 pl-1 pr-3">
           <div
             class="flex h-8 w-8 items-center justify-center rounded-[9px] text-[11px] font-extrabold text-white"
             style="background: linear-gradient(150deg, #01b990, #10393b)"
@@ -566,6 +567,7 @@ onMounted(async () => {
         </div>
       </div>
     </header>
+    -->
 
     <!-- Scrollable content -->
     <main class="flex flex-1 flex-col gap-5 overflow-y-auto pb-4 pr-1">
@@ -586,6 +588,7 @@ onMounted(async () => {
         </div>
 
         <div class="flex gap-2.5 max-[760px]:flex-col">
+          <!-- Hidden per QA: buttons are not wired to any action yet
           <button
             type="button"
             class="flex items-center gap-1.5 rounded-[13px] border border-[#e9efee] bg-white px-[18px] py-2.5 font-[Manrope,sans-serif] text-[13px] font-bold text-[#10393b] transition-all hover:border-[#d6dddd] hover:shadow-sm"
@@ -628,6 +631,7 @@ onMounted(async () => {
 
             Neuer Auftrag
           </button>
+          -->
         </div>
       </div>
 
@@ -992,7 +996,9 @@ onMounted(async () => {
                   Fahrzeugliste öffnen
                 </span>
 
+                <!-- Hidden per QA: arrow suggests a separate action but is decorative
                 <span class="text-[15px] font-extrabold"> → </span>
+                -->
               </div>
             </div>
           </div>
@@ -1543,6 +1549,7 @@ onMounted(async () => {
               </span>
             </div>
 
+            <!-- Hidden per QA: orders panel is already the default, so the button has no visible effect
             <button
               type="button"
               class="flex shrink-0 items-center gap-1 rounded-[10px] px-3 py-2 text-[12px] font-bold text-white transition-transform hover:translate-x-px"
@@ -1552,6 +1559,7 @@ onMounted(async () => {
               Anzeigen
               <span>→</span>
             </button>
+            -->
           </section>
 
           <section class="content-card">
