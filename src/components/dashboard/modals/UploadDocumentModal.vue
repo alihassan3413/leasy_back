@@ -24,11 +24,12 @@ const isLoading = ref(false);
 const documents = ref<VehicleDocument[]>([]);
 const docsOpen = ref(false);
 
+// "Gutachten" (appraisal/report) and "Sonstiges" (miscellaneous) are intentionally
+// omitted here — those overlap with the reports/invoices admins upload, so clients
+// may only upload their own contract/damage documents.
 const docOptions = [
   { label: "Leasingvertrag", value: "Leasingvertrag" },
   { label: "Vorschaden", value: "vorschaden" },
-  { label: "Gutachten", value: "gutachten" },
-  { label: "Sonstiges", value: "Sonstiges" },
 ];
 
 function close() {

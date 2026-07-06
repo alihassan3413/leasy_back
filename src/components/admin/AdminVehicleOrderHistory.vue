@@ -2,8 +2,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import { TableRow, TableCell } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import type { AdminVehicle, Offer, OffersListResponse } from "@/types";
+import type { AdminVehicle, Offer, OffersListResponse, VehicleStatusResponse } from "@/types";
 import AddVehicleModal from "@/components/dashboard/modals/AddVehicleModal.vue";
 import UploadDocumentModal from "@/components/dashboard/modals/UploadDocumentModal.vue";
 import { vehicleApi, adminVehiclesApi, adminOffersApi } from "@/api";
@@ -17,20 +16,33 @@ const props = defineProps<{
 
 const emit = defineEmits(["refreshDocs"]);
 
-// Debug logs to see what order data we have
-onMounted(() => {
-  console.log("===== ADMIN VEHICLE ORDER HISTORY PROPS =====");
-  console.log("Full vehicle object:", props.vehicle);
-  console.log("vehicle.orders:", props.vehicle.orders);
-  console.log("vehicle.order_history:", props.vehicle.order_history);
-  console.log("vehicle.current_request_payload:", props.vehicle.current_request_payload);
-  console.log("expandedVehicleDetails:", props.expandedVehicleDetails[props.vehicle.vehicle_id]);
+// The admin vehicle list doesn't always include the full nested `orders`
+// (with report_documents and status_updates), so we fetch the same detailed
+// vehicle status the B2B/B2C dashboards use to build a fully detailed timeline.
+const detailedVehicle = ref<VehicleStatusResponse | null>(null);
 
+async function fetchVehicleDetail() {
+  if (!props.vehicle.vehicle_id) return;
+  try {
+    detailedVehicle.value = await vehicleApi.getVehicle(props.vehicle.vehicle_id);
+  } catch (err) {
+    console.error("Failed to fetch vehicle detail for timeline:", err);
+    detailedVehicle.value = null;
+  }
+}
+
+onMounted(() => {
+  fetchVehicleDetail();
   // Fetch offers after component is mounted
   if (firstOrder.value?.auftragsnummer) {
     fetchOffers(firstOrder.value.auftragsnummer);
   }
 });
+
+watch(
+  () => props.vehicle.vehicle_id,
+  () => fetchVehicleDetail(),
+);
 
 const editVehicleOpen = ref(false);
 const uploadDocsOpen = ref(false);
@@ -175,84 +187,114 @@ const orderPayload = computed(() => {
   return props.vehicle.current_request_payload;
 });
 
-// Check if we have any order data (for conditional rendering)
-const hasOrderData = computed(() => {
-  return !!firstOrder.value;
-});
-
 // Computed properties with fallback to mock data
 const timelineData = computed(() => {
-  console.log("Generating timeline with firstOrder:", firstOrder.value);
-  // Generate timeline from orders
-  if (firstOrder.value) {
-    const timeline: {
+  // Prefer the full vehicle-status detail (same source as the B2B/B2C views) so
+  // the admin timeline carries Auftrag, partner, reports and status updates.
+  const detailedOrders = detailedVehicle.value?.orders;
+  const detailOrder = detailedOrders && detailedOrders.length ? detailedOrders[0] : null;
+  const baseOrder = detailOrder ?? firstOrder.value;
+
+  if (baseOrder) {
+    // Same date/time formatting used across all timeline entries.
+    const fmtDateTime = (dateStr: string) => {
+      const d = new Date(dateStr);
+      return (
+        d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+        "\n" +
+        d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) +
+        " Uhr"
+      );
+    };
+
+    // Status stays as a separate first entry (no date).
+    const statusEntry = {
+      datetime: "",
+      label: `STATUS: ${baseOrder.order_status ? getOrderStatusLabel(baseOrder.order_status).label.toUpperCase() : "KEINE AUFTRÄGE"}`,
+      completed: false,
+    };
+
+    // Collect all timeline items with real Date objects so we can sort them.
+    const itemsWithDates: Array<{
+      date: Date;
       datetime: string;
       label: string;
       sublabel?: string;
       completed: boolean;
-    }[] = [];
-    const order = firstOrder.value;
-    const payload = orderPayload.value;
+      docUrl?: string;
+      isReport?: boolean;
+    }> = [];
 
-    // Define the steps
-    const steps = [
-      {
+    // Auftrag erstellt
+    if (baseOrder.created_at) {
+      itemsWithDates.push({
+        date: new Date(baseOrder.created_at),
         label: "Auftrag erstellt",
-        datetime: order.created_at
-          ? new Date(order.created_at).toLocaleDateString("de-DE", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            }) +
-            "\n" +
-            new Date(order.created_at).toLocaleTimeString("de-DE", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }) +
-            " Uhr"
-          : "",
+        datetime: fmtDateTime(baseOrder.created_at),
         completed: true,
-      },
-      {
-        label: order.leasyback_partner || "",
-        sublabel: payload?.besichtigungsort
-          ? `${payload.besichtigungsort.strasse}, ${payload.besichtigungsort.plz} ${payload.besichtigungsort.ort}`
-          : "",
-        datetime: payload?.besichtigungsort?.termin
-          ? new Date(payload.besichtigungsort.termin).toLocaleDateString("de-DE", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            }) +
-            "\n" +
-            new Date(payload.besichtigungsort.termin).toLocaleTimeString("de-DE", {
-              hour: "2-digit",
-              minute: "2-digit",
-            }) +
-            " Uhr"
-          : "",
-        completed: order.order_status !== "order_placed",
-      },
-    ];
+      });
+    }
 
-    // Add current status as first entry
-    timeline.push({
-      datetime: "",
-      label: `STATUS: ${order.order_status ? getOrderStatusLabel(order.order_status).label.toUpperCase() : "KEINE AUFTRÄGE"}`,
-      completed: false,
-    });
+    // Partner step (Besichtigungsort)
+    const insp = detailOrder?.request_payload?.besichtigungsort ?? orderPayload.value?.besichtigungsort;
+    if (insp?.termin) {
+      itemsWithDates.push({
+        date: new Date(insp.termin),
+        label: baseOrder.leasyback_partner || "",
+        sublabel: `${insp.strasse || ""}, ${insp.plz || ""} ${insp.ort || ""}`,
+        datetime: fmtDateTime(insp.termin),
+        completed: baseOrder.order_status !== "order_placed",
+      });
+    }
 
-    // Add the steps
-    steps.forEach((step) => {
-      timeline.push({
-        datetime: step.datetime,
-        label: step.label,
-        sublabel: step.sublabel,
-        completed: step.completed,
+    // Report documents (Gutachten) uploaded across the vehicle's orders.
+    const timelineOrders: any[] = detailedOrders ?? props.vehicle.orders ?? [];
+    timelineOrders.forEach((o) => {
+      o.report_documents?.forEach((doc: any) => {
+        if (doc.document_title?.toLowerCase() === "gutachten") {
+          // Backend sends an s3:// URI — convert it to a browser-openable https URL.
+          const cleanS3Url = doc.s3_url?.trim().replace(/^`|`$/g, "");
+          const docUrl = cleanS3Url
+            ? cleanS3Url.replace(/^s3:\/\/([^/]+)\//, "https://$1.s3.amazonaws.com/")
+            : doc.s3_bucket && doc.s3_key
+              ? `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`
+              : "";
+          itemsWithDates.push({
+            date: new Date(doc.created_at),
+            datetime: fmtDateTime(doc.created_at),
+            label: "Report hochgeladen",
+            sublabel: doc.document_type,
+            completed: true,
+            docUrl,
+            isReport: true,
+          });
+        }
       });
     });
 
-    console.log("Generated timeline:", timeline);
+    // Order status updates (e.g. when an admin changes an order's status).
+    timelineOrders[0]?.status_updates?.forEach((update: any) => {
+      const newLabel = getOrderStatusLabel(update.new_status).label;
+      itemsWithDates.push({
+        date: new Date(update.created_at),
+        datetime: fmtDateTime(update.created_at),
+        label: "Status aktualisiert",
+        sublabel: update.old_status
+          ? `${getOrderStatusLabel(update.old_status).label} → ${newLabel}`
+          : newLabel,
+        completed: true,
+      });
+    });
+
+    // Sort chronologically (oldest first) and build the final timeline.
+    itemsWithDates.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    const timeline = [statusEntry];
+    itemsWithDates.forEach((item) => {
+      const { date, ...timelineItem } = item;
+      timeline.push(timelineItem);
+    });
+
     return timeline;
   }
   // Fallback if no orders
@@ -289,49 +331,6 @@ const hasOffers = computed(() => offersData.value.length > 0);
 
 const acceptedOffer = computed(() => {
   return offersData.value.find((o) => o.accepted);
-});
-
-const primaryDriverName = computed(() => {
-  if (orderPayload.value?.ansprechpartner?.name) {
-    return orderPayload.value.ansprechpartner.name;
-  }
-  return props.vehicle.company_name || props.vehicle.user_name || "Marcus Dietrich";
-});
-
-const primaryDriverInitial = computed(() => {
-  return primaryDriverName.value[0].toUpperCase();
-});
-
-const primaryDriverPhone = computed(() => {
-  if (orderPayload.value?.ansprechpartner?.telefon) {
-    return orderPayload.value.ansprechpartner.telefon;
-  }
-  return "17655874354";
-});
-
-const primaryDriverAddress = computed(() => {
-  if (orderPayload.value?.besichtigungsort) {
-    return `${orderPayload.value.besichtigungsort.strasse}, ${orderPayload.value.besichtigungsort.plz} ${orderPayload.value.besichtigungsort.ort}`;
-  }
-  return "Radestraße 12, 35037 Marburg";
-});
-
-const lastActivityDate = computed(() => {
-  if (firstOrder.value?.created_at) {
-    return new Date(firstOrder.value.created_at).toLocaleDateString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  }
-  return null;
-});
-
-const lastActivityStatus = computed(() => {
-  if (firstOrder.value?.order_status) {
-    return getOrderStatusLabel(firstOrder.value.order_status).label;
-  }
-  return null;
 });
 
 const fullVehicleDetails = computed(() => {
@@ -429,13 +428,10 @@ async function publishDocument(documentId: string) {
             class="flex flex-col overflow-hidden rounded-3xl border bg-white"
             style="border-color: #ececec"
           >
-            <div class="px-6 py-5 flex items-center justify-between">
+            <div class="px-6 py-5">
               <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
                 {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
               </p>
-              <button class="text-[#01b990] hover:opacity-70">
-                <Icon icon="mdi:dots-vertical" class="size-4.5" />
-              </button>
             </div>
 
             <!-- Timeline rows -->
@@ -466,7 +462,12 @@ async function publishDocument(documentId: string) {
                   </p>
 
                   <!-- Label -->
-                  <template v-if="entry.label === 'DEKRA' || entry.label === 'TUVSUD'">
+                  <template
+                    v-if="
+                      entry.label.toLowerCase() === 'dekra' ||
+                      entry.label.toLowerCase() === 'tuvsud'
+                    "
+                  >
                     <p class="text-[16px] font-bold mb-1" style="color: #01b990">
                       {{ entry.label }}
                     </p>
@@ -478,15 +479,39 @@ async function publishDocument(documentId: string) {
                     </p>
                   </template>
                   <template v-else>
-                    <p class="text-[14px] text-[#2e3e3f] font-normal">
-                      {{ entry.label }}
-                    </p>
-                    <p
-                      v-if="entry.sublabel"
-                      class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
-                    >
-                      {{ entry.sublabel }}
-                    </p>
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-[14px] text-[#2e3e3f] font-normal">
+                          {{ entry.label }}
+                        </p>
+                        <p
+                          v-if="entry.sublabel"
+                          class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
+                        >
+                          {{ entry.sublabel }}
+                        </p>
+                      </div>
+                      <div v-if="entry.isReport && entry.docUrl" class="flex items-center gap-2">
+                        <a
+                          :href="entry.docUrl"
+                          target="_blank"
+                          rel="noopener"
+                          class="text-[#01b990] hover:opacity-70"
+                          title="Download"
+                        >
+                          <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
+                        </a>
+                        <a
+                          :href="entry.docUrl"
+                          target="_blank"
+                          rel="noopener"
+                          class="text-[#01b990] hover:opacity-70"
+                          title="Open"
+                        >
+                          <Icon icon="mdi:open-in-new" class="size-[18.5px] shrink-0" />
+                        </a>
+                      </div>
+                    </div>
                   </template>
                 </div>
               </div>
@@ -794,119 +819,9 @@ async function publishDocument(documentId: string) {
           </div>
         </div>
 
-        <!-- Column 3: Assigned To + Vehicle Specs -->
+        <!-- Column 3: Vehicle Specs (Besichtigungsort is not returned to the admin
+             list endpoint, so that card is intentionally not shown here) -->
         <div class="flex flex-col 2xl:flex-row gap-4 w-[325px] 2xl:w-full">
-          <!-- Assigned To Card -->
-          <div
-            class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
-            style="border-color: #ececec"
-          >
-            <div class="pb-6">
-              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Zugewiesen an</p>
-            </div>
-
-            <!-- Avatar + Name row -->
-            <div class="flex items-start gap-6 pb-6" v-if="hasOrderData">
-              <Avatar class="size-[64px] shrink-0">
-                <AvatarFallback
-                  class="text-xl font-bold"
-                  style="background-color: #d9d9d9; color: #2e3e3f"
-                >
-                  {{ primaryDriverInitial }}
-                </AvatarFallback>
-              </Avatar>
-              <div class="flex flex-col gap-2 pt-2">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">
-                  {{ primaryDriverName }}
-                </p>
-                <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
-              </div>
-            </div>
-            <div class="flex items-start gap-6 pb-6" v-else>
-              <Avatar class="size-[64px] shrink-0">
-                <AvatarFallback
-                  class="text-xl font-bold"
-                  style="background-color: #d9d9d9; color: #2e3e3f"
-                >
-                  M
-                </AvatarFallback>
-              </Avatar>
-              <div class="flex flex-col gap-2 pt-2">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">Marcus Dietrich</p>
-                <p class="text-[12px] font-semibold" style="color: #01b990">Primärer Fahrer</p>
-              </div>
-            </div>
-
-            <!-- Last Activity -->
-            <div class="pb-5">
-              <p
-                class="text-[10px] font-medium uppercase"
-                style="color: #8f9ba7; letter-spacing: 0.5px"
-              >
-                Letzte Aktivität
-              </p>
-              <div class="flex items-center justify-between pt-2" v-if="lastActivityDate">
-                <p class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{ lastActivityDate }}
-                  · Auftrag erstellt
-                </p>
-                <p class="text-[14px] font-bold" style="color: #2e3e3f">
-                  {{ lastActivityStatus }}
-                </p>
-              </div>
-              <div class="flex items-center justify-between pt-2" v-else>
-                <p class="text-[14px] font-normal" style="color: #2e3e3f">Keine Aktivität</p>
-              </div>
-            </div>
-
-            <!-- Divider -->
-            <div class="h-px bg-gray-200 mb-5"></div>
-
-            <!-- Contact Fields -->
-            <div class="flex flex-col gap-4" v-if="hasOrderData">
-              <div class="flex items-center gap-4">
-                <Icon
-                  icon="mdi:phone-outline"
-                  class="size-[18px] shrink-0"
-                  style="color: #5a6b7a"
-                />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{ primaryDriverPhone }}
-                </span>
-              </div>
-              <div class="flex items-center gap-4">
-                <Icon
-                  icon="mdi:map-marker-outline"
-                  class="size-[18px] shrink-0"
-                  style="color: #5a6b7a"
-                />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  {{ primaryDriverAddress }}
-                </span>
-              </div>
-            </div>
-            <div class="flex flex-col gap-4" v-else>
-              <div class="flex items-center gap-4">
-                <Icon
-                  icon="mdi:phone-outline"
-                  class="size-[18px] shrink-0"
-                  style="color: #5a6b7a"
-                />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f"> 17655874354 </span>
-              </div>
-              <div class="flex items-center gap-4">
-                <Icon
-                  icon="mdi:map-marker-outline"
-                  class="size-[18px] shrink-0"
-                  style="color: #5a6b7a"
-                />
-                <span class="text-[14px] font-normal" style="color: #2e3e3f">
-                  Radestraße 12, 35037 Marburg
-                </span>
-              </div>
-            </div>
-          </div>
-
           <!-- Vehicle Specs Card -->
           <div
             class="relative flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[325px]"

@@ -73,14 +73,16 @@ function handleCardAction(vehicle: Vehicle, action: string) {
     <Table>
       <TableHeader>
         <TableRow style="background-color: #01b990; height: 44px">
-          <TableHead class="px-4 text-[13px] font-medium text-white">Kennzeichen</TableHead>
-          <TableHead class="px-4 text-[13px] font-medium text-white">Modell</TableHead>
-          <TableHead class="px-4 text-[13px] font-medium text-white">Leasingende</TableHead>
-          <TableHead class="px-4 text-[13px] font-medium text-white">Rückgabestart</TableHead>
-          <TableHead class="px-4 text-[13px] font-medium text-white">Status</TableHead>
+          <TableHead class="w-[20%] px-4 text-[13px] font-medium text-white">Kennzeichen</TableHead>
+          <TableHead class="w-[24%] px-4 text-[13px] font-medium text-white">Modell</TableHead>
+          <TableHead class="w-[16%] px-4 text-[13px] font-medium text-white">Leasingende</TableHead>
+          <TableHead class="w-[16%] px-4 text-[13px] font-medium text-white">Rückgabestart</TableHead>
+          <TableHead class="w-[14%] px-4 text-[13px] font-medium text-white">Status</TableHead>
           <!-- Fahrzeugnutzer column hidden for now -->
           <!-- <TableHead class="px-4 text-[13px] font-medium text-white">Fahrzeugnutzer</TableHead> -->
-          <TableHead class="px-4 text-[13px] font-medium text-white text-right">Optionen</TableHead>
+          <TableHead class="w-[10%] px-4 text-[13px] font-medium text-white text-right"
+            >Optionen</TableHead
+          >
         </TableRow>
       </TableHeader>
 

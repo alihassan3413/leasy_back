@@ -236,8 +236,11 @@ export interface AdminVehicle {
     status_updates: Array<{
       id: string;
       created_at: string;
-      bewertung_id?: string;
+      new_status: string;
+      old_status: string | null;
+      bewertung_id?: string | null;
     }>;
+    report_documents?: ReportDocument[];
   }>;
   order_history: AdminVehicleHistoryItem[];
   documents: unknown[];
