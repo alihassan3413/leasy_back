@@ -30,7 +30,7 @@ const totalInactive = ref(0);
 
 const statusOptions = [
   { label: "Alle", value: "" },
-  { label: "Bestellt", value: "order_placed" },
+  { label: "Angefragt", value: "order_placed" },
   { label: "Bestätigt", value: "confirmed" },
   { label: "Geprüft", value: "inspected" },
   { label: "Geliefert", value: "delivered" },

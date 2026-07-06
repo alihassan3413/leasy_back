@@ -451,7 +451,7 @@ watch(
 <template>
   <!-- Desktop: Table layout -->
   <TableRow class="border-0 hover:bg-transparent hidden md:table-row">
-    <TableCell colspan="12" class="max-w-0 p-0 overflow-x-auto">
+    <TableCell colspan="12" class="max-w-0 p-0 overflow-x-auto whitespace-normal">
       <!-- Main container with 3 columns -->
       <div class="flex gap-4 bg-[#EFEFEF] p-4" style="min-width: max-content">
         <!-- Column 1: Timeline + Vehicle Docs + Return Docs -->
@@ -753,7 +753,7 @@ watch(
                 >
                   <Icon icon="mdi:office-building-outline" class="size-7" style="color: #01b990" />
                 </div>
-                <p class="text-[18px] font-bold" style="color: #2e3e3f">
+                <p class="text-[18px] font-bold min-w-0 flex-1 wrap-break-word" style="color: #2e3e3f">
                   {{ besichtigungsort.name }}
                 </p>
               </div>
@@ -1132,7 +1132,7 @@ watch(
           >
             <Icon icon="mdi:office-building-outline" class="size-6" style="color: #01b990" />
           </div>
-          <p class="text-[16px] font-bold" style="color: #2e3e3f">
+          <p class="text-[16px] font-bold min-w-0 flex-1 wrap-break-word" style="color: #2e3e3f">
             {{ besichtigungsort.name }}
           </p>
         </div>

@@ -39,7 +39,7 @@ const statusStyle: Record<string, { bg: string; fg: string; label: string }> = {
     fg: "#3b82f6",
   },
   order_placed: {
-    label: "Bestellt",
+    label: "Angefragt",
     bg: "rgba(239,132,80,0.1)",
     fg: "#c0622e",
   },

@@ -91,7 +91,7 @@ const statusStyles: Record<
   }
 > = {
   order_placed: {
-    label: "Bestellt",
+    label: "Angefragt",
     background: "rgba(239, 132, 80, 0.12)",
     color: "#c0622e",
   },

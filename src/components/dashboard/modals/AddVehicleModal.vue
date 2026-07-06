@@ -275,7 +275,7 @@ async function handleSubmit() {
         </button>
 
         <div
-          class="bg-white border border-[#C6C6CD] p-3 md:p-5 inverted-corner inverted-corner-top-right"
+          class="relative p-3 md:p-5 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
           <div class="px-2 pt-1 mb-3">
@@ -505,10 +505,22 @@ async function handleSubmit() {
   --s: 32px;
   --x: 0px;
   --y: 0px;
+}
+
+/* Background, border and notch mask live on a ::before backdrop: a mask on
+   the card element itself clips all descendants, hiding overlays (e.g. the
+   Marke dropdown) where they overflow the card. */
+.inverted-corner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #fff;
+  border: 1px solid #c6c6cd;
   border-radius: var(--r);
 }
 
-.inverted-corner-top-right {
+.inverted-corner-top-right::before {
   --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
   --_g: conic-gradient(at calc(100% - var(--r)) var(--r), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));
@@ -523,7 +535,7 @@ async function handleSubmit() {
   mask-repeat: no-repeat;
 }
 
-.inverted-corner-top-left {
+.inverted-corner-top-left::before {
   --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
   --_g: conic-gradient(at var(--r) var(--r), #000 75%, #0000 0);
   --_d: (var(--s) + var(--r));
@@ -538,7 +550,7 @@ async function handleSubmit() {
   mask-repeat: no-repeat;
 }
 
-.inverted-corner-bottom-right {
+.inverted-corner-bottom-right::before {
   --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
   --_g: conic-gradient(
     from 90deg at calc(100% - var(--r)) calc(100% - var(--r)),
@@ -557,7 +569,7 @@ async function handleSubmit() {
   mask-repeat: no-repeat;
 }
 
-.inverted-corner-bottom-left {
+.inverted-corner-bottom-left::before {
   --_m: /calc(2 * var(--r)) calc(2 * var(--r)) radial-gradient(#000 70%, #0000 72%);
   --_g: conic-gradient(from 180deg at var(--r) calc(100% - var(--r)), #0000 25%, #000 0);
   --_d: (var(--s) + var(--r));

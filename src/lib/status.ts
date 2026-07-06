@@ -24,7 +24,7 @@ const orderStatusMap: Record<string, StatusLabel> = {
     backgroundClass: "bg-[#dbeafe]",
   },
   order_placed: {
-    label: "Bestellt",
+    label: "Angefragt",
     colorClass: "text-[#9a3412]",
     backgroundClass: "bg-[#fed7aa]",
   },
