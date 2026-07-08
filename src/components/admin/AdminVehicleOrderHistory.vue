@@ -186,20 +186,11 @@ const firstOrder = computed(() => {
   return null;
 });
 
-// Get the order payload
-const orderPayload = computed(() => {
-  const order = firstOrder.value;
-  if (order?.request_payload) {
-    return order.request_payload;
-  }
-  return props.vehicle.current_request_payload;
-});
-
 // Computed properties with fallback to mock data
 const timelineData = computed(() => {
-  // Prefer the full vehicle-status detail (same source as the B2B/B2C views) so
-  // the admin timeline carries the order's Auftrag, partner and status updates.
-  // (Report rows come from currentDocuments; see below.)
+  // The full vehicle-status detail (same source as the B2B/B2C views) provides
+  // the order status + status_updates for the timeline. Report rows come from
+  // currentDocuments; see below.
   const detailedOrders = detailedVehicle.value?.orders;
   const detailOrder = detailedOrders && detailedOrders.length ? detailedOrders[0] : null;
   const baseOrder = detailOrder ?? firstOrder.value;
@@ -224,6 +215,7 @@ const timelineData = computed(() => {
     };
 
     // Collect all timeline items with real Date objects so we can sort them.
+    // The timeline shows ONLY report uploads and status-change rows.
     const itemsWithDates: Array<{
       date: Date;
       datetime: string;
@@ -235,50 +227,22 @@ const timelineData = computed(() => {
       doc?: any;
     }> = [];
 
-    // Auftrag erstellt
-    if (baseOrder.created_at) {
-      itemsWithDates.push({
-        date: new Date(baseOrder.created_at),
-        label: "Auftrag erstellt",
-        datetime: fmtDateTime(baseOrder.created_at),
-        completed: true,
-      });
-    }
-
-    // Partner step (Besichtigungsort)
-    const insp =
-      detailOrder?.request_payload?.besichtigungsort ?? orderPayload.value?.besichtigungsort;
-    if (insp?.termin) {
-      itemsWithDates.push({
-        date: new Date(insp.termin),
-        label: baseOrder.leasyback_partner || "",
-        sublabel: `${insp.strasse || ""}, ${insp.plz || ""} ${insp.ort || ""}`,
-        datetime: fmtDateTime(insp.termin),
-        completed: baseOrder.order_status !== "order_placed",
-      });
-    }
-
     // Orders merged from the detailed status fetch (+ any inline orders), deduped
-    // by id. Used only for `status_updates` below. Report documents are NOT
-    // emitted from here on purpose: `currentDocuments` (props.documents) already
-    // aggregates every order's report_documents plus the vehicle documents, so
-    // emitting them here too would render each "Report hochgeladen" row twice.
+    // by id. Used only for `status_updates` below.
     const timelineOrders: any[] = [...(detailedOrders ?? []), ...(props.vehicle.orders ?? [])];
     const uniqueOrders = Array.from(new Map(timelineOrders.map((o) => [o.id, o])).values());
 
-    // Report documents come solely from currentDocuments (props.documents).
+    // Reports only — Gutachten / Nachgutachten. `currentDocuments`
+    // (props.documents) mixes the vehicle's uploaded documents
+    // (Leasingvertrag/Vorschaden/Sonstiges) with the admin-uploaded reports AND
+    // invoices; both reports and invoices carry `is_report`, so that flag alone
+    // keeps out general documents but NOT invoices. We additionally require the
+    // report kind (in the title) to be a Gutachten, which excludes Rechnung
+    // (invoices) while still matching Nachgutachten.
     currentDocuments.value.forEach((doc: any) => {
-      // Check if it's a report (by title/type)
-      const docTitle =
-        `${doc?.document_title ?? ""} ${doc?.file_name ?? ""} ${doc?.title ?? ""}`.toLowerCase();
-      const isReport =
-        doc.is_report ||
-        docTitle.includes("gutachten") ||
-        docTitle.includes("rechnung") ||
-        docTitle.includes("nachgutachten") ||
-        docTitle.includes("report") ||
-        docTitle.includes("invoice");
-
+      const kind =
+        `${doc?.file_name ?? ""} ${doc?.document_title ?? ""} ${doc?.title ?? ""}`.toLowerCase();
+      const isReport = doc.is_report === true && kind.includes("gutachten");
       const dateToUse = doc.created_at || doc.updated_at;
 
       if (isReport && dateToUse) {
