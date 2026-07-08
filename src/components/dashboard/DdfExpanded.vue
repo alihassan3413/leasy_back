@@ -55,13 +55,31 @@ function getDocumentTypeKey(doc: any): string {
   return (doc?.document_type ?? "").trim().toLowerCase() || "__other__";
 }
 
+// Report documents (Gutachten/Nachgutachten) are surfaced in the order
+// timeline, not in the "Fahrzeugdokumente" card. This helper identifies them
+// so they can be filtered out of the documents card. Invoices (Rechnung) and
+// other document types stay in the card.
+function isReportLike(doc: any): boolean {
+  const type = (doc?.document_type ?? "").trim().toLowerCase();
+  if (type === "gutachten" || type === "nachgutachten" || type === "report") return true;
+  const title =
+    `${doc?.file_name ?? ""} ${doc?.document_title ?? ""} ${doc?.title ?? ""}`.toLowerCase();
+  return (
+    title.includes("gutachten") ||
+    title.includes("nachgutachten") ||
+    title.includes("report")
+  );
+}
+
 // Group documents by their document_type so each type renders under its own
 // heading. Order of groups follows first appearance in the documents list.
+// Report/Gutachten documents are excluded here — they live in the timeline.
 const groupedDocuments = computed(() => {
   const groups: { key: string; title: string; items: any[] }[] = [];
   const indexByKey = new Map<string, number>();
 
   for (const doc of documents.value) {
+    if (isReportLike(doc)) continue;
     const key = getDocumentTypeKey(doc);
     let idx = indexByKey.get(key);
     if (idx === undefined) {

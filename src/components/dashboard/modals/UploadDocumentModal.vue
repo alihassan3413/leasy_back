@@ -23,6 +23,10 @@ const uploadError = ref("");
 const isLoading = ref(false);
 const documents = ref<VehicleDocument[]>([]);
 const docsOpen = ref(false);
+// When the backend rejects an upload because a document of the same type
+// already exists, we hold that type here to offer the user a replace flow
+// instead of showing a raw error.
+const duplicateDocType = ref("");
 
 // "Gutachten" (appraisal/report) and "Sonstiges" (miscellaneous) are intentionally
 // omitted here — those overlap with the reports/invoices admins upload, so clients
@@ -88,6 +92,7 @@ async function uploadDocument() {
 
   isLoading.value = true;
   uploadError.value = "";
+  duplicateDocType.value = "";
 
   try {
     const newDoc = await vehicleApi.uploadVehicleDocument(props.vehicleId, formData);
@@ -111,12 +116,54 @@ async function uploadDocument() {
     }
 
     emit("uploaded", newDoc);
-  } catch (err) {
+  } catch (err: any) {
     console.error("Upload fehlgeschlagen:", err);
-    uploadError.value = "Dokument konnte nicht hochgeladen werden.";
+    const backendMsg: string = err?.response?.data?.error ?? err?.message ?? "";
+    if (/already exists/i.test(backendMsg)) {
+      // A document of this type already exists — offer to replace it rather
+      // than dead-ending with a raw backend error.
+      duplicateDocType.value = selectedDocType.value;
+    } else {
+      uploadError.value = "Dokument konnte nicht hochgeladen werden.";
+    }
   } finally {
     isLoading.value = false;
   }
+}
+
+// Delete every existing document that matches the given type (case-insensitive),
+// then retry the upload. Used by the "replace" flow when a duplicate is detected.
+async function replaceExistingDocument() {
+  if (!props.vehicleId || !duplicateDocType.value) return;
+
+  const type = duplicateDocType.value.toLowerCase();
+  const matches = documents.value.filter(
+    (doc) => (doc.document_type ?? "").toLowerCase() === type,
+  );
+
+  isLoading.value = true;
+  uploadError.value = "";
+
+  try {
+    for (const doc of matches) {
+      await vehicleApi.deleteVehicleDocument(props.vehicleId, doc.id);
+    }
+    documents.value = documents.value.filter(
+      (doc) => (doc.document_type ?? "").toLowerCase() !== type,
+    );
+    duplicateDocType.value = "";
+    // Re-run the upload now that the conflicting document is gone.
+    await uploadDocument();
+  } catch (err) {
+    console.error("Ersetzen fehlgeschlagen:", err);
+    uploadError.value = "Vorhandenes Dokument konnte nicht ersetzt werden.";
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+function cancelReplace() {
+  duplicateDocType.value = "";
 }
 
 async function deleteDocument(documentId: string) {
@@ -160,6 +207,12 @@ watch(
     }
   },
 );
+
+// Changing the type or picking a different file cancels a pending replace
+// prompt so the normal upload button reappears.
+watch([selectedDocType, selectedFile], () => {
+  duplicateDocType.value = "";
+});
 </script>
 
 <template>
@@ -313,7 +366,38 @@ watch(
                 {{ uploadError }}
               </p>
 
+              <!-- Duplicate-document notice with a professional replace flow -->
+              <div
+                v-if="duplicateDocType"
+                class="flex flex-col gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-3"
+              >
+                <p class="text-sm text-amber-800">
+                  Ein Dokument vom Typ <span class="font-semibold">{{ duplicateDocType }}</span>
+                  existiert bereits für dieses Fahrzeug. Möchten Sie das vorhandene Dokument
+                  ersetzen?
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    class="h-8 flex-1 rounded-full bg-red-500 px-4 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                    :disabled="isLoading"
+                    @click="replaceExistingDocument"
+                  >
+                    {{ isLoading ? "Ersetzt..." : "Ersetzen" }}
+                  </button>
+                  <button
+                    type="button"
+                    class="h-8 flex-1 rounded-full border border-gray-300 px-4 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                    :disabled="isLoading"
+                    @click="cancelReplace"
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+              </div>
+
               <button
+                v-if="!duplicateDocType"
                 class="h-8 w-full rounded-full bg-emerald-500 px-4 text-sm font-bold text-white transition-opacity hover:opacity-90 shadow-lg"
                 :disabled="isLoading"
                 @click="uploadDocument"
