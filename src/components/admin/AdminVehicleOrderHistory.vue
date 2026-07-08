@@ -248,33 +248,90 @@ const timelineData = computed(() => {
       });
     }
 
-    // Report documents (Gutachten) uploaded across the vehicle's orders.
-    const timelineOrders: any[] = detailedOrders ?? props.vehicle.orders ?? [];
-    timelineOrders.forEach((o) => {
+    // Report documents uploaded across the vehicle's orders.
+    console.log("detailedOrders:", detailedOrders);
+    console.log("props.vehicle.orders:", props.vehicle.orders);
+    const timelineOrders: any[] = [...(detailedOrders ?? []), ...(props.vehicle.orders ?? [])];
+    console.log("timelineOrders:", timelineOrders);
+    // Remove duplicate orders (by id)
+    const uniqueOrders = Array.from(new Map(timelineOrders.map((o) => [o.id, o])).values());
+    console.log("uniqueOrders:", uniqueOrders);
+    uniqueOrders.forEach((o, i) => {
+      console.log(`Order ${i} report_documents:`, o.report_documents);
       o.report_documents?.forEach((doc: any) => {
-        if (doc.document_title?.toLowerCase() === "gutachten") {
-          // Backend sends an s3:// URI — convert it to a browser-openable https URL.
+        // Backend sends an s3:// URI — convert it to a browser-openable https URL.
+        const cleanS3Url = doc.s3_url?.trim().replace(/^`|`$/g, "");
+        const docUrl = cleanS3Url
+          ? cleanS3Url.replace(/^s3:\/\/([^/]+)\//, "https://$1.s3.amazonaws.com/")
+          : doc.s3_bucket && doc.s3_key
+            ? `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`
+            : "";
+        itemsWithDates.push({
+          date: new Date(doc.created_at),
+          datetime: fmtDateTime(doc.created_at),
+          label: "Report hochgeladen",
+          sublabel: doc.document_type,
+          completed: true,
+          docUrl,
+          isReport: true,
+          doc: doc,
+        });
+      });
+    });
+
+    // Also add documents from currentDocuments (props.documents) to the timeline
+    console.log("currentDocuments:", currentDocuments.value);
+    currentDocuments.value.forEach((doc: any, index: number) => {
+      console.log(`currentDocument ${index}:`, JSON.stringify(doc, null, 2));
+      // Check if it's a report (by title/type)
+      const docTitle =
+        `${doc?.document_title ?? ""} ${doc?.file_name ?? ""} ${doc?.title ?? ""}`.toLowerCase();
+      const isReport =
+        doc.is_report ||
+        docTitle.includes("gutachten") ||
+        docTitle.includes("rechnung") ||
+        docTitle.includes("nachgutachten") ||
+        docTitle.includes("report") ||
+        docTitle.includes("invoice");
+
+      console.log(`currentDocument ${index} - docTitle:`, docTitle);
+      console.log(`currentDocument ${index} - isReport:`, isReport);
+      console.log(`currentDocument ${index} - doc.created_at:`, doc.created_at);
+      console.log(`currentDocument ${index} - doc.updated_at:`, doc.updated_at);
+
+      const dateToUse = doc.created_at || doc.updated_at;
+
+      if (isReport && dateToUse) {
+        // Get doc URL - check doc.url first, then try to build from s3_url if available
+        let docUrl = doc.url || "";
+        if (!docUrl && doc.s3_url) {
           const cleanS3Url = doc.s3_url?.trim().replace(/^`|`$/g, "");
-          const docUrl = cleanS3Url
+          docUrl = cleanS3Url
             ? cleanS3Url.replace(/^s3:\/\/([^/]+)\//, "https://$1.s3.amazonaws.com/")
             : doc.s3_bucket && doc.s3_key
               ? `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`
               : "";
-          itemsWithDates.push({
-            date: new Date(doc.created_at),
-            datetime: fmtDateTime(doc.created_at),
-            label: "Report hochgeladen",
-            sublabel: doc.document_type,
-            completed: true,
-            docUrl,
-            isReport: true,
-          });
         }
-      });
+
+        console.log(`currentDocument ${index} - adding to timeline!`);
+
+        itemsWithDates.push({
+          date: new Date(dateToUse),
+          datetime: fmtDateTime(dateToUse),
+          label: "Report hochgeladen",
+          sublabel: doc.document_type || "",
+          completed: true,
+          docUrl,
+          isReport: true,
+          doc: doc,
+        });
+      } else {
+        console.log(`currentDocument ${index} - NOT adding to timeline!`);
+      }
     });
 
     // Order status updates (e.g. when an admin changes an order's status).
-    timelineOrders[0]?.status_updates?.forEach((update: any) => {
+    uniqueOrders[0]?.status_updates?.forEach((update: any) => {
       const newLabel = getOrderStatusLabel(update.new_status).label;
       itemsWithDates.push({
         date: new Date(update.created_at),
@@ -289,12 +346,14 @@ const timelineData = computed(() => {
 
     // Sort chronologically (oldest first) and build the final timeline.
     itemsWithDates.sort((a, b) => a.date.getTime() - b.date.getTime());
+    console.log("itemsWithDates:", itemsWithDates);
 
     const timeline = [statusEntry];
     itemsWithDates.forEach((item) => {
       const { date, ...timelineItem } = item;
       timeline.push(timelineItem);
     });
+    console.log("final timeline:", timeline);
 
     return timeline;
   }
@@ -531,6 +590,20 @@ async function publishDocument(documentId: string) {
                         >
                           <Icon icon="mdi:open-in-new" class="size-[18.5px] shrink-0" />
                         </a>
+                        <button
+                          v-if="entry.doc?.is_report && !entry.doc?.published"
+                          @click="entry.doc && publishDocument(entry.doc.id)"
+                          class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                          title="Publish"
+                        >
+                          <Icon icon="mdi:eye-outline" class="size-[18.5px] shrink-0" />
+                        </button>
+                        <button
+                          @click="entry.doc && deleteDocument(entry.doc)"
+                          class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+                        >
+                          <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
+                        </button>
                       </div>
                     </div>
                   </template>
