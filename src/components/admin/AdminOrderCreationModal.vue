@@ -33,9 +33,59 @@ const stationOpen = ref(false);
 const selectedStation = ref<Station | null>(null);
 const createStationModalOpen = ref(false);
 
+// Bundesland / Ort filters
+const selectedBundesland = ref("");
+const selectedOrt = ref("");
+const bundeslandOpen = ref(false);
+const ortOpen = ref(false);
+
+const bundeslandOptions = computed(() =>
+  [...new Set(stations.value.map((s) => s.bundesland).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "de"),
+  ),
+);
+
+const ortOptions = computed(() =>
+  [
+    ...new Set(
+      stations.value
+        .filter((s) => !selectedBundesland.value || s.bundesland === selectedBundesland.value)
+        .map((s) => s.ort)
+        .filter(Boolean),
+    ),
+  ].sort((a, b) => a.localeCompare(b, "de")),
+);
+
+const filteredStations = computed(() =>
+  stations.value.filter(
+    (s) =>
+      (!selectedBundesland.value || s.bundesland === selectedBundesland.value) &&
+      (!selectedOrt.value || s.ort === selectedOrt.value),
+  ),
+);
+
+function selectBundesland(bundesland: string) {
+  selectedBundesland.value = bundesland;
+  selectedOrt.value = "";
+  selectedStation.value = null;
+  mapLat.value = null;
+  mapLng.value = null;
+  bundeslandOpen.value = false;
+}
+
+function selectOrt(ort: string) {
+  selectedOrt.value = ort;
+  selectedStation.value = null;
+  mapLat.value = null;
+  mapLng.value = null;
+  ortOpen.value = false;
+}
+
 async function fetchStations() {
   stationsLoading.value = true;
   selectedStation.value = null;
+  selectedBundesland.value = "";
+  selectedOrt.value = "";
   mapLat.value = null;
   mapLng.value = null;
   try {
@@ -145,6 +195,8 @@ watch(
     terminTime.value = "";
     remarks.value = "";
     stationOpen.value = false;
+    bundeslandOpen.value = false;
+    ortOpen.value = false;
     fetchStations();
   },
 );
@@ -152,6 +204,9 @@ watch(
 function handleStationCreated(station: Station) {
   // Add the new station to the list
   stations.value.push(station);
+  // Clear the filters so the new station is visible in the list
+  selectedBundesland.value = "";
+  selectedOrt.value = "";
   // Select the new station
   selectStation(station);
 }
@@ -219,6 +274,101 @@ function close() {
               </div>
             </div>
 
+            <!-- Bundesland filter -->
+            <div class="relative flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black"> Bundesland </label>
+              <div
+                class="flex h-9 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                tabindex="0"
+                @click="
+                  bundeslandOpen = !bundeslandOpen;
+                  ortOpen = false;
+                  stationOpen = false;
+                "
+              >
+                <span
+                  class="truncate text-sm"
+                  :class="selectedBundesland ? 'text-gray-800' : 'text-gray-400'"
+                >
+                  {{ selectedBundesland || (stationsLoading ? "Laden..." : "Bundesland wählen") }}
+                </span>
+                <Icon
+                  icon="mdi:chevron-down"
+                  class="text-gray-500 text-[24px] shrink-0 transition-transform duration-200"
+                  :class="bundeslandOpen ? 'rotate-180' : 'rotate-0'"
+                />
+              </div>
+
+              <div
+                v-if="bundeslandOpen"
+                class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
+              >
+                <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">Laden...</div>
+                <template v-else>
+                  <div
+                    class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                    @click="selectBundesland('')"
+                  >
+                    Alle Bundesländer
+                  </div>
+                  <div
+                    v-for="bundesland in bundeslandOptions"
+                    :key="bundesland"
+                    class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                    @click="selectBundesland(bundesland)"
+                  >
+                    {{ bundesland }}
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Ort filter -->
+            <div class="relative flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black"> Ort </label>
+              <div
+                class="flex h-9 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                tabindex="0"
+                @click="
+                  ortOpen = !ortOpen;
+                  bundeslandOpen = false;
+                  stationOpen = false;
+                "
+              >
+                <span class="truncate text-sm" :class="selectedOrt ? 'text-gray-800' : 'text-gray-400'">
+                  {{ selectedOrt || (stationsLoading ? "Laden..." : "Ort wählen") }}
+                </span>
+                <Icon
+                  icon="mdi:chevron-down"
+                  class="text-gray-500 text-[24px] shrink-0 transition-transform duration-200"
+                  :class="ortOpen ? 'rotate-180' : 'rotate-0'"
+                />
+              </div>
+
+              <div
+                v-if="ortOpen"
+                class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
+              >
+                <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">Laden...</div>
+                <template v-else>
+                  <div
+                    class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                    @click="selectOrt('')"
+                  >
+                    Alle Orte
+                  </div>
+                  <div
+                    v-for="ort in ortOptions"
+                    :key="ort"
+                    class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                    @click="selectOrt(ort)"
+                  >
+                    {{ ort }}
+                  </div>
+                </template>
+              </div>
+            </div>
+
             <!-- Station dropdown -->
             <div class="relative flex flex-col gap-1 col-span-2">
               <div class="flex items-center justify-between">
@@ -257,11 +407,11 @@ function close() {
                 class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
               >
                 <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">Laden...</div>
-                <div v-else-if="!stations.length" class="px-4 py-2 text-sm text-gray-400">
+                <div v-else-if="!filteredStations.length" class="px-4 py-2 text-sm text-gray-400">
                   Keine Stationen gefunden
                 </div>
                 <div
-                  v-for="station in stations"
+                  v-for="station in filteredStations"
                   :key="station.station_id"
                   class="flex cursor-pointer flex-col px-4 py-2 hover:bg-gray-50"
                   @click="selectStation(station)"

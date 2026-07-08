@@ -48,6 +48,54 @@ const stationsLoading = ref(false);
 const stationOpen = ref(false);
 const selectedStation = ref<Station | null>(null);
 
+// Bundesland / Ort filters
+const selectedBundesland = ref("");
+const selectedOrt = ref("");
+const bundeslandOpen = ref(false);
+const ortOpen = ref(false);
+
+const bundeslandOptions = computed(() =>
+  [...new Set(stations.value.map((s) => s.bundesland).filter(Boolean))].sort((a, b) =>
+    a.localeCompare(b, "de"),
+  ),
+);
+
+const ortOptions = computed(() =>
+  [
+    ...new Set(
+      stations.value
+        .filter((s) => !selectedBundesland.value || s.bundesland === selectedBundesland.value)
+        .map((s) => s.ort)
+        .filter(Boolean),
+    ),
+  ].sort((a, b) => a.localeCompare(b, "de")),
+);
+
+const filteredStations = computed(() =>
+  stations.value.filter(
+    (s) =>
+      (!selectedBundesland.value || s.bundesland === selectedBundesland.value) &&
+      (!selectedOrt.value || s.ort === selectedOrt.value),
+  ),
+);
+
+function selectBundesland(bundesland: string) {
+  selectedBundesland.value = bundesland;
+  selectedOrt.value = "";
+  selectedStation.value = null;
+  mapLat.value = null;
+  mapLng.value = null;
+  bundeslandOpen.value = false;
+}
+
+function selectOrt(ort: string) {
+  selectedOrt.value = ort;
+  selectedStation.value = null;
+  mapLat.value = null;
+  mapLng.value = null;
+  ortOpen.value = false;
+}
+
 // Map
 const mapLat = ref<number | null>(null);
 const mapLng = ref<number | null>(null);
@@ -55,6 +103,8 @@ const mapLng = ref<number | null>(null);
 async function fetchStations() {
   stationsLoading.value = true;
   selectedStation.value = null;
+  selectedBundesland.value = "";
+  selectedOrt.value = "";
   mapLat.value = null;
   mapLng.value = null;
   try {
@@ -191,13 +241,126 @@ const onSubmit = handleSubmit(async (values) => {
           </div>
         </div>
 
+        <!-- Bundesland / Ort filters -->
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div class="relative flex flex-col gap-1">
+            <label class="text-[16px] font-bold" style="color: #10393b"> Bundesland </label>
+            <div
+              class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
+              style="border-color: #b7c2c2"
+              @click="
+                bundeslandOpen = !bundeslandOpen;
+                ortOpen = false;
+                stationOpen = false;
+              "
+            >
+              <span
+                class="truncate text-[14px]"
+                :style="selectedBundesland ? 'color:#000' : 'color:#B7C2C2'"
+              >
+                {{ selectedBundesland || (stationsLoading ? "Laden..." : "Bundesland wählen") }}
+              </span>
+              <Icon
+                icon="ic:round-arrow-drop-down"
+                class="text-[40px] text-primary shrink-0 transition-transform duration-200"
+                :class="bundeslandOpen ? 'rotate-180' : 'rotate-0'"
+              />
+            </div>
+
+            <div
+              v-if="bundeslandOpen"
+              class="absolute top-full mt-1 max-h-[180px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
+              style="border-color: #b7c2c2; z-index: 9999"
+            >
+              <div v-if="stationsLoading" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
+                Laden...
+              </div>
+              <template v-else>
+                <div
+                  class="cursor-pointer px-3 py-2 text-[14px] hover:bg-gray-50"
+                  style="color: #000"
+                  @click="selectBundesland('')"
+                >
+                  Alle Bundesländer
+                </div>
+                <div
+                  v-for="bundesland in bundeslandOptions"
+                  :key="bundesland"
+                  class="cursor-pointer px-3 py-2 text-[14px] hover:bg-gray-50"
+                  style="color: #000"
+                  @click="selectBundesland(bundesland)"
+                >
+                  {{ bundesland }}
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div class="relative flex flex-col gap-1">
+            <label class="text-[16px] font-bold" style="color: #10393b"> Ort </label>
+            <div
+              class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
+              style="border-color: #b7c2c2"
+              @click="
+                ortOpen = !ortOpen;
+                bundeslandOpen = false;
+                stationOpen = false;
+              "
+            >
+              <span
+                class="truncate text-[14px]"
+                :style="selectedOrt ? 'color:#000' : 'color:#B7C2C2'"
+              >
+                {{ selectedOrt || (stationsLoading ? "Laden..." : "Ort wählen") }}
+              </span>
+              <Icon
+                icon="ic:round-arrow-drop-down"
+                class="text-[40px] text-primary shrink-0 transition-transform duration-200"
+                :class="ortOpen ? 'rotate-180' : 'rotate-0'"
+              />
+            </div>
+
+            <div
+              v-if="ortOpen"
+              class="absolute top-full mt-1 max-h-[180px] w-full overflow-y-auto rounded-[5px] border bg-white shadow-md"
+              style="border-color: #b7c2c2; z-index: 9999"
+            >
+              <div v-if="stationsLoading" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
+                Laden...
+              </div>
+              <template v-else>
+                <div
+                  class="cursor-pointer px-3 py-2 text-[14px] hover:bg-gray-50"
+                  style="color: #000"
+                  @click="selectOrt('')"
+                >
+                  Alle Orte
+                </div>
+                <div
+                  v-for="ort in ortOptions"
+                  :key="ort"
+                  class="cursor-pointer px-3 py-2 text-[14px] hover:bg-gray-50"
+                  style="color: #000"
+                  @click="selectOrt(ort)"
+                >
+                  {{ ort }}
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
         <!-- Station dropdown -->
         <div class="relative flex flex-col gap-1">
           <label class="text-[16px] font-bold" style="color: #10393b"> Station </label>
           <div
             class="flex h-[37px] cursor-pointer items-center justify-between rounded-[5px] border px-2"
             style="border-color: #b7c2c2"
-            @click="stationOpen = !stationOpen"
+            @click="
+              stationOpen = !stationOpen;
+              bundeslandOpen = false;
+              ortOpen = false;
+            "
           >
             <span
               class="truncate text-[14px]"
@@ -226,11 +389,15 @@ const onSubmit = handleSubmit(async (values) => {
             <div v-if="stationsLoading" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
               Laden...
             </div>
-            <div v-else-if="!stations.length" class="px-3 py-2 text-[14px]" style="color: #b7c2c2">
+            <div
+              v-else-if="!filteredStations.length"
+              class="px-3 py-2 text-[14px]"
+              style="color: #b7c2c2"
+            >
               Keine Stationen gefunden
             </div>
             <div
-              v-for="station in stations"
+              v-for="station in filteredStations"
               :key="station.station_id"
               class="flex cursor-pointer flex-col px-3 py-2 hover:bg-gray-50"
               @click="selectStation(station)"
