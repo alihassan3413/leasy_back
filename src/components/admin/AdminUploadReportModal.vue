@@ -100,8 +100,7 @@ async function uploadDocument() {
   uploadError.value = "";
 
   try {
-    const title =
-      documentTitle.value || titleForType(documentType.value) || selectedFile.value.name;
+    const title = "Gutachten";
 
     const newDoc = await adminVehiclesApi.uploadReport(
       props.auftragsnummer,

@@ -335,7 +335,10 @@ function close() {
                   stationOpen = false;
                 "
               >
-                <span class="truncate text-sm" :class="selectedOrt ? 'text-gray-800' : 'text-gray-400'">
+                <span
+                  class="truncate text-sm"
+                  :class="selectedOrt ? 'text-gray-800' : 'text-gray-400'"
+                >
                   {{ selectedOrt || (stationsLoading ? "Laden..." : "Ort wählen") }}
                 </span>
                 <Icon

@@ -301,9 +301,7 @@ function closeSuccessDialog() {
                     class="truncate text-sm"
                     :class="selectedBundesland ? 'text-gray-800' : 'text-gray-400'"
                   >
-                    {{
-                      selectedBundesland || (stationsLoading ? "Laden..." : "Bundesland wählen")
-                    }}
+                    {{ selectedBundesland || (stationsLoading ? "Laden..." : "Bundesland wählen") }}
                   </span>
                   <Icon
                     icon="mdi:chevron-down"
@@ -316,9 +314,7 @@ function closeSuccessDialog() {
                   v-if="bundeslandOpen"
                   class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
                 >
-                  <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">
-                    Laden...
-                  </div>
+                  <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">Laden...</div>
                   <template v-else>
                     <div
                       class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
@@ -366,9 +362,7 @@ function closeSuccessDialog() {
                   v-if="ortOpen"
                   class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
                 >
-                  <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">
-                    Laden...
-                  </div>
+                  <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">Laden...</div>
                   <template v-else>
                     <div
                       class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"

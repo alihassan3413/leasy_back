@@ -362,6 +362,26 @@ function documentTypeLabel(type?: string): string {
   return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
+// Helper to get the actual document type key for grouping (checks title first)
+function getDocumentTypeKey(doc: any): string {
+  const docTitle =
+    `${doc?.document_title ?? ""} ${doc?.file_name ?? ""} ${doc?.title ?? ""}`.toLowerCase();
+
+  // Check all document types from DOCUMENT_TYPE_LABELS
+  for (const [type] of Object.entries(DOCUMENT_TYPE_LABELS)) {
+    if (
+      docTitle.includes(type) ||
+      docTitle.includes(
+        DOCUMENT_TYPE_LABELS[type as keyof typeof DOCUMENT_TYPE_LABELS].toLowerCase(),
+      )
+    ) {
+      return type;
+    }
+  }
+
+  return (doc?.document_type ?? "").trim().toLowerCase() || "__other__";
+}
+
 // Group documents by their document_type so each type renders under its own
 // heading. Order of groups follows first appearance in the documents list.
 const groupedDocuments = computed(() => {
@@ -369,14 +389,14 @@ const groupedDocuments = computed(() => {
   const indexByKey = new Map<string, number>();
 
   for (const doc of currentDocuments.value) {
-    const key = (doc?.document_type ?? "").trim().toLowerCase() || "__other__";
+    const key = getDocumentTypeKey(doc);
     let idx = indexByKey.get(key);
     if (idx === undefined) {
       idx = groups.length;
       indexByKey.set(key, idx);
       groups.push({
         key,
-        title: documentTypeLabel(doc?.document_type),
+        title: documentTypeLabel(key),
         items: [],
       });
     }
@@ -538,7 +558,7 @@ async function publishDocument(documentId: string) {
 
               <div class="flex flex-col gap-4 p-6 pt-0">
                 <div v-for="group in groupedDocuments" :key="group.key" class="flex flex-col gap-3">
-                  <div v-if="group.key !== 'gutachten'">
+                  <div>
                     <p class="text-[16px] font-semibold uppercase text-[#000000]">
                       {{ group.title }}
                     </p>
