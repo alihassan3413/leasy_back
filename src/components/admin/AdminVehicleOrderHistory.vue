@@ -16,15 +16,20 @@ const props = defineProps<{
 
 const emit = defineEmits(["refreshDocs"]);
 
-// The admin vehicle list doesn't always include the full nested `orders`
-// (with report_documents and status_updates), so we fetch the same detailed
-// vehicle status the B2B/B2C dashboards use to build a fully detailed timeline.
+// The admin vehicle list rows don't include the full nested `orders` (with
+// report_documents, status_updates and request_payload), so we fetch the same
+// detailed vehicle status the B2B/B2C dashboards build their timeline from.
+// `GET /vehicle/list/report/status` returns every vehicle's full orders; as of
+// 2026-07-08 the backend serves it to admins too, so the admin timeline can
+// render the identical entries B2C shows. We pick this vehicle out of the list.
 const detailedVehicle = ref<VehicleStatusResponse | null>(null);
 
 async function fetchVehicleDetail() {
   if (!props.vehicle.vehicle_id) return;
   try {
-    detailedVehicle.value = await vehicleApi.getVehicle(props.vehicle.vehicle_id);
+    const list = await vehicleApi.getVehicleStatus();
+    detailedVehicle.value =
+      (list || []).find((v) => v.vehicle_id === props.vehicle.vehicle_id) ?? null;
   } catch (err) {
     console.error("Failed to fetch vehicle detail for timeline:", err);
     detailedVehicle.value = null;
@@ -39,8 +44,11 @@ onMounted(() => {
   }
 });
 
+// Refetch when the parent reloads the list (e.g. after an admin status change,
+// which yields a new vehicle object with the same id) so the timeline reflects
+// the update immediately, not only after collapse/re-expand.
 watch(
-  () => props.vehicle.vehicle_id,
+  () => props.vehicle,
   () => fetchVehicleDetail(),
 );
 
@@ -190,7 +198,8 @@ const orderPayload = computed(() => {
 // Computed properties with fallback to mock data
 const timelineData = computed(() => {
   // Prefer the full vehicle-status detail (same source as the B2B/B2C views) so
-  // the admin timeline carries Auftrag, partner, reports and status updates.
+  // the admin timeline carries the order's Auftrag, partner and status updates.
+  // (Report rows come from currentDocuments; see below.)
   const detailedOrders = detailedVehicle.value?.orders;
   const detailOrder = detailedOrders && detailedOrders.length ? detailedOrders[0] : null;
   const baseOrder = detailOrder ?? firstOrder.value;
@@ -223,6 +232,7 @@ const timelineData = computed(() => {
       completed: boolean;
       docUrl?: string;
       isReport?: boolean;
+      doc?: any;
     }> = [];
 
     // Auftrag erstellt
@@ -248,41 +258,16 @@ const timelineData = computed(() => {
       });
     }
 
-    // Report documents uploaded across the vehicle's orders.
-    console.log("detailedOrders:", detailedOrders);
-    console.log("props.vehicle.orders:", props.vehicle.orders);
+    // Orders merged from the detailed status fetch (+ any inline orders), deduped
+    // by id. Used only for `status_updates` below. Report documents are NOT
+    // emitted from here on purpose: `currentDocuments` (props.documents) already
+    // aggregates every order's report_documents plus the vehicle documents, so
+    // emitting them here too would render each "Report hochgeladen" row twice.
     const timelineOrders: any[] = [...(detailedOrders ?? []), ...(props.vehicle.orders ?? [])];
-    console.log("timelineOrders:", timelineOrders);
-    // Remove duplicate orders (by id)
     const uniqueOrders = Array.from(new Map(timelineOrders.map((o) => [o.id, o])).values());
-    console.log("uniqueOrders:", uniqueOrders);
-    uniqueOrders.forEach((o, i) => {
-      console.log(`Order ${i} report_documents:`, o.report_documents);
-      o.report_documents?.forEach((doc: any) => {
-        // Backend sends an s3:// URI — convert it to a browser-openable https URL.
-        const cleanS3Url = doc.s3_url?.trim().replace(/^`|`$/g, "");
-        const docUrl = cleanS3Url
-          ? cleanS3Url.replace(/^s3:\/\/([^/]+)\//, "https://$1.s3.amazonaws.com/")
-          : doc.s3_bucket && doc.s3_key
-            ? `https://${doc.s3_bucket}.s3.amazonaws.com/${doc.s3_key}`
-            : "";
-        itemsWithDates.push({
-          date: new Date(doc.created_at),
-          datetime: fmtDateTime(doc.created_at),
-          label: "Report hochgeladen",
-          sublabel: doc.document_type,
-          completed: true,
-          docUrl,
-          isReport: true,
-          doc: doc,
-        });
-      });
-    });
 
-    // Also add documents from currentDocuments (props.documents) to the timeline
-    console.log("currentDocuments:", currentDocuments.value);
-    currentDocuments.value.forEach((doc: any, index: number) => {
-      console.log(`currentDocument ${index}:`, JSON.stringify(doc, null, 2));
+    // Report documents come solely from currentDocuments (props.documents).
+    currentDocuments.value.forEach((doc: any) => {
       // Check if it's a report (by title/type)
       const docTitle =
         `${doc?.document_title ?? ""} ${doc?.file_name ?? ""} ${doc?.title ?? ""}`.toLowerCase();
@@ -293,11 +278,6 @@ const timelineData = computed(() => {
         docTitle.includes("nachgutachten") ||
         docTitle.includes("report") ||
         docTitle.includes("invoice");
-
-      console.log(`currentDocument ${index} - docTitle:`, docTitle);
-      console.log(`currentDocument ${index} - isReport:`, isReport);
-      console.log(`currentDocument ${index} - doc.created_at:`, doc.created_at);
-      console.log(`currentDocument ${index} - doc.updated_at:`, doc.updated_at);
 
       const dateToUse = doc.created_at || doc.updated_at;
 
@@ -313,8 +293,6 @@ const timelineData = computed(() => {
               : "";
         }
 
-        console.log(`currentDocument ${index} - adding to timeline!`);
-
         itemsWithDates.push({
           date: new Date(dateToUse),
           datetime: fmtDateTime(dateToUse),
@@ -325,8 +303,6 @@ const timelineData = computed(() => {
           isReport: true,
           doc: doc,
         });
-      } else {
-        console.log(`currentDocument ${index} - NOT adding to timeline!`);
       }
     });
 
@@ -346,14 +322,12 @@ const timelineData = computed(() => {
 
     // Sort chronologically (oldest first) and build the final timeline.
     itemsWithDates.sort((a, b) => a.date.getTime() - b.date.getTime());
-    console.log("itemsWithDates:", itemsWithDates);
 
     const timeline = [statusEntry];
     itemsWithDates.forEach((item) => {
       const { date, ...timelineItem } = item;
       timeline.push(timelineItem);
     });
-    console.log("final timeline:", timeline);
 
     return timeline;
   }
