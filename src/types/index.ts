@@ -151,7 +151,6 @@ export interface AdminVehicle {
   make: string;
   model: string;
   vehicle_belongs: "B2B" | "B2C";
-  leasinggeber?: string | null;
   b2b_id: string | null;
   b2c_user_id: string | null;
   assigned_profile_id: number | null;
@@ -391,6 +390,7 @@ export interface CreateVehiclePayload {
   vin: string;
   make: string;
   model: string;
+  leasinggeber?: string;
   vehicle_belongs?: "B2B" | "B2C";
   b2b_id?: string;
   b2c_user_id?: string;
