@@ -46,6 +46,9 @@ const fin = ref("");
 const rueckgabestart = ref("");
 const fahrzeugnutzer = ref("");
 const leasinggeber = ref("");
+// When the customer doesn't know the exact leasing end date yet, they tick this
+// box; the Leasingende field is then cleared/disabled and no longer required.
+const leasingEndUnknown = ref(false);
 
 const markeOpen = ref(false);
 const nutzerOpen = ref(false);
@@ -107,11 +110,14 @@ watch(
       rueckgabestart.value = toIsoDate(v.first_registration_date ?? v.returnStart);
       fahrzeugnutzer.value = v.driver ?? "";
       leasinggeber.value = v.leasinggeber ?? "";
+      // No stored leasing end date → the "date unknown" box starts ticked.
+      leasingEndUnknown.value = !leasingende.value;
     } else {
       city.value = district.value = number.value = "";
       marke.value = modell.value = leasingende.value = "";
       fin.value = rueckgabestart.value = fahrzeugnutzer.value = "";
       leasinggeber.value = "";
+      leasingEndUnknown.value = false;
     }
     isDirty.value = false;
 
@@ -126,6 +132,12 @@ watch(
   },
 );
 
+// Ticking "date unknown" clears the Leasingende input so we never submit a
+// stale value alongside the flag.
+watch(leasingEndUnknown, (unknown) => {
+  if (unknown) leasingende.value = "";
+});
+
 const isDirty = ref(false);
 watch(
   [
@@ -139,6 +151,7 @@ watch(
     rueckgabestart,
     fahrzeugnutzer,
     leasinggeber,
+    leasingEndUnknown,
   ],
   () => {
     if (props.open && isEditMode.value) isDirty.value = true;
@@ -171,7 +184,7 @@ const isFormValid = computed(() => {
     number.value.trim() !== "" &&
     marke.value.trim() !== "" &&
     modell.value.trim() !== "" &&
-    leasingende.value !== "" &&
+    (leasingEndUnknown.value || leasingende.value !== "") &&
     rueckgabestart.value !== "" &&
     fin.value.trim() !== "" &&
     leasinggeber.value.trim() !== "" &&
@@ -203,6 +216,11 @@ async function handleSubmit() {
     }
   }
 
+  // The backend requires a leasing_end_date. When the customer ticked "date
+  // unknown", we don't show any date in the UI but still send today's date so
+  // the request passes validation; they'll supply the real date later.
+  const todayIso = new Date().toISOString().slice(0, 10);
+
   const payload = {
     license_plate: `${city.value} ${district.value} ${number.value}`
       .replace(/\s+/g, " ")
@@ -210,7 +228,7 @@ async function handleSubmit() {
       .toUpperCase(),
     make: marke.value,
     model: modell.value,
-    leasing_end_date: toIsoDate(leasingende.value),
+    leasing_end_date: leasingEndUnknown.value ? todayIso : toIsoDate(leasingende.value),
     vin: fin.value.trim().toUpperCase(),
     first_registration_date: toIsoDate(rueckgabestart.value),
     leasinggeber: leasinggeber.value,
@@ -310,7 +328,7 @@ async function handleSubmit() {
             </p>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-x-6 gap-y-3">
             <div class="flex flex-col gap-1">
               <label class="text-sm font-semibold text-black">
                 Kennzeichen
@@ -427,30 +445,41 @@ async function handleSubmit() {
             <div class="flex flex-col gap-1">
               <label class="text-sm font-semibold text-black"> Leasingende </label>
               <div
-                class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
+                class="relative flex h-9 items-center rounded-full border px-4 focus-within:border-emerald-500"
+                :class="
+                  leasingEndUnknown ? 'border-gray-200 bg-gray-100' : 'border-gray-300'
+                "
               >
                 <input
                   v-model="leasingende"
                   type="date"
-                  class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
+                  :disabled="leasingEndUnknown"
+                  class="h-full w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed disabled:text-gray-400 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
                 />
                 <Icon
                   icon="mdi:calendar-outline"
                   class="absolute right-4 text-gray-400 pointer-events-none"
                 />
               </div>
-            </div>
 
-            <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black">
-                Leasinggeber
-                <span class="text-[10px] font-medium text-gray-500 ml-2">*</span>
+              <!-- Leasing end date unknown -->
+              <label class="mt-1.5 flex cursor-pointer items-start gap-2">
+                <input v-model="leasingEndUnknown" type="checkbox" class="peer sr-only" />
+                <span
+                  class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/30"
+                  :class="
+                    leasingEndUnknown
+                      ? 'border-emerald-500 bg-emerald-500'
+                      : 'border-gray-300 bg-white'
+                  "
+                >
+                  <Icon v-show="leasingEndUnknown" icon="mdi:check" class="size-3 text-white" />
+                </span>
+                <span class="text-xs font-normal leading-[1.45] text-[#00000099]">
+                  Das genaue Datum des Leasingendes liegt mir aktuell nicht vor. Ich werde Ihnen
+                  diese Information zeitnah nachreichen.
+                </span>
               </label>
-              <input
-                v-model="leasinggeber"
-                class="h-9 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
-                placeholder="Leasinggeber eingeben"
-              />
             </div>
 
             <!-- Fahrzeugnutzer hidden for now -->
@@ -491,20 +520,35 @@ async function handleSubmit() {
             -->
 
             <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black"> Rückgabestart </label>
+              <label class="text-sm font-semibold text-black"> Wunschrückgabetag </label>
               <div
                 class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
               >
                 <input
                   v-model="rueckgabestart"
                   type="date"
-                  class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
+                  class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
                 />
                 <Icon
                   icon="mdi:calendar-outline"
                   class="absolute right-4 text-gray-400 pointer-events-none"
                 />
               </div>
+              <p class="mt-1.5 text-xs font-normal leading-[1.45] text-[#00000099]">
+                Bitte bedenken Sie, dass der Prozess bis zu 10 Tage betragen kann.
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-black">
+                Leasinggeber
+                <span class="text-[10px] font-medium text-gray-500 ml-2">*</span>
+              </label>
+              <input
+                v-model="leasinggeber"
+                class="h-9 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
+                placeholder="Leasinggeber eingeben"
+              />
             </div>
           </div>
 
