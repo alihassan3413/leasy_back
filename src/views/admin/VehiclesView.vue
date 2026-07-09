@@ -186,6 +186,16 @@ async function refreshDocuments(vehicleId: string) {
   await loadDocuments(vehicleId);
 }
 
+// After an admin uploads a report/invoice we must refresh so the new document
+// shows up without a manual page reload. loadVehicles() first so the vehicle's
+// nested orders (which carry report_documents) are fresh, then reload the
+// per-vehicle document list the expanded panel + timeline read from.
+async function onDocumentChanged() {
+  const vehicleId = selectedVehicle.value?.vehicle_id;
+  await loadVehicles();
+  if (vehicleId) await loadDocuments(vehicleId);
+}
+
 // ── Documents state for expanded vehicles ─────────────────────────
 const documents = ref<Record<string, any[]>>({});
 const ordersCache = ref<Record<string, any[]>>({});
@@ -860,6 +870,8 @@ onBeforeUnmount(() => {
       :vehicle-id="selectedVehicle?.vehicle_id"
       :auftragsnummer="selectedVehicle?.current_auftragsnummer"
       @update:open="uploadReportOpen = $event"
+      @uploaded="onDocumentChanged"
+      @changed="onDocumentChanged"
     />
 
     <AdminUploadInvoiceModal
@@ -867,6 +879,8 @@ onBeforeUnmount(() => {
       :vehicle-id="selectedVehicle?.vehicle_id"
       :auftragsnummer="selectedVehicle?.current_auftragsnummer"
       @update:open="uploadInvoiceOpen = $event"
+      @uploaded="onDocumentChanged"
+      @changed="onDocumentChanged"
     />
     <AdminCreateOfferModal
       :open="offerModalOpen"

@@ -9,6 +9,7 @@ import { useVehicleStore } from "@/stores/vehicle.store";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { getOrderStatusLabel } from "@/lib/status";
+import { orderProviderLabel } from "@/lib/provider";
 
 const props = defineProps<{ vehicle: Vehicle }>();
 
@@ -212,7 +213,7 @@ const timelineData = computed(() => {
     if (firstOrder.request_payload?.besichtigungsort?.termin) {
       itemsWithDates.push({
         date: new Date(firstOrder.request_payload.besichtigungsort.termin),
-        label: firstOrder.leasyback_partner || "",
+        label: orderProviderLabel(firstOrder),
         sublabel: `${firstOrder.request_payload.besichtigungsort.strasse || ""}, ${firstOrder.request_payload.besichtigungsort.plz || ""} ${firstOrder.request_payload.besichtigungsort.ort || ""}`,
         datetime:
           new Date(firstOrder.request_payload.besichtigungsort.termin).toLocaleDateString("de-DE", {

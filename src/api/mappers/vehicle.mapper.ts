@@ -1,6 +1,7 @@
 import type { VehicleStatusResponse } from "@/types";
 import type { Vehicle } from "@/components/dashboard/vehicle.types";
 import { getOrderStatusLabel } from "@/lib/status";
+import { orderProviderLabel } from "@/lib/provider";
 
 export const mapVehicleResponseToVehicle = (response: VehicleStatusResponse): Vehicle => {
   const formatDate = (dateStr: string) => {
@@ -43,7 +44,7 @@ export const mapVehicleResponseToVehicle = (response: VehicleStatusResponse): Ve
       const b = latestOrder.request_payload.besichtigungsort;
       timeline.push({
         datetime: formatDateTime(b.termin),
-        label: latestOrder.leasyback_partner || "Partner",
+        label: orderProviderLabel(latestOrder) || "Partner",
         sublabel: `${b.strasse}, ${b.plz} ${b.ort}`,
       });
     }

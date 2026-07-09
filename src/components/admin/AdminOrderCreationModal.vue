@@ -24,7 +24,6 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
   success: [];
 }>();
-const selectedService = ref<"tuvsud" | "dekra">("tuvsud");
 
 //  Stations
 const stations = ref<Station[]>([]);
@@ -38,6 +37,11 @@ const selectedBundesland = ref("");
 const selectedOrt = ref("");
 const bundeslandOpen = ref(false);
 const ortOpen = ref(false);
+
+// Search text for each dropdown so long lists can be typed instead of scrolled.
+const bundeslandSearch = ref("");
+const ortSearch = ref("");
+const stationSearch = ref("");
 
 const bundeslandOptions = computed(() =>
   [...new Set(stations.value.map((s) => s.bundesland).filter(Boolean))].sort((a, b) =>
@@ -64,6 +68,25 @@ const filteredStations = computed(() =>
   ),
 );
 
+// The dropdown lists apply the per-field search text on top of the filters.
+const visibleBundeslaender = computed(() => {
+  const q = bundeslandSearch.value.trim().toLowerCase();
+  return q ? bundeslandOptions.value.filter((b) => b.toLowerCase().includes(q)) : bundeslandOptions.value;
+});
+
+const visibleOrte = computed(() => {
+  const q = ortSearch.value.trim().toLowerCase();
+  return q ? ortOptions.value.filter((o) => o.toLowerCase().includes(q)) : ortOptions.value;
+});
+
+const visibleStations = computed(() => {
+  const q = stationSearch.value.trim().toLowerCase();
+  if (!q) return filteredStations.value;
+  return filteredStations.value.filter((s) =>
+    `${s.name} ${s.strasse} ${s.plz} ${s.ort}`.toLowerCase().includes(q),
+  );
+});
+
 function selectBundesland(bundesland: string) {
   selectedBundesland.value = bundesland;
   selectedOrt.value = "";
@@ -71,6 +94,7 @@ function selectBundesland(bundesland: string) {
   mapLat.value = null;
   mapLng.value = null;
   bundeslandOpen.value = false;
+  bundeslandSearch.value = "";
 }
 
 function selectOrt(ort: string) {
@@ -79,6 +103,7 @@ function selectOrt(ort: string) {
   mapLat.value = null;
   mapLng.value = null;
   ortOpen.value = false;
+  ortSearch.value = "";
 }
 
 async function fetchStations() {
@@ -86,10 +111,13 @@ async function fetchStations() {
   selectedStation.value = null;
   selectedBundesland.value = "";
   selectedOrt.value = "";
+  bundeslandSearch.value = "";
+  ortSearch.value = "";
+  stationSearch.value = "";
   mapLat.value = null;
   mapLng.value = null;
   try {
-    stations.value = await vehicleApi.getStations(selectedService.value);
+    stations.value = await vehicleApi.getAllStations();
   } catch {
     toast.error("Stationen konnten nicht geladen werden.");
   } finally {
@@ -119,6 +147,7 @@ async function geocodeStation(station: Station) {
 function selectStation(station: Station) {
   selectedStation.value = station;
   stationOpen.value = false;
+  stationSearch.value = "";
   geocodeStation(station);
 }
 
@@ -151,8 +180,12 @@ async function handleSubmit() {
     termin: terminIso.value,
   };
 
+  // The provider is no longer chosen up front — it comes from the station the
+  // admin picked (each station carries its own tuvsud/dekra provider).
+  const provider = (selectedStation.value!.provider as "tuvsud" | "dekra") || "tuvsud";
+
   console.log("Creating order with:", {
-    provider: selectedService.value,
+    provider,
     vehicleId: props.vehicle.vehicle_id,
     payload,
   });
@@ -160,7 +193,7 @@ async function handleSubmit() {
   isSubmitting.value = true;
   try {
     await vehicleApi.createOrder(
-      selectedService.value,
+      provider,
       props.vehicle.vehicle_id,
       payload,
       props.vehicle.user_id,
@@ -190,7 +223,6 @@ watch(
   () => props.open,
   (opened) => {
     if (!opened) return;
-    selectedService.value = "tuvsud";
     terminDate.value = "";
     terminTime.value = "";
     remarks.value = "";
@@ -207,6 +239,9 @@ function handleStationCreated(station: Station) {
   // Clear the filters so the new station is visible in the list
   selectedBundesland.value = "";
   selectedOrt.value = "";
+  bundeslandSearch.value = "";
+  ortSearch.value = "";
+  stationSearch.value = "";
   // Select the new station
   selectStation(station);
 }
@@ -245,35 +280,6 @@ function close() {
           <div
             class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1"
           >
-            <!-- Service switches -->
-            <div class="flex flex-col gap-1 col-span-2">
-              <label class="text-sm font-semibold text-black"> Service wählen </label>
-              <div class="flex flex-col gap-2">
-                <!-- TÜV SÜD -->
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    value="tuvsud"
-                    v-model="selectedService"
-                    class="accent-primary size-4"
-                    @change="fetchStations"
-                  />
-                  <span class="text-base text-gray-800">TÜV SÜD</span>
-                </label>
-                <!-- DEKRA -->
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    value="dekra"
-                    v-model="selectedService"
-                    class="accent-primary size-4"
-                    @change="fetchStations"
-                  />
-                  <span class="text-base text-gray-800">DEKRA</span>
-                </label>
-              </div>
-            </div>
-
             <!-- Bundesland filter -->
             <div class="relative flex flex-col gap-1">
               <label class="text-sm font-semibold text-black"> Bundesland </label>
@@ -301,10 +307,24 @@ function close() {
 
               <div
                 v-if="bundeslandOpen"
-                class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
+                class="absolute top-full z-[10000] mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
               >
                 <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">Laden...</div>
                 <template v-else>
+                  <div class="sticky top-0 z-10 bg-white p-2">
+                    <div
+                      class="flex h-8 items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 focus-within:border-emerald-500 focus-within:bg-white"
+                    >
+                      <Icon icon="mdi:magnify" class="shrink-0 text-[18px] text-gray-400" />
+                      <input
+                        v-model="bundeslandSearch"
+                        @click.stop
+                        type="text"
+                        placeholder="Bundesland suchen..."
+                        class="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+                      />
+                    </div>
+                  </div>
                   <div
                     class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
                     @click="selectBundesland('')"
@@ -312,12 +332,18 @@ function close() {
                     Alle Bundesländer
                   </div>
                   <div
-                    v-for="bundesland in bundeslandOptions"
+                    v-for="bundesland in visibleBundeslaender"
                     :key="bundesland"
                     class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
                     @click="selectBundesland(bundesland)"
                   >
                     {{ bundesland }}
+                  </div>
+                  <div
+                    v-if="!visibleBundeslaender.length && bundeslandSearch"
+                    class="px-4 py-2 text-sm text-gray-400"
+                  >
+                    Keine Treffer
                   </div>
                 </template>
               </div>
@@ -350,10 +376,24 @@ function close() {
 
               <div
                 v-if="ortOpen"
-                class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
+                class="absolute top-full z-[10000] mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
               >
                 <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">Laden...</div>
                 <template v-else>
+                  <div class="sticky top-0 z-10 bg-white p-2">
+                    <div
+                      class="flex h-8 items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 focus-within:border-emerald-500 focus-within:bg-white"
+                    >
+                      <Icon icon="mdi:magnify" class="shrink-0 text-[18px] text-gray-400" />
+                      <input
+                        v-model="ortSearch"
+                        @click.stop
+                        type="text"
+                        placeholder="Ort suchen..."
+                        class="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+                      />
+                    </div>
+                  </div>
                   <div
                     class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
                     @click="selectOrt('')"
@@ -361,12 +401,15 @@ function close() {
                     Alle Orte
                   </div>
                   <div
-                    v-for="ort in ortOptions"
+                    v-for="ort in visibleOrte"
                     :key="ort"
                     class="cursor-pointer px-4 py-2 text-sm text-gray-800 hover:bg-gray-50"
                     @click="selectOrt(ort)"
                   >
                     {{ ort }}
+                  </div>
+                  <div v-if="!visibleOrte.length && ortSearch" class="px-4 py-2 text-sm text-gray-400">
+                    Keine Treffer
                   </div>
                 </template>
               </div>
@@ -407,25 +450,41 @@ function close() {
 
               <div
                 v-if="stationOpen"
-                class="absolute top-full z-[10000] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
+                class="absolute top-full z-[10000] mt-1 max-h-56 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
               >
                 <div v-if="stationsLoading" class="px-4 py-2 text-sm text-gray-400">Laden...</div>
-                <div v-else-if="!filteredStations.length" class="px-4 py-2 text-sm text-gray-400">
-                  Keine Stationen gefunden
-                </div>
-                <div
-                  v-for="station in filteredStations"
-                  :key="station.station_id"
-                  class="flex cursor-pointer flex-col px-4 py-2 hover:bg-gray-50"
-                  @click="selectStation(station)"
-                >
-                  <span class="text-sm font-medium text-gray-800">
-                    {{ station.name }}
-                  </span>
-                  <span class="text-xs text-gray-400">
-                    {{ station.strasse }}, {{ station.plz }} {{ station.ort }}
-                  </span>
-                </div>
+                <template v-else>
+                  <div class="sticky top-0 z-10 bg-white p-2">
+                    <div
+                      class="flex h-8 items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 focus-within:border-emerald-500 focus-within:bg-white"
+                    >
+                      <Icon icon="mdi:magnify" class="shrink-0 text-[18px] text-gray-400" />
+                      <input
+                        v-model="stationSearch"
+                        @click.stop
+                        type="text"
+                        placeholder="Station suchen..."
+                        class="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
+                      />
+                    </div>
+                  </div>
+                  <div v-if="!visibleStations.length" class="px-4 py-2 text-sm text-gray-400">
+                    Keine Stationen gefunden
+                  </div>
+                  <div
+                    v-for="station in visibleStations"
+                    :key="station.station_id"
+                    class="flex cursor-pointer flex-col px-4 py-2 hover:bg-gray-50"
+                    @click="selectStation(station)"
+                  >
+                    <span class="text-sm font-medium text-gray-800">
+                      {{ station.name }}
+                    </span>
+                    <span class="text-xs text-gray-400">
+                      {{ station.strasse }}, {{ station.plz }} {{ station.ort }}
+                    </span>
+                  </div>
+                </template>
               </div>
             </div>
 
@@ -495,7 +554,7 @@ function close() {
   </Dialog>
   <AdminCreateStationModal
     :open="createStationModalOpen"
-    :default-provider="selectedService"
+    :default-provider="selectedStation?.provider === 'dekra' ? 'dekra' : 'tuvsud'"
     @update:open="createStationModalOpen = $event"
     @success="handleStationCreated"
   />

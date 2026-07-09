@@ -7,6 +7,7 @@ import AddVehicleModal from "@/components/dashboard/modals/AddVehicleModal.vue";
 import UploadDocumentModal from "@/components/dashboard/modals/UploadDocumentModal.vue";
 import { vehicleApi, adminVehiclesApi, adminOffersApi } from "@/api";
 import { getOrderStatusLabel } from "@/lib/status";
+import { orderProviderLabel } from "@/lib/provider";
 
 const props = defineProps<{
   vehicle: AdminVehicle;
@@ -193,7 +194,12 @@ const timelineData = computed(() => {
   // currentDocuments; see below.
   const detailedOrders = detailedVehicle.value?.orders;
   const detailOrder = detailedOrders && detailedOrders.length ? detailedOrders[0] : null;
-  const baseOrder = detailOrder ?? firstOrder.value;
+  // Prefer the fresh order that ships inline with the admin vehicle list — it
+  // reflects the latest action (e.g. a newly created DEKRA order) immediately.
+  // The detailed status fetch is only a fallback and can be stale, which caused
+  // the partner label (e.g. "tuvsud") to lag behind the actual provider.
+  const inlineOrder = props.vehicle.orders?.length ? props.vehicle.orders[0] : null;
+  const baseOrder = inlineOrder ?? detailOrder ?? firstOrder.value;
 
   if (baseOrder) {
     // Same date/time formatting used across all timeline entries.
@@ -245,7 +251,7 @@ const timelineData = computed(() => {
       itemsWithDates.push({
         date: new Date(besichtigungsort.termin),
         datetime: fmtDateTime(besichtigungsort.termin),
-        label: baseOrder.leasyback_partner || "",
+        label: orderProviderLabel(baseOrder),
         sublabel: `${besichtigungsort.strasse || ""}, ${besichtigungsort.plz || ""} ${besichtigungsort.ort || ""}`,
         completed: baseOrder.order_status !== "order_placed",
       });
@@ -253,7 +259,7 @@ const timelineData = computed(() => {
 
     // Orders merged from the detailed status fetch (+ any inline orders), deduped
     // by id. Used only for `status_updates` below.
-    const timelineOrders: any[] = [...(detailedOrders ?? []), ...(props.vehicle.orders ?? [])];
+    const timelineOrders: any[] = [...(props.vehicle.orders ?? []), ...(detailedOrders ?? [])];
     const uniqueOrders = Array.from(new Map(timelineOrders.map((o) => [o.id, o])).values());
 
     // Reports only — Gutachten / Nachgutachten. `currentDocuments`

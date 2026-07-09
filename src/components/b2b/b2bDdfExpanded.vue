@@ -319,7 +319,12 @@ watch(
                   </p>
 
                   <!-- Label -->
-                  <template v-if="entry.label === 'DEKRA'">
+                  <template
+                    v-if="
+                      entry.label.toLowerCase() === 'dekra' ||
+                      entry.label.toLowerCase() === 'tuvsud'
+                    "
+                  >
                     <p class="text-[16px] font-bold mb-1" style="color: #01b990">
                       {{ entry.label }}
                     </p>
@@ -702,7 +707,9 @@ watch(
             <p class="text-[14px] text-[#2e3e3f] font-medium mb-1">
               {{ entry.datetime }}
             </p>
-            <template v-if="entry.label === 'DEKRA'">
+            <template
+              v-if="entry.label.toLowerCase() === 'dekra' || entry.label.toLowerCase() === 'tuvsud'"
+            >
               <p class="text-[16px] font-bold mb-1" style="color: #01b990">
                 {{ entry.label }}
               </p>

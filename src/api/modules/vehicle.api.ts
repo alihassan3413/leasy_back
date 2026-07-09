@@ -66,6 +66,12 @@ export const vehicleApi = {
     return get<Station[]>(`/order/stations/${provider}`);
   },
 
+  // Returns every station across all providers; each station carries its own
+  // `provider` field, so the caller no longer selects tuvsud/dekra up front.
+  getAllStations(): Promise<Station[]> {
+    return get<Station[]>(`/order/stations`);
+  },
+
   createStation(payload: {
     provider: "tuvsud" | "dekra";
     name: string;
