@@ -116,7 +116,7 @@ export const mapVehicleResponseToVehicle = (response: VehicleStatusResponse): Ve
     lastActivity: timeline.length > 0 ? timeline[timeline.length - 1].label : "Neu angelegt",
     fin: response.vin,
     kilometerstand: "N/A",
-    leasinggeber: latestOrder?.leasyback_partner || "N/A",
+    leasinggeber: response.leasinggeber || "N/A",
     leasingAbgabetermin: formatDate(response.leasing_end_date),
     status: response.vehicle_belongs === "B2C" ? "Privat" : "Gewerblich",
     workshopName: workshopName,
