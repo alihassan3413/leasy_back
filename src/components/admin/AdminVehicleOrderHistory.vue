@@ -215,7 +215,8 @@ const timelineData = computed(() => {
     };
 
     // Collect all timeline items with real Date objects so we can sort them.
-    // The timeline shows ONLY report uploads and status-change rows.
+    // Mirrors the B2C/B2B dashboard timeline: order creation, inspection
+    // appointment, report uploads and status-change rows.
     const itemsWithDates: Array<{
       date: Date;
       datetime: string;
@@ -226,6 +227,29 @@ const timelineData = computed(() => {
       isReport?: boolean;
       doc?: any;
     }> = [];
+
+    // Auftrag erstellt — guarded because the pseudo-order built from the
+    // current_* fields can carry an empty created_at.
+    if (baseOrder.created_at) {
+      itemsWithDates.push({
+        date: new Date(baseOrder.created_at),
+        datetime: fmtDateTime(baseOrder.created_at),
+        label: "Auftrag erstellt",
+        completed: true,
+      });
+    }
+
+    // Inspection appointment (partner + Besichtigungsort).
+    const besichtigungsort = baseOrder.request_payload?.besichtigungsort;
+    if (besichtigungsort?.termin) {
+      itemsWithDates.push({
+        date: new Date(besichtigungsort.termin),
+        datetime: fmtDateTime(besichtigungsort.termin),
+        label: baseOrder.leasyback_partner || "",
+        sublabel: `${besichtigungsort.strasse || ""}, ${besichtigungsort.plz || ""} ${besichtigungsort.ort || ""}`,
+        completed: baseOrder.order_status !== "order_placed",
+      });
+    }
 
     // Orders merged from the detailed status fetch (+ any inline orders), deduped
     // by id. Used only for `status_updates` below.
