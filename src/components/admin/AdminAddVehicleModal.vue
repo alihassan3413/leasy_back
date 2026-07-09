@@ -34,11 +34,9 @@ const leasingende = ref("");
 const fin = ref("");
 const rueckgabestart = ref("");
 // const status = ref(""); // hidden per QA together with the Status field in the template
-const fahrzeugnutzer = ref("");
 const leasinggeber = ref("");
 
 const markeOpen = ref(false);
-const nutzerOpen = ref(false);
 
 const markeOptions = [
   "VW",
@@ -53,15 +51,10 @@ const markeOptions = [
   "Opel",
   "Sonstige",
 ];
-const nutzerOptions = ["Christin Mechtild", "Thorsten Jung", "Marcus Dietrich"];
 
 const markeIconClasses = computed(() => [
   "text-[24px] text-gray-500 transition-transform duration-200",
   markeOpen.value ? "rotate-180" : "rotate-0",
-]);
-const nutzerIconClasses = computed(() => [
-  "text-[24px] text-gray-500 transition-transform duration-200",
-  nutzerOpen.value ? "rotate-180" : "rotate-0",
 ]);
 
 watch(
@@ -70,7 +63,7 @@ watch(
     if (!opened) {
       city.value = district.value = number.value = "";
       marke.value = modell.value = leasingende.value = "";
-      fin.value = rueckgabestart.value = fahrzeugnutzer.value = "";
+      fin.value = rueckgabestart.value = "";
       leasinggeber.value = "";
     }
   },
@@ -255,10 +248,7 @@ async function handleSubmit() {
               <div
                 class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
                 tabindex="0"
-                @click="
-                  markeOpen = !markeOpen;
-                  nutzerOpen = false;
-                "
+                @click="markeOpen = !markeOpen"
               >
                 <span class="text-sm" :class="marke ? 'text-gray-800' : 'text-gray-400'">{{
                   marke || "Marke wählen"
@@ -319,40 +309,6 @@ async function handleSubmit() {
                 class="h-10 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
                 placeholder="Leasinggeber eingeben"
               />
-            </div>
-
-            <div class="relative flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black"> Fahrzeugnutzer </label>
-              <div
-                class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
-                tabindex="0"
-                @click="
-                  nutzerOpen = !nutzerOpen;
-                  markeOpen = false;
-                "
-              >
-                <span class="text-sm" :class="fahrzeugnutzer ? 'text-gray-800' : 'text-gray-400'">{{
-                  fahrzeugnutzer || "Fahrzeugnutzer wählen"
-                }}</span>
-                <Icon icon="mdi:chevron-down" :class="nutzerIconClasses" />
-              </div>
-              <div
-                v-if="nutzerOpen"
-                class="absolute top-full z-50 mt-1 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
-              >
-                <span class="block px-4 py-2 text-sm text-gray-400">— Unbekannt —</span>
-                <div
-                  v-for="opt in nutzerOptions"
-                  :key="opt"
-                  class="flex h-9 cursor-pointer items-center px-4 text-sm text-gray-700 hover:bg-gray-50"
-                  @click="
-                    fahrzeugnutzer = opt;
-                    nutzerOpen = false;
-                  "
-                >
-                  {{ opt }}
-                </div>
-              </div>
             </div>
 
             <div class="flex flex-col gap-1">

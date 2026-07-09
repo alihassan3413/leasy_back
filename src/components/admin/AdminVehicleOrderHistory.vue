@@ -379,13 +379,25 @@ function getDocumentTypeKey(doc: any): string {
   return (doc?.document_type ?? "").trim().toLowerCase() || "__other__";
 }
 
+// Gutachten / Nachgutachten (appraisal reports) live in the order timeline, not
+// in the "Fahrzeugdokumente" card, so they are filtered out of the grouping.
+function isGutachten(doc: any): boolean {
+  const type = (doc?.document_type ?? "").trim().toLowerCase();
+  if (type === "gutachten" || type === "nachgutachten" || type === "report") return true;
+  const title =
+    `${doc?.document_title ?? ""} ${doc?.file_name ?? ""} ${doc?.title ?? ""}`.toLowerCase();
+  return title.includes("gutachten") || title.includes("nachgutachten");
+}
+
 // Group documents by their document_type so each type renders under its own
 // heading. Order of groups follows first appearance in the documents list.
+// Gutachten documents are excluded here — they live in the timeline.
 const groupedDocuments = computed(() => {
   const groups: { key: string; title: string; items: any[] }[] = [];
   const indexByKey = new Map<string, number>();
 
   for (const doc of currentDocuments.value) {
+    if (isGutachten(doc)) continue;
     const key = getDocumentTypeKey(doc);
     let idx = indexByKey.get(key);
     if (idx === undefined) {
@@ -550,7 +562,7 @@ async function publishDocument(documentId: string) {
             </div>
           </div>
 
-          <!-- Vehicle Docs Card -->
+          <!-- Fahrzeugdokumente Card -->
           <div class="flex flex-col gap-4">
             <div
               class="relative flex flex-col rounded-[16px] border bg-white"
@@ -563,7 +575,7 @@ async function publishDocument(documentId: string) {
                 <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
               </button>
               <div class="p-6">
-                <p class="text-[16px] font-semibold uppercase text-[#000000]">Vehicle Docs</p>
+                <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeugdokumente</p>
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
@@ -620,7 +632,7 @@ async function publishDocument(documentId: string) {
                     </div>
                   </div>
                 </div>
-                <div v-if="currentDocuments.length === 0" class="text-[14px] text-[#b7c2c2]">
+                <div v-if="groupedDocuments.length === 0" class="text-[14px] text-[#b7c2c2]">
                   Keine Dokumente gefunden
                 </div>
               </div>
