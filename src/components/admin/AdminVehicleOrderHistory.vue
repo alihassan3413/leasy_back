@@ -897,13 +897,6 @@ async function publishDocument(documentId: string) {
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b"> Kilometerstand </span>
-                <span class="text-[16px] font-semibold" style="color: #000">
-                  {{ fullVehicleDetails.kilometerstand || vehicle.kilometerstand || "N/A" }}
-                </span>
-              </div>
-              <div class="h-px bg-gray-200"></div>
-              <div class="flex items-center justify-between py-4">
                 <span class="text-[16px] font-normal" style="color: #64748b"> Leasinggeber </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ fullVehicleDetails.leasinggeber || vehicle.leasinggeber || "N/A" }}

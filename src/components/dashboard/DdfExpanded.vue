@@ -878,13 +878,6 @@ watch(
               </div>
               <div class="h-px bg-gray-200"></div>
               <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b"> Kilometerstand </span>
-                <span class="text-[16px] font-semibold" style="color: #000">
-                  {{ vehicle.kilometerstand || "Nicht verfügbar" }}
-                </span>
-              </div>
-              <div class="h-px bg-gray-200"></div>
-              <div class="flex items-center justify-between py-4">
                 <span class="text-[16px] font-normal" style="color: #64748b"> Leasinggeber </span>
                 <span class="text-[16px] font-semibold" style="color: #000">
                   {{ vehicle.leasinggeber || "Nicht verfügbar" }}
@@ -1253,13 +1246,6 @@ watch(
           <span class="text-[14px] font-normal" style="color: #64748b"> Modell </span>
           <span class="text-[14px] font-semibold" style="color: #000">
             {{ vehicle.make }} {{ vehicle.model }}
-          </span>
-        </div>
-        <div class="h-px bg-gray-200"></div>
-        <div class="flex items-center justify-between py-3">
-          <span class="text-[14px] font-normal" style="color: #64748b"> Kilometerstand </span>
-          <span class="text-[14px] font-semibold" style="color: #000">
-            {{ vehicle.kilometerstand || "Nicht verfügbar" }}
           </span>
         </div>
         <div class="h-px bg-gray-200"></div>
