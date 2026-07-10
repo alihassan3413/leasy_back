@@ -32,6 +32,7 @@ declare module 'vue' {
     AdminCreateStationModal: typeof import('./../components/admin/AdminCreateStationModal.vue')['default']
     AdminHeader: typeof import('./../components/admin/Header.vue')['default']
     AdminOrderCreationModal: typeof import('./../components/admin/AdminOrderCreationModal.vue')['default']
+    AdminSearchInput: typeof import('./../components/admin/AdminSearchInput.vue')['default']
     AdminSidebar: typeof import('./../components/admin/AdminSidebar.vue')['default']
     AdminUploadInvoiceModal: typeof import('./../components/admin/AdminUploadInvoiceModal.vue')['default']
     AdminUploadReportModal: typeof import('./../components/admin/AdminUploadReportModal.vue')['default']

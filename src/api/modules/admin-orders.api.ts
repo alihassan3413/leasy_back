@@ -31,13 +31,11 @@ export const adminOrdersApi = {
     return post(`/order/${provider}/order/approve/${orderId}`);
   },
 
-  updateOrderStatus(
-    provider: string,
-    auftragsnummer: string,
-    orderStatus: string,
-  ): Promise<unknown> {
+  // Single status endpoint for BOTH TÜV SÜD and DEKRA orders — the backend
+  // routes on the auftragsnummer, so the provider segment is always "tuvsud".
+  updateOrderStatus(auftragsnummer: string, orderStatus: string): Promise<unknown> {
     return get(
-      `/order/${encodeURIComponent(provider)}/status?auftragsnummer=${encodeURIComponent(auftragsnummer)}&order_status=${encodeURIComponent(orderStatus)}`,
+      `/order/tuvsud/status?auftragsnummer=${encodeURIComponent(auftragsnummer)}&order_status=${encodeURIComponent(orderStatus)}`,
     );
   },
 

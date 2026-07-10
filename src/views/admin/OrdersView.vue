@@ -1,25 +1,29 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from "vue";
-import { adminOrdersApi, vehicleApi } from "@/api";
+import { adminOrdersApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
-import { orderStatusOptions, orderStatusFilterOptions } from "@/lib/status";
-import type { AdminOrder } from "@/types";
+import { orderStatusOptions, orderStatusFilterOptions, orderStatusLabels } from "@/lib/status";
+import { matchesSearch } from "@/lib/search";
+import type { AdminOrder, AdminOrderListResponse } from "@/types";
 import { toast } from "vue-sonner";
 import AdminChangeOrderStatusModal from "@/components/admin/AdminChangeOrderStatusModal.vue";
 import AdminConfirmOrderModal from "@/components/admin/AdminConfirmOrderModal.vue";
+import AdminSearchInput from "@/components/admin/AdminSearchInput.vue";
 
 // ── List state ────────────────────────────────────────────────────
 const userType = ref<"Firmenkunde" | "Privatkunde" | "all">("all");
 const statusFilter = ref("");
+const search = ref("");
 const page = ref(1);
-const limit = ref(10);
-const total = ref(0);
+const limit = ref(10); // client-side page size
 const totalActive = ref(0);
 const totalCompleted = ref(0);
 const totalConfirmed = ref(0);
 const totalInspected = ref(0);
 const totalDelivered = ref(0);
-const orders = ref<AdminOrder[]>([]);
+// Full dataset for the current user-type tab; status filter + search + pagination
+// are applied client-side so they work regardless of backend support.
+const allOrders = ref<AdminOrder[]>([]);
 const loading = ref(false);
 const error = ref("");
 const modalOpen = ref(false);
@@ -84,8 +88,22 @@ function responseStatusStyle(code: number | null) {
   return { bg: "rgba(99,102,241,0.1)", fg: "#4f46e5" };
 }
 
-// ── Pagination ────────────────────────────────────────────────────
-const totalPages = computed(() => Math.ceil(total.value / limit.value) || 1);
+// ── Client-side filter + search ───────────────────────────────────
+const filteredOrders = computed(() =>
+  allOrders.value.filter(
+    (o) =>
+      (!statusFilter.value || o.order_status === statusFilter.value) &&
+      matchesSearch(search.value, o, orderStatusLabels[o.order_status ?? ""]),
+  ),
+);
+
+// ── Pagination (client-side) ──────────────────────────────────────
+const totalPages = computed(() => Math.ceil(filteredOrders.value.length / limit.value) || 1);
+
+const pagedOrders = computed(() => {
+  const start = (page.value - 1) * limit.value;
+  return filteredOrders.value.slice(start, start + limit.value);
+});
 
 function pageRange(current: number, last: number): (number | "…")[] {
   const out: (number | "…")[] = [];
@@ -96,32 +114,32 @@ function pageRange(current: number, last: number): (number | "…")[] {
   return out;
 }
 
-// ── Fetch ─────────────────────────────────────────────────────────
+// ── Fetch (full dataset for the current tab) ──────────────────────
+const FETCH_PAGE_SIZE = 100;
+
 async function loadOrders() {
   loading.value = true;
   error.value = "";
   try {
-    const res =
-      userType.value === "all"
-        ? await adminOrdersApi.listAll(page.value, limit.value, statusFilter.value)
-        : await adminOrdersApi.listByUserType(
-            userType.value,
-            page.value,
-            limit.value,
-            statusFilter.value,
-          );
-
-    orders.value = res.data;
-    console.log(
-      "API response orders:",
-      res.data.map((o) => ({ id: o.id, order_status: o.order_status })),
-    );
-    total.value = res.total;
-    totalActive.value = res.total_active ?? 0;
-    totalCompleted.value = res.total_completed ?? 0;
-    totalConfirmed.value = res.total_confirmed ?? 0;
-    totalInspected.value = res.total_inspected ?? 0;
-    totalDelivered.value = res.total_delivered ?? 0;
+    const acc: AdminOrder[] = [];
+    let meta: AdminOrderListResponse | null = null;
+    let pageNum = 1;
+    while (pageNum <= 100) {
+      const res =
+        userType.value === "all"
+          ? await adminOrdersApi.listAll(pageNum, FETCH_PAGE_SIZE)
+          : await adminOrdersApi.listByUserType(userType.value, pageNum, FETCH_PAGE_SIZE);
+      meta = res;
+      acc.push(...(res.data ?? []));
+      if (!res.data?.length || acc.length >= (res.total ?? acc.length)) break;
+      pageNum++;
+    }
+    allOrders.value = acc;
+    totalActive.value = meta?.total_active ?? 0;
+    totalCompleted.value = meta?.total_completed ?? 0;
+    totalConfirmed.value = meta?.total_confirmed ?? 0;
+    totalInspected.value = meta?.total_inspected ?? 0;
+    totalDelivered.value = meta?.total_delivered ?? 0;
   } catch {
     error.value = "Aufträge konnten nicht geladen werden.";
   } finally {
@@ -130,14 +148,20 @@ async function loadOrders() {
 }
 
 // ── Watchers ──────────────────────────────────────────────────────
+// Only the user-type tab changes what we fetch; status filter + search run
+// client-side, so they just reset pagination.
 watch(userType, () => {
   page.value = 1;
   statusFilter.value = "";
+  search.value = "";
+  void loadOrders();
 });
-watch(statusFilter, () => {
+watch([statusFilter, search], () => {
   page.value = 1;
 });
-watch([userType, statusFilter, page], () => void loadOrders());
+watch(totalPages, (tp) => {
+  if (page.value > tp) page.value = tp;
+});
 onMounted(() => void loadOrders());
 
 function handleChangeStatus(order: AdminOrder) {
@@ -172,6 +196,12 @@ async function handleOrderConfirmed() {
           Auftragsverwaltung
         </h1>
       </div>
+
+      <!-- Search -->
+      <AdminSearchInput
+        v-model="search"
+        placeholder="Auftrag, Fahrzeug, Kunde…"
+      />
 
       <!-- User type toggle -->
       <div class="flex gap-0.5 bg-[#f4f7f6] p-[3px] rounded-[12px] overflow-x-auto max-w-full">
@@ -212,7 +242,9 @@ async function handleOrderConfirmed() {
                   : "Privatkunden Aufträge"
             }}
           </h2>
-          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">{{ total }} Aufträge gesamt</p>
+          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">
+            {{ filteredOrders.length }} Aufträge{{ search || statusFilter ? " gefunden" : " gesamt" }}
+          </p>
         </div>
 
         <!-- Summary chips -->
@@ -321,7 +353,7 @@ async function handleOrderConfirmed() {
             </template>
 
             <!-- Empty -->
-            <tr v-else-if="!orders.length">
+            <tr v-else-if="!filteredOrders.length">
               <td colspan="7" class="py-16 text-center text-[13px] text-[#9bb0af]">
                 Keine Aufträge gefunden.
               </td>
@@ -330,7 +362,7 @@ async function handleOrderConfirmed() {
             <!-- Rows -->
             <tr
               v-else
-              v-for="o in orders"
+              v-for="o in pagedOrders"
               :key="o.id"
               class="group border-b border-[#eef3f2] hover:bg-[#f6f9f8] transition-colors"
             >

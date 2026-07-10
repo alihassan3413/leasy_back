@@ -2,20 +2,31 @@
 import { computed, ref, watch, onMounted } from "vue";
 import { adminUsersApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
-import type { AdminUser } from "@/types";
+import { matchesSearch } from "@/lib/search";
+import type { AdminUser, AdminUserListResponse } from "@/types";
 import UserDetailModal from "@/components/admin/UserDetail.vue";
 import AdminAddVehicleModal from "@/components/admin/AdminAddVehicleModal.vue";
+import AdminSearchInput from "@/components/admin/AdminSearchInput.vue";
 
 // ── List state ────────────────────────────────────────────────────
 const viewType = ref<"B2C" | "B2B">("B2C");
+const statusFilter = ref<"" | "active" | "inactive">("");
+const search = ref("");
 const page = ref(1);
-const limit = ref(10);
-const total = ref(0);
+const limit = ref(10); // client-side page size
 const totalActive = ref(0);
 const totalInactive = ref(0);
-const users = ref<AdminUser[]>([]);
+// Full dataset for the current B2C/B2B tab; status filter + search + pagination
+// are applied client-side (the backend has no filter/search params here).
+const allUsers = ref<AdminUser[]>([]);
 const loading = ref(false);
 const error = ref("");
+
+const statusFilterOptions: { label: string; value: "" | "active" | "inactive" }[] = [
+  { label: "Alle", value: "" },
+  { label: "Aktiv", value: "active" },
+  { label: "Inaktiv", value: "inactive" },
+];
 
 // ── Modal state ───────────────────────────────────────────────────
 const selectedUser = ref<AdminUser | null>(null);
@@ -28,25 +39,62 @@ function userInitials(u: AdminUser) {
   return ((u.first_name?.[0] ?? "") + (u.last_name?.[0] ?? "")).toUpperCase() || "?";
 }
 
-// ── Fetch list ────────────────────────────────────────────────────
+// ── Fetch list (full dataset for the current tab) ─────────────────
+const FETCH_PAGE_SIZE = 100;
+
 async function loadUsers() {
   loading.value = true;
   error.value = "";
   try {
-    const res =
-      viewType.value === "B2C"
-        ? await adminUsersApi.getB2c(page.value, limit.value)
-        : await adminUsersApi.getB2b(page.value, limit.value);
-    users.value = res.data;
-    total.value = res.total;
-    totalActive.value = res.total_active;
-    totalInactive.value = res.total_inactive;
+    const acc: AdminUser[] = [];
+    let meta: AdminUserListResponse | null = null;
+    let pageNum = 1;
+    while (pageNum <= 100) {
+      const res =
+        viewType.value === "B2C"
+          ? await adminUsersApi.getB2c(pageNum, FETCH_PAGE_SIZE)
+          : await adminUsersApi.getB2b(pageNum, FETCH_PAGE_SIZE);
+      meta = res;
+      acc.push(...(res.data ?? []));
+      if (!res.data?.length || acc.length >= (res.total ?? acc.length)) break;
+      pageNum++;
+    }
+    allUsers.value = acc;
+    totalActive.value = meta?.total_active ?? 0;
+    totalInactive.value = meta?.total_inactive ?? 0;
   } catch {
     error.value = "Kunden konnten nicht geladen werden.";
   } finally {
     loading.value = false;
   }
 }
+
+// ── Client-side filter + search ───────────────────────────────────
+const filteredUsers = computed(() =>
+  allUsers.value.filter(
+    (u) =>
+      (!statusFilter.value ||
+        (statusFilter.value === "active" ? u.is_active : !u.is_active)) &&
+      matchesSearch(
+        search.value,
+        u.first_name,
+        u.last_name,
+        u.salutation,
+        u.user_email,
+        u.city,
+        u.country,
+        u.street,
+        u.zip_code,
+        u.profile_id,
+        u.user_type,
+      ),
+  ),
+);
+
+const pagedUsers = computed(() => {
+  const start = (page.value - 1) * limit.value;
+  return filteredUsers.value.slice(start, start + limit.value);
+});
 
 // ── Modal open/close ──────────────────────────────────────────────
 function openModal(user: AdminUser) {
@@ -69,8 +117,8 @@ function handleVehicleCreated() {
   // Optionally refresh the list or do nothing since user detail isn't open
 }
 
-// ── Pagination ────────────────────────────────────────────────────
-const totalPages = computed(() => Math.ceil(total.value / limit.value) || 1);
+// ── Pagination (client-side) ──────────────────────────────────────
+const totalPages = computed(() => Math.ceil(filteredUsers.value.length / limit.value) || 1);
 
 function pageRange(current: number, last: number): (number | "…")[] {
   const out: (number | "…")[] = [];
@@ -82,10 +130,20 @@ function pageRange(current: number, last: number): (number | "…")[] {
 }
 
 // ── Watchers ──────────────────────────────────────────────────────
+// Only the B2C/B2B tab changes what we fetch; status filter + search run
+// client-side, so they just reset pagination.
 watch(viewType, () => {
   page.value = 1;
+  statusFilter.value = "";
+  search.value = "";
+  void loadUsers();
 });
-watch([viewType, page], () => void loadUsers());
+watch([statusFilter, search], () => {
+  page.value = 1;
+});
+watch(totalPages, (tp) => {
+  if (page.value > tp) page.value = tp;
+});
 onMounted(() => void loadUsers());
 </script>
 
@@ -101,6 +159,9 @@ onMounted(() => void loadUsers());
           Kundenverwaltung
         </h1>
       </div>
+
+      <!-- Search -->
+      <AdminSearchInput v-model="search" placeholder="Name, E-Mail, Stadt…" />
 
       <!-- B2C / B2B toggle -->
       <div class="flex gap-0.5 bg-[#f4f7f6] p-[3px] rounded-[12px] overflow-x-auto max-w-full">
@@ -134,7 +195,9 @@ onMounted(() => void loadUsers());
           <h2 class="text-[20px] font-extrabold text-[#10393b] tracking-[-0.4px]">
             {{ pageTitle }}
           </h2>
-          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">{{ total }} Kunden gesamt</p>
+          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">
+            {{ filteredUsers.length }} Kunden{{ search || statusFilter ? " gefunden" : " gesamt" }}
+          </p>
         </div>
         <div class="flex gap-2">
           <span
@@ -148,6 +211,23 @@ onMounted(() => void loadUsers());
             {{ totalInactive }} Inaktiv
           </span>
         </div>
+      </div>
+
+      <!-- Status filter pills -->
+      <div class="flex flex-wrap gap-1.5 mb-4 shrink-0">
+        <button
+          v-for="opt in statusFilterOptions"
+          :key="opt.value"
+          @click="statusFilter = opt.value"
+          class="text-[12px] font-bold px-3.5 py-1.5 rounded-full transition-all font-[Manrope,sans-serif]"
+          :class="
+            statusFilter === opt.value
+              ? 'bg-[#10393b] text-white shadow-[0_3px_10px_rgba(16,57,59,0.18)]'
+              : 'bg-[#f4f7f6] text-[#6f8585] hover:bg-[#eaf0ef] hover:text-[#10393b]'
+          "
+        >
+          {{ opt.label }}
+        </button>
       </div>
 
       <!-- Error banner -->
@@ -210,7 +290,7 @@ onMounted(() => void loadUsers());
             </template>
 
             <!-- Empty state -->
-            <tr v-else-if="!users.length">
+            <tr v-else-if="!filteredUsers.length">
               <td colspan="7" class="py-16 text-center text-[13px] text-[#9bb0af]">
                 Keine Kunden gefunden.
               </td>
@@ -219,7 +299,7 @@ onMounted(() => void loadUsers());
             <!-- Data rows -->
             <tr
               v-else
-              v-for="u in users"
+              v-for="u in pagedUsers"
               :key="u.user_id"
               class="group cursor-pointer border-b border-[#eef3f2] hover:bg-[#f6f9f8] transition-colors"
               @click="openModal(u)"

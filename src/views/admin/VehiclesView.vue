@@ -7,26 +7,30 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { adminVehiclesApi, vehicleApi, adminOrdersApi, adminOffersApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
 import { orderStatusOptions, orderStatusFilterOptions, orderStatusLabels } from "@/lib/status";
-import type { AdminVehicle, AdminOrder } from "@/types";
+import { matchesSearch } from "@/lib/search";
+import type { AdminVehicle, AdminOrder, AdminVehicleListResponse } from "@/types";
 import AdminOrderCreationModal from "@/components/admin/AdminOrderCreationModal.vue";
 import AdminVehicleOrderHistory from "@/components/admin/AdminVehicleOrderHistory.vue";
 import AdminChangeOrderStatusModal from "@/components/admin/AdminChangeOrderStatusModal.vue";
 import AdminUploadReportModal from "@/components/admin/AdminUploadReportModal.vue";
 import AdminUploadInvoiceModal from "@/components/admin/AdminUploadInvoiceModal.vue";
 import AdminCreateOfferModal from "@/components/admin/AdminCreateOfferModal.vue";
+import AdminSearchInput from "@/components/admin/AdminSearchInput.vue";
 
 // ── List state ────────────────────────────────────────────────────
 const userType = ref<"Firmenkunde" | "Privatkunde" | "all">("all");
 const statusFilter = ref<string>("");
+const search = ref("");
 const page = ref(1);
-const limit = ref(10);
-const total = ref(0);
+const limit = ref(10); // client-side page size
 const totalActive = ref(0);
 const totalCompleted = ref(0);
 const totalConfirmed = ref(0);
 const totalInspected = ref(0);
 const totalDelivered = ref(0);
-const vehicles = ref<AdminVehicle[]>([]);
+// Full dataset for the current tab; status filter + search + pagination are
+// applied client-side (the `all` list endpoint has no status filter support).
+const allVehicles = ref<AdminVehicle[]>([]);
 const loading = ref(false);
 const error = ref("");
 
@@ -41,7 +45,7 @@ async function toggleExpand(id: string) {
   } else {
     expandedId.value = id;
     // Find the vehicle in the list
-    const vehicle = vehicles.value.find((v) => v.vehicle_id === id);
+    const vehicle = allVehicles.value.find((v) => v.vehicle_id === id);
     console.log("Vehicle from list:", vehicle);
     // Store the vehicle data itself as expanded details since API is failing
     if (!expandedVehicleDetails.value[id]) {
@@ -203,7 +207,7 @@ const ordersCache = ref<Record<string, any[]>>({});
 async function loadDocuments(vehicleId: string) {
   try {
     // Find vehicle to get user_id
-    const vehicle = vehicles.value.find((v) => v.vehicle_id === vehicleId);
+    const vehicle = allVehicles.value.find((v) => v.vehicle_id === vehicleId);
 
     // Fetch vehicle documents
     const vehicleDocs = await vehicleApi.getVehicleDocuments(vehicleId);
@@ -281,8 +285,34 @@ function getStatus(s: string | null | undefined) {
   return { ...style, label: orderStatusLabels[key] ?? s ?? "—" };
 }
 
-// ── Pagination ────────────────────────────────────────────────────
-const totalPages = computed(() => Math.ceil(total.value / limit.value) || 1);
+// ── Client-side filter + search ───────────────────────────────────
+const filteredVehicles = computed(() =>
+  allVehicles.value.filter(
+    (v) =>
+      (!statusFilter.value || v.current_order_status === statusFilter.value) &&
+      matchesSearch(
+        search.value,
+        v.make,
+        v.model,
+        v.license_plate,
+        v.vin,
+        v.user_email,
+        v.company_name,
+        v.user_type,
+        v.vehicle_belongs,
+        v.current_auftragsnummer,
+        orderStatusLabels[v.current_order_status ?? ""],
+      ),
+  ),
+);
+
+// ── Pagination (client-side) ──────────────────────────────────────
+const totalPages = computed(() => Math.ceil(filteredVehicles.value.length / limit.value) || 1);
+
+const pagedVehicles = computed(() => {
+  const start = (page.value - 1) * limit.value;
+  return filteredVehicles.value.slice(start, start + limit.value);
+});
 
 function pageRange(current: number, last: number): (number | "…")[] {
   const out: (number | "…")[] = [];
@@ -293,27 +323,32 @@ function pageRange(current: number, last: number): (number | "…")[] {
   return out;
 }
 
-// ── Fetch ─────────────────────────────────────────────────────────
+// ── Fetch (full dataset for the current tab) ──────────────────────
+const FETCH_PAGE_SIZE = 100;
+
 async function loadVehicles() {
   loading.value = true;
   error.value = "";
   try {
-    const res =
-      userType.value === "all"
-        ? await adminVehiclesApi.listAll(page.value, limit.value)
-        : await adminVehiclesApi.listByUserType(
-            userType.value,
-            page.value,
-            limit.value,
-            statusFilter.value || undefined,
-          );
-    vehicles.value = res.data;
-    total.value = res.total;
-    totalActive.value = res.total_active ?? 0;
-    totalCompleted.value = res.total_completed ?? 0;
-    totalConfirmed.value = res.total_confirmed ?? 0;
-    totalInspected.value = res.total_inspected ?? 0;
-    totalDelivered.value = res.total_delivered ?? 0;
+    const acc: AdminVehicle[] = [];
+    let meta: AdminVehicleListResponse | null = null;
+    let pageNum = 1;
+    while (pageNum <= 100) {
+      const res =
+        userType.value === "all"
+          ? await adminVehiclesApi.listAll(pageNum, FETCH_PAGE_SIZE)
+          : await adminVehiclesApi.listByUserType(userType.value, pageNum, FETCH_PAGE_SIZE);
+      meta = res;
+      acc.push(...(res.data ?? []));
+      if (!res.data?.length || acc.length >= (res.total ?? acc.length)) break;
+      pageNum++;
+    }
+    allVehicles.value = acc;
+    totalActive.value = meta?.total_active ?? 0;
+    totalCompleted.value = meta?.total_completed ?? 0;
+    totalConfirmed.value = meta?.total_confirmed ?? 0;
+    totalInspected.value = meta?.total_inspected ?? 0;
+    totalDelivered.value = meta?.total_delivered ?? 0;
   } catch {
     error.value = "Fahrzeuge konnten nicht geladen werden.";
   } finally {
@@ -322,14 +357,20 @@ async function loadVehicles() {
 }
 
 // ── Watchers ──────────────────────────────────────────────────────
+// Only the user-type tab changes what we fetch; status filter + search run
+// client-side, so they just reset pagination.
 watch(userType, () => {
   page.value = 1;
   statusFilter.value = "";
+  search.value = "";
+  void loadVehicles();
 });
-watch(statusFilter, () => {
+watch([statusFilter, search], () => {
   page.value = 1;
 });
-watch([userType, statusFilter, page], () => void loadVehicles());
+watch(totalPages, (tp) => {
+  if (page.value > tp) page.value = tp;
+});
 watch(expandedId, (newId) => {
   if (newId) {
     loadDocuments(newId);
@@ -364,6 +405,9 @@ onBeforeUnmount(() => {
           Fahrzeugverwaltung
         </h1>
       </div>
+
+      <!-- Search -->
+      <AdminSearchInput v-model="search" placeholder="Kennzeichen, VIN, Kunde…" />
 
       <!-- User type toggle -->
       <div class="flex gap-0.5 bg-[#f4f7f6] p-[3px] rounded-[12px] overflow-x-auto max-w-full">
@@ -404,7 +448,11 @@ onBeforeUnmount(() => {
                   : "Privatkunden Fahrzeuge"
             }}
           </h2>
-          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">{{ total }} Fahrzeuge gesamt</p>
+          <p class="text-[12px] text-[#9bb0af] mt-0.5 font-medium">
+            {{ filteredVehicles.length }} Fahrzeuge{{
+              search || statusFilter ? " gefunden" : " gesamt"
+            }}
+          </p>
         </div>
 
         <!-- Summary chips -->
@@ -504,14 +552,14 @@ onBeforeUnmount(() => {
             </template>
 
             <!-- Empty -->
-            <tr v-else-if="!vehicles.length">
+            <tr v-else-if="!filteredVehicles.length">
               <td colspan="6" class="py-16 text-center text-[13px] text-[#9bb0af]">
                 Keine Fahrzeuge gefunden.
               </td>
             </tr>
 
             <!-- Rows — each row + optional accordion for order history -->
-            <template v-else v-for="v in vehicles" :key="v.vehicle_id">
+            <template v-else v-for="v in pagedVehicles" :key="v.vehicle_id">
               <tr
                 class="group cursor-pointer border-b border-[#eef3f2] hover:bg-[#f6f9f8] transition-colors"
                 :class="expandedId === v.vehicle_id ? 'bg-[#f6f9f8]' : ''"

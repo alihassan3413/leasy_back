@@ -75,11 +75,7 @@ async function handleSubmit() {
 
   try {
     isLoading.value = true;
-    await adminOrdersApi.updateOrderStatus(
-      props.order.leasyback_partner,
-      props.order.auftragsnummer,
-      newStatus.value,
-    );
+    await adminOrdersApi.updateOrderStatus(props.order.auftragsnummer, newStatus.value);
     emit("orderStatusUpdated");
     close();
   } catch (error) {
@@ -106,7 +102,7 @@ async function handleSubmit() {
         </button>
 
         <div
-          class="bg-white border border-[#C6C6CD] p-6 inverted-corner inverted-corner-top-right overflow-y-auto"
+          class="bg-white border border-[#C6C6CD] p-6 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
           <div class="px-2 pt-2 mb-2">
@@ -135,8 +131,9 @@ async function handleSubmit() {
               </div>
             </div>
 
-            <!-- Status dropdown -->
-            <div ref="dropdownRef" class="relative flex flex-col gap-1">
+            <!-- Status dropdown — opens in-flow so the modal grows to fit it
+                 (no clipping by the card's mask / no inner scroll). -->
+            <div ref="dropdownRef" class="flex flex-col gap-1">
               <label class="text-sm font-semibold text-black"> Neuer Status </label>
               <div
                 class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
@@ -156,7 +153,7 @@ async function handleSubmit() {
               </div>
               <div
                 v-if="statusOpen"
-                class="absolute top-full z-[100] mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
+                class="mt-1 max-h-48 w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg"
               >
                 <div
                   v-for="status in activeStatusOptions"
