@@ -5,5 +5,6 @@ export { adminDashboardApi } from "./modules/admin-dashboard.api";
 export { adminUsersApi } from "./modules/admin-users.api";
 export { adminVehiclesApi } from "./modules/admin-vehicles.api";
 export { adminOrdersApi } from "./modules/admin-orders.api";
+export type { AdminOrderSortBy, SortOrder } from "./modules/admin-orders.api";
 export { adminOffersApi } from "./modules/admin-offers.api";
 export { customerOffersApi } from "./modules/customer-offers.api";

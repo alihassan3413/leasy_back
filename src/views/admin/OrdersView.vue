@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from "vue";
 import { adminOrdersApi } from "@/api";
+import type { AdminOrderSortBy, SortOrder } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
 import { orderStatusOptions, orderStatusFilterOptions, orderStatusLabels } from "@/lib/status";
 import { matchesSearch } from "@/lib/search";
@@ -97,7 +98,30 @@ const filteredOrders = computed(() =>
   ),
 );
 
+// ── Sorting (server-side) ─────────────────────────────────────────
+// Sorting is performed by the backend via `sort_by` / `sort_order` query
+// params (see loadOrders). Only the Kennzeichen (license plate) column is
+// sortable for now; add more keys to SortKey / the header UI as the API grows.
+type SortKey = AdminOrderSortBy;
+const sortKey = ref<SortKey | null>(null);
+const sortDir = ref<SortOrder>("asc");
+
+function toggleSort(key: SortKey) {
+  if (sortKey.value !== key) {
+    sortKey.value = key;
+    sortDir.value = "asc";
+  } else if (sortDir.value === "asc") {
+    sortDir.value = "desc";
+  } else {
+    // Third click clears the sort and restores the backend default order.
+    sortKey.value = null;
+    sortDir.value = "asc";
+  }
+}
+
 // ── Pagination (client-side) ──────────────────────────────────────
+// `allOrders` already arrives sorted from the backend, and filtering preserves
+// order, so slicing `filteredOrders` yields the correct page.
 const totalPages = computed(() => Math.ceil(filteredOrders.value.length / limit.value) || 1);
 
 const pagedOrders = computed(() => {
@@ -125,10 +149,21 @@ async function loadOrders() {
     let meta: AdminOrderListResponse | null = null;
     let pageNum = 1;
     while (pageNum <= 100) {
+      // Sorting is delegated to the backend: it sorts the whole dataset before
+      // paginating, so fetching the pages in order yields a globally sorted list.
+      const sortBy = sortKey.value ?? undefined;
+      const sortOrder = sortKey.value ? sortDir.value : undefined;
       const res =
         userType.value === "all"
-          ? await adminOrdersApi.listAll(pageNum, FETCH_PAGE_SIZE)
-          : await adminOrdersApi.listByUserType(userType.value, pageNum, FETCH_PAGE_SIZE);
+          ? await adminOrdersApi.listAll(pageNum, FETCH_PAGE_SIZE, undefined, sortBy, sortOrder)
+          : await adminOrdersApi.listByUserType(
+              userType.value,
+              pageNum,
+              FETCH_PAGE_SIZE,
+              undefined,
+              sortBy,
+              sortOrder,
+            );
       meta = res;
       acc.push(...(res.data ?? []));
       if (!res.data?.length || acc.length >= (res.total ?? acc.length)) break;
@@ -158,6 +193,11 @@ watch(userType, () => {
 });
 watch([statusFilter, search], () => {
   page.value = 1;
+});
+// Sorting is server-side, so a change of key/direction must refetch the dataset.
+watch([sortKey, sortDir], () => {
+  page.value = 1;
+  void loadOrders();
 });
 watch(totalPages, (tp) => {
   if (page.value > tp) page.value = tp;
@@ -310,7 +350,18 @@ async function handleOrderConfirmed() {
               <th
                 class="text-left text-[11px] font-bold text-[#9bb0af] uppercase tracking-[0.1em] px-5 py-3.5 border-b border-[#eef3f2]"
               >
-                Fahrzeug
+                <button
+                  type="button"
+                  @click="toggleSort('license_plate')"
+                  class="inline-flex items-center gap-1 uppercase tracking-[0.1em] hover:text-[#10393b] transition-colors"
+                  :class="sortKey === 'license_plate' ? 'text-[#10393b]' : ''"
+                  title="Nach Kennzeichen sortieren"
+                >
+                  Fahrzeug
+                  <span class="text-[10px] leading-none">
+                    {{ sortKey === "license_plate" ? (sortDir === "asc" ? "▲" : "▼") : "↕" }}
+                  </span>
+                </button>
               </th>
               <th
                 class="text-left text-[11px] font-bold text-[#9bb0af] uppercase tracking-[0.1em] px-5 py-3.5 border-b border-[#eef3f2]"

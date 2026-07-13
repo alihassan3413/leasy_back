@@ -1,11 +1,29 @@
 import { get, post } from "../client/request";
 import type { AdminOrderListResponse } from "@/types";
 
+// Fields the backend accepts for `sort_by`. Add more here as the API grows.
+export type AdminOrderSortBy = "license_plate";
+export type SortOrder = "asc" | "desc";
+
+// Builds the optional `&sort_by=…&sort_order=…` suffix. Sorting is handled by
+// the backend; omitting both params falls back to the API's default order.
+function sortParams(sort_by?: AdminOrderSortBy, sort_order?: SortOrder): string {
+  if (!sort_by) return "";
+  const order = sort_order === "desc" ? "desc" : "asc";
+  return `&sort_by=${encodeURIComponent(sort_by)}&sort_order=${order}`;
+}
+
 export const adminOrdersApi = {
-  listAll(page = 1, limit = 50, order_status?: string): Promise<AdminOrderListResponse> {
+  listAll(
+    page = 1,
+    limit = 50,
+    order_status?: string,
+    sort_by?: AdminOrderSortBy,
+    sort_order?: SortOrder,
+  ): Promise<AdminOrderListResponse> {
     const statusParam = order_status ? `&order_status=${encodeURIComponent(order_status)}` : "";
     return get<AdminOrderListResponse>(
-      `/admin/list/orders?page=${page}&limit=${limit}${statusParam}`,
+      `/admin/list/orders?page=${page}&limit=${limit}${statusParam}${sortParams(sort_by, sort_order)}`,
     );
   },
 
@@ -14,10 +32,12 @@ export const adminOrdersApi = {
     page = 1,
     limit = 50,
     order_status?: string,
+    sort_by?: AdminOrderSortBy,
+    sort_order?: SortOrder,
   ): Promise<AdminOrderListResponse> {
     const statusParam = order_status ? `&order_status=${encodeURIComponent(order_status)}` : "";
     return get<AdminOrderListResponse>(
-      `/admin/list/orders/by-user-type?user_type=${encodeURIComponent(user_type)}&page=${page}&limit=${limit}${statusParam}`,
+      `/admin/list/orders/by-user-type?user_type=${encodeURIComponent(user_type)}&page=${page}&limit=${limit}${statusParam}${sortParams(sort_by, sort_order)}`,
     );
   },
 

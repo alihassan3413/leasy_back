@@ -16,6 +16,9 @@ export interface Offer {
   // Present when the offer comes from the backend (customer offers endpoint)
   offer_id?: string;
   status?: string;
+  // Free-text note the workshop/admin attached to the offer. Shown in place of
+  // the (currently unavailable) workshop distance.
+  note?: string | null;
 }
 
 export interface OrderStatusUpdate {

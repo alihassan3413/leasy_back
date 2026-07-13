@@ -129,7 +129,10 @@ function canDeleteDocument(doc: any): boolean {
 }
 
 function getDocumentDisplayText(doc: any): string {
-  return doc.document_type || "Dokument";
+  // Run the raw type through the label map so German nouns render capitalized
+  // (e.g. "rechnung" → "Rechnung").
+  if (doc.document_type) return documentTypeLabel(doc.document_type);
+  return "Dokument";
 }
 
 // Mock data for offers if backend doesn't provide any
@@ -365,6 +368,9 @@ async function loadOffers() {
         accepted: offer.offer_status === "selected",
         offer_id: offer.offer_id,
         status: offer.offer_status,
+        // Workshop distance data is not available yet; surface the offer note
+        // (backend field `additional_notes`) instead when present.
+        note: offer.additional_notes ?? "",
       }));
   } catch (err) {
     console.error("Failed to load customer offers:", err);
@@ -704,34 +710,27 @@ watch(
                   </button>
 
                   <!-- Content -->
-                  <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
-                    <div class="flex justify-between items-start gap-3">
+                  <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden py-1">
+                    <div class="flex justify-between items-center gap-3">
                       <p
                         class="text-[14px] font-bold flex-1 min-w-0 truncate"
-                        :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
+                        :style="offer.accepted ? 'color: #2e3e3f' : 'color: #2e3e3f'"
                         :title="`${offer.id} - ${offer.name}`"
                       >
                         {{ offer.id }} - {{ offer.name }}
                       </p>
                       <p
-                        class="text-[16px] font-normal flex-shrink-0"
-                        :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
+                        class="text-[16px] font-semibold flex-shrink-0"
+                        :style="offer.accepted ? 'color: #EF8450' : 'color: #2e3e3f'"
                       >
                         {{ offer.cost.toLocaleString("de-DE") }} €
                       </p>
                     </div>
-                    <div class="flex justify-between items-center gap-3">
-                      <p class="text-[12px] flex-1 truncate" style="color: #b7c2c2">
-                        {{ offer.distance || "227km Entfernung" }}
-                      </p>
-                      <p
-                        v-if="offer.saving > 0"
-                        class="text-[16px] font-normal flex-shrink-0"
-                        style="color: #ef8450"
-                      >
-                        Ersparnis: {{ offer.saving }} €
-                      </p>
-                    </div>
+                    <!-- Workshop distance is not available yet — show the offer
+                         note when present, otherwise a clean German fallback. -->
+                    <p class="text-[12px] leading-snug line-clamp-2" style="color: #8f9ba7">
+                      {{ (offer.note && offer.note.trim()) || "Weitere Informationen zum Angebot folgen." }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -739,10 +738,10 @@ watch(
               <!-- Accept button -->
               <div class="mt-6 px-6 pb-6">
                 <button
-                  class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
+                  class="w-full rounded-[50px] py-4 text-[12px] font-semibold uppercase tracking-wide"
                   style="background: #e0e0e0; color: #9e9e9e"
                 >
-                  Accept offer (Payment required)
+                  Angebot annehmen
                 </button>
               </div>
 
@@ -753,7 +752,7 @@ watch(
                   style="background: #ef8450"
                 >
                   <span class="text-[14px] font-normal text-white">
-                    Accepted Offer: {{ acceptedOffer.id }}
+                    Angenommenes Angebot: {{ acceptedOffer.id }}
                     {{ acceptedOffer.name }}
                   </span>
                   <span class="text-[16px] font-normal text-white">
@@ -1096,33 +1095,26 @@ watch(
 
             <!-- Content -->
             <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
-              <div class="flex justify-between items-start gap-2">
+              <div class="flex justify-between items-center gap-2">
                 <p
                   class="text-[13px] font-bold flex-1 min-w-0 truncate"
-                  :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
+                  style="color: #2e3e3f"
                   :title="`${offer.id} - ${offer.name}`"
                 >
                   {{ offer.id }} - {{ offer.name }}
                 </p>
                 <p
-                  class="text-[14px] font-normal flex-shrink-0"
-                  :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
+                  class="text-[14px] font-semibold flex-shrink-0"
+                  :style="offer.accepted ? 'color: #EF8450' : 'color: #2e3e3f'"
                 >
                   {{ offer.cost.toLocaleString("de-DE") }} €
                 </p>
               </div>
-              <div class="flex justify-between items-center gap-2">
-                <p class="text-[11px] flex-1 truncate" style="color: #b7c2c2">
-                  {{ offer.distance || "227km Entfernung" }}
-                </p>
-                <p
-                  v-if="offer.saving > 0"
-                  class="text-[14px] font-normal flex-shrink-0"
-                  style="color: #ef8450"
-                >
-                  Ersparnis: {{ offer.saving }} €
-                </p>
-              </div>
+              <!-- Workshop distance is not available yet — show the offer note
+                   when present, otherwise a clean German fallback. -->
+              <p class="text-[11px] leading-snug line-clamp-2" style="color: #8f9ba7">
+                {{ (offer.note && offer.note.trim()) || "Weitere Informationen zum Angebot folgen." }}
+              </p>
             </div>
           </div>
         </div>
@@ -1134,7 +1126,7 @@ watch(
             style="background: #ef8450"
           >
             <span class="text-[13px] font-normal text-white flex-1 truncate">
-              Accepted Offer: {{ acceptedOffer.id }} {{ acceptedOffer.name }}
+              Angenommenes Angebot: {{ acceptedOffer.id }} {{ acceptedOffer.name }}
             </span>
             <span class="text-[14px] font-normal text-white flex-shrink-0">
               {{ acceptedOffer.cost.toLocaleString("de-DE") }} €

@@ -349,6 +349,9 @@ const offersData = computed(() => {
       accepted: offer.offer_status === "selected",
       status: offer.offer_status,
       published: offer.offer_status === "published" || offer.offer_status === "selected",
+      // Workshop distance data is not available yet; surface the offer note
+      // (backend field `additional_notes`) instead when present.
+      note: offer.additional_notes ?? "",
       originalOffer: offer,
     }));
   }
@@ -769,18 +772,11 @@ async function publishDocument(documentId: string) {
                         {{ offer.cost.toLocaleString("de-DE") }} €
                       </p>
                     </div>
-                    <div class="flex justify-between items-center gap-3">
-                      <p class="text-[12px] flex-1 truncate" style="color: #b7c2c2">
-                        {{ offer.distance || "227km distance" }}
-                      </p>
-                      <p
-                        v-if="offer.saving > 0"
-                        class="text-[16px] font-normal flex-shrink-0"
-                        style="color: #ef8450"
-                      >
-                        Savings: {{ offer.saving }} €
-                      </p>
-                    </div>
+                    <!-- Workshop distance is not available yet — show the offer
+                         note when present, otherwise a clean German fallback. -->
+                    <p class="text-[12px] leading-snug line-clamp-2" style="color: #8f9ba7">
+                      {{ (offer.note && offer.note.trim()) || "Weitere Informationen zum Angebot folgen." }}
+                    </p>
                   </div>
 
                   <!-- 3-dot menu - only show if no offer is selected OR this is the selected offer -->
