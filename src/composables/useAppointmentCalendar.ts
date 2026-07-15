@@ -129,8 +129,22 @@ export function useAppointmentCalendar(
 
   function getMinSelectableDate(): Date {
     const minDate = new Date(today);
-    minDate.setDate(minDate.getDate() + minDaysAhead);
     minDate.setHours(0, 0, 0, 0);
+
+    if (blockWeekends) {
+      // Weekends are not bookable, so the lead time must be counted in business
+      // days: skip Saturdays/Sundays while advancing. E.g. booking on a Friday
+      // with a 3-day lead lands on Wednesday, not Monday.
+      let added = 0;
+      while (added < minDaysAhead) {
+        minDate.setDate(minDate.getDate() + 1);
+        const dayOfWeek = minDate.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) added += 1;
+      }
+    } else {
+      minDate.setDate(minDate.getDate() + minDaysAhead);
+    }
+
     return minDate;
   }
 

@@ -3,6 +3,7 @@ import { ref, watch, computed } from "vue";
 import { Icon } from "@iconify/vue";
 import type { AdminUser } from "@/types";
 import { vehicleApi } from "@/api";
+import { VEHICLE_BRANDS } from "@/config/vehicleBrands";
 import {
   Dialog,
   DialogContent,
@@ -38,19 +39,7 @@ const leasinggeber = ref("");
 
 const markeOpen = ref(false);
 
-const markeOptions = [
-  "VW",
-  "BMW",
-  "Mercedes",
-  "Audi",
-  "Renault",
-  "Toyota",
-  "Peugeot",
-  "Skoda",
-  "Ford",
-  "Opel",
-  "Sonstige",
-];
+const markeOptions = VEHICLE_BRANDS;
 
 const markeIconClasses = computed(() => [
   "text-[24px] text-gray-500 transition-transform duration-200",
@@ -229,7 +218,7 @@ async function handleSubmit() {
               <label class="text-sm font-semibold text-black">
                 FIN
                 <span class="text-[10px] font-medium text-gray-500 ml-2">
-                  *(seh. Fahrzeugschein Mitte oben)
+                  * (siehe Fahrzeugschein – Feld E)
                 </span>
               </label>
               <input

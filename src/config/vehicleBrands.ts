@@ -1,0 +1,62 @@
+// Shared, single source of truth for the vehicle "Marke" (brand) dropdown.
+// Used by every vehicle form (B2C dashboard, admin, registration) so the list
+// is never duplicated. Order is intentional (alphabetical as provided) and
+// special characters (Citroën, Škoda, …) must be preserved exactly.
+export const VEHICLE_BRANDS: readonly string[] = [
+  "Abarth",
+  "Aiways",
+  "Alfa Romeo",
+  "Alpine",
+  "Audi",
+  "Bentley",
+  "BMW",
+  "BYD",
+  "Cadillac",
+  "Citroën",
+  "Cupra",
+  "Dacia",
+  "DS Automobiles",
+  "Fiat",
+  "Ford",
+  "Genesis",
+  "Honda",
+  "Hyundai",
+  "Jaguar",
+  "Jeep",
+  "Kia",
+  "Lancia",
+  "Land Rover / Range Rover",
+  "Lexus",
+  "Lotus",
+  "Lucid",
+  "Lynk & Co",
+  "Maserati",
+  "Mazda",
+  "Mercedes-Benz",
+  "MG",
+  "Mini",
+  "Mitsubishi",
+  "Nio",
+  "Nissan",
+  "Opel",
+  "Peugeot",
+  "Polestar",
+  "Porsche",
+  "Renault",
+  "SEAT",
+  "Škoda",
+  "smart",
+  "Subaru",
+  "Suzuki",
+  "Tesla",
+  "Toyota",
+  "Volkswagen",
+  "Volvo",
+  "XPeng",
+] as const;
+
+// Ready-to-use { label, value } options for select components that expect the
+// vee-validate FormSelectField shape.
+export const VEHICLE_BRAND_OPTIONS: { label: string; value: string }[] = VEHICLE_BRANDS.map(
+  (brand) => ({ label: brand, value: brand }),
+);

@@ -36,6 +36,15 @@ function documentTypeLabel(type?: string): string {
   return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
+// The provider label from orderProviderLabel() is a lowercase key ("dekra" /
+// "tuvsud"). Render it as a proper, capitalized name in the timeline.
+function providerDisplayLabel(label: string): string {
+  const key = label.toLowerCase();
+  if (key === "dekra") return "Dekra";
+  if (key === "tuvsud") return "TÜV SÜD";
+  return label;
+}
+
 // Helper to get the actual document type key for grouping (checks title first)
 function getDocumentTypeKey(doc: any): string {
   const docTitle =
@@ -263,7 +272,7 @@ const timelineData = computed(() => {
                 }) +
                 " Uhr",
               label: "Report hochgeladen",
-              sublabel: doc.document_type,
+              sublabel: documentTypeLabel(doc.document_type),
               completed: true,
               docUrl: docUrl,
               isReport: true,
@@ -551,7 +560,7 @@ watch(
                     "
                   >
                     <p class="text-[16px] font-bold mb-1" style="color: #01b990">
-                      {{ entry.label }}
+                      {{ providerDisplayLabel(entry.label) }}
                     </p>
                     <p
                       v-if="entry.sublabel"
@@ -617,7 +626,7 @@ watch(
                 />
               </button>
               <div class="p-6">
-                <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeugdokumente</p>
+                <p class="text-[16px] font-bold uppercase text-[#000000]">Fahrzeugdokumente</p>
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
@@ -676,7 +685,7 @@ watch(
               "
             >
               <div class="px-6 py-6">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
+                <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Angebote</p>
               </div>
 
               <!-- Offer rows -->
@@ -781,7 +790,7 @@ watch(
             style="border-color: #ececec"
           >
             <div class="pb-6">
-              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
+              <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">
                 Besichtigungsort
               </p>
             </div>
@@ -859,7 +868,7 @@ watch(
               <Icon icon="mdi:pencil" class="size-5 shrink-0" style="color: #01b990" />
             </button>
             <div class="px-6 pt-6">
-              <p class="text-[18px] font-bold" style="color: #000">FAHRZEUGDATEN</p>
+              <p class="text-[16px] font-bold uppercase" style="color: #000">FAHRZEUGDATEN</p>
             </div>
 
             <div class="flex flex-col gap-0 px-6 pt-4 pb-6">
@@ -1007,7 +1016,7 @@ watch(
         />
       </button>
       <div class="p-4">
-        <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeugdokumente</p>
+        <p class="text-[16px] font-bold uppercase text-[#000000]">Fahrzeugdokumente</p>
         <div class="h-px bg-gray-200 mt-2"></div>
       </div>
 
@@ -1062,7 +1071,7 @@ watch(
         :style="hasRealOffers ? 'border-color: #ececec' : 'border-color: #ececec; opacity: 0.5'"
       >
         <div class="px-4 py-4">
-          <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
+          <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Angebote</p>
         </div>
 
         <!-- Offer rows -->
@@ -1151,7 +1160,7 @@ watch(
       style="border-color: #ececec"
     >
       <div class="pb-4">
-        <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Besichtigungsort</p>
+        <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Besichtigungsort</p>
       </div>
 
       <template v-if="besichtigungsort">

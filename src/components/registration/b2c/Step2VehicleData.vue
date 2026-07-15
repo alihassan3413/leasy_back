@@ -8,6 +8,7 @@ import LicensePlateField from "@/components/ui/form/LicensePlateField.vue";
 import CalendarDateField from "@/components/ui/form/CalendarDateField.vue";
 
 import { vehicleDataSchema } from "@/validations/b2c/vehicleData.schema";
+import { VEHICLE_BRAND_OPTIONS } from "@/config/vehicleBrands";
 import { useB2CRegistrationStore } from "@/stores/b2cRegistration.store";
 import type { VehicleData } from "@/stores/b2cRegistration.store";
 import { useVehicleStore } from "@/stores/vehicle.store";
@@ -93,27 +94,11 @@ const onSubmit = handleSubmit(async (values) => {
         <FormTextField
           name="fin"
           label="FIN"
-          help-text="*(seh. Fahrzeugschein Mitte oben)"
+          help-text="(siehe Fahrzeugschein – Feld E)"
           placeholder="Fahrzeugidentifikationsnummer"
         />
 
-        <FormSelectField
-          name="marke"
-          label="Marke"
-          :options="[
-            { label: 'VW', value: 'VW' },
-            { label: 'BMW', value: 'BMW' },
-            { label: 'Mercedes', value: 'Mercedes' },
-            { label: 'Audi', value: 'Audi' },
-            { label: 'Renault', value: 'Renault' },
-            { label: 'Toyota', value: 'Toyota' },
-            { label: 'Peugeot', value: 'Peugeot' },
-            { label: 'Skoda', value: 'Skoda' },
-            { label: 'Ford', value: 'Ford' },
-            { label: 'Opel', value: 'Opel' },
-            { label: 'Sonstige', value: 'Sonstige' },
-          ]"
-        />
+        <FormSelectField name="marke" label="Marke" :options="VEHICLE_BRAND_OPTIONS" />
 
         <FormTextField name="modell" label="Modell" placeholder="z.B. 3er oder Sonstige" />
       </div>

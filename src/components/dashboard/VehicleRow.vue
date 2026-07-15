@@ -91,9 +91,6 @@ function handleAction(action: string) {
     <TableCell class="h-[52px] px-4 text-[14px] text-gray-600">
       {{ vehicle.leaseEnd }}
     </TableCell>
-    <TableCell class="h-[52px] px-4 text-[14px] text-gray-600">
-      {{ vehicle.returnStart }}
-    </TableCell>
     <TableCell class="h-[52px] px-4">
       <div class="flex items-center gap-2">
         <span

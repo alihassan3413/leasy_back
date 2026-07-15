@@ -8,6 +8,8 @@ import { useVehicleStore } from "@/stores/vehicle.store";
 import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useB2BStore } from "@/stores/b2b.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { VEHICLE_BRANDS } from "@/config/vehicleBrands";
+import { validatePlateParts, normalizePlate } from "@/utils/licensePlate";
 import {
   Dialog,
   DialogContent,
@@ -43,29 +45,19 @@ const marke = ref("");
 const modell = ref("");
 const leasingende = ref("");
 const fin = ref("");
-const rueckgabestart = ref("");
 const fahrzeugnutzer = ref("");
 const leasinggeber = ref("");
 // When the customer doesn't know the exact leasing end date yet, they tick this
 // box; the Leasingende field is then cleared/disabled and no longer required.
 const leasingEndUnknown = ref(false);
+// Same pattern for the Leasinggeber: when unknown, the field is cleared/disabled
+// and no longer required.
+const leasinggeberUnknown = ref(false);
 
 const markeOpen = ref(false);
 const nutzerOpen = ref(false);
 
-const markeOptions = [
-  "VW",
-  "BMW",
-  "Mercedes",
-  "Audi",
-  "Renault",
-  "Toyota",
-  "Peugeot",
-  "Skoda",
-  "Ford",
-  "Opel",
-  "Sonstige",
-];
+const markeOptions = VEHICLE_BRANDS;
 const nutzerOptions = ["Christin Mechtild", "Thorsten Jung", "Marcus Dietrich"];
 
 const isEditMode = computed(() => !!props.vehicle);
@@ -107,17 +99,19 @@ watch(
       // formatted display strings and must not be used here).
       leasingende.value = toIsoDate(v.leasing_end_date ?? v.leaseEnd);
       fin.value = v.vin ?? v.fin ?? "";
-      rueckgabestart.value = toIsoDate(v.first_registration_date ?? v.returnStart);
       fahrzeugnutzer.value = v.driver ?? "";
       leasinggeber.value = v.leasinggeber ?? "";
       // No stored leasing end date → the "date unknown" box starts ticked.
       leasingEndUnknown.value = !leasingende.value;
+      // No stored leasinggeber → the "unknown" box starts ticked.
+      leasinggeberUnknown.value = !leasinggeber.value;
     } else {
       city.value = district.value = number.value = "";
       marke.value = modell.value = leasingende.value = "";
-      fin.value = rueckgabestart.value = fahrzeugnutzer.value = "";
+      fin.value = fahrzeugnutzer.value = "";
       leasinggeber.value = "";
       leasingEndUnknown.value = false;
+      leasinggeberUnknown.value = false;
     }
     isDirty.value = false;
 
@@ -138,6 +132,11 @@ watch(leasingEndUnknown, (unknown) => {
   if (unknown) leasingende.value = "";
 });
 
+// Ticking "Leasinggeber unbekannt" clears the field for the same reason.
+watch(leasinggeberUnknown, (unknown) => {
+  if (unknown) leasinggeber.value = "";
+});
+
 const isDirty = ref(false);
 watch(
   [
@@ -148,27 +147,38 @@ watch(
     modell,
     leasingende,
     fin,
-    rueckgabestart,
     fahrzeugnutzer,
     leasinggeber,
     leasingEndUnknown,
+    leasinggeberUnknown,
   ],
   () => {
     if (props.open && isEditMode.value) isDirty.value = true;
   },
 );
 
-const plateText = computed(() =>
-  `${city.value}${district.value}${number.value}`.replace(/\s+/g, ""),
-);
-
-const plateError = computed(() => {
-  if (!city.value && !district.value && !number.value) return "";
-  if (plateText.value.length > 8) {
-    return "Kennzeichen darf höchstens 8 Zeichen lang sein";
-  }
-  return "";
+// Live-normalise lowercase → uppercase for every plate section as the user
+// types. We only change casing here (never strip/truncate) so invalid content
+// still surfaces a validation message instead of silently disappearing.
+watch(city, (v) => {
+  const u = v.toUpperCase();
+  if (u !== v) city.value = u;
 });
+watch(district, (v) => {
+  const u = v.toUpperCase();
+  if (u !== v) district.value = u;
+});
+watch(number, (v) => {
+  const u = v.toUpperCase();
+  if (u !== v) number.value = u;
+});
+
+// German-plate validation for the three sections + the overall 8-character
+// limit (see @/utils/licensePlate). Returns an ordered list of German messages.
+const plateErrors = computed(() =>
+  validatePlateParts(city.value, district.value, number.value),
+);
+const plateError = computed(() => plateErrors.value[0] ?? "");
 
 const finError = computed(() => {
   if (!fin.value.trim()) return "";
@@ -181,14 +191,14 @@ const finError = computed(() => {
 const isFormValid = computed(() => {
   return (
     city.value.trim() !== "" &&
+    district.value.trim() !== "" &&
     number.value.trim() !== "" &&
     marke.value.trim() !== "" &&
     modell.value.trim() !== "" &&
     (leasingEndUnknown.value || leasingende.value !== "") &&
-    rueckgabestart.value !== "" &&
     fin.value.trim() !== "" &&
-    leasinggeber.value.trim() !== "" &&
-    plateError.value === "" &&
+    (leasinggeberUnknown.value || leasinggeber.value.trim() !== "") &&
+    plateErrors.value.length === 0 &&
     finError.value === ""
   );
 });
@@ -216,22 +226,22 @@ async function handleSubmit() {
     }
   }
 
-  // The backend requires a leasing_end_date. When the customer ticked "date
-  // unknown", we don't show any date in the UI but still send today's date so
-  // the request passes validation; they'll supply the real date later.
+  // The backend requires both a leasing_end_date and a first_registration_date.
+  // When the customer ticked "date unknown" for the leasing end, we still send
+  // today's date so the request passes validation; they'll supply the real date
+  // later. The desired-return-day field was removed from the UI, so we always
+  // send today's date for first_registration_date (the backend field is
+  // required and this preserves the existing payload contract).
   const todayIso = new Date().toISOString().slice(0, 10);
 
   const payload = {
-    license_plate: `${city.value} ${district.value} ${number.value}`
-      .replace(/\s+/g, " ")
-      .trim()
-      .toUpperCase(),
+    license_plate: normalizePlate(city.value, district.value, number.value),
     make: marke.value,
     model: modell.value,
     leasing_end_date: leasingEndUnknown.value ? todayIso : toIsoDate(leasingende.value),
     vin: fin.value.trim().toUpperCase(),
-    first_registration_date: toIsoDate(rueckgabestart.value),
-    leasinggeber: leasinggeber.value,
+    first_registration_date: todayIso,
+    leasinggeber: leasinggeberUnknown.value ? "" : leasinggeber.value,
   };
 
   console.log("Submitting Vehicle Payload:", payload);
@@ -264,9 +274,8 @@ async function handleSubmit() {
         model: modell.value,
         leaseEnd: leasingende.value,
         vin: fin.value,
-        returnStart: rueckgabestart.value,
         driver: fahrzeugnutzer.value,
-        leasinggeber: leasinggeber.value,
+        leasinggeber: payload.leasinggeber,
       });
     }
     close();
@@ -333,7 +342,7 @@ async function handleSubmit() {
               <label class="text-sm font-semibold text-black">
                 Kennzeichen
                 <span class="text-[10px] font-medium text-gray-500 ml-2">
-                  *(Format: ABC DE 12H)
+                  *(Format: K-LB-2026)
                 </span>
               </label>
               <div
@@ -350,7 +359,7 @@ async function handleSubmit() {
                     v-model="city"
                     :disabled="isEditMode"
                     class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                    placeholder="ABC"
+                    placeholder="K"
                     maxlength="3"
                   />
                 </div>
@@ -363,7 +372,7 @@ async function handleSubmit() {
                     v-model="district"
                     :disabled="isEditMode"
                     class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                    placeholder="DE"
+                    placeholder="LB"
                     maxlength="2"
                   />
                 </div>
@@ -372,13 +381,13 @@ async function handleSubmit() {
                     v-model="number"
                     :disabled="isEditMode"
                     class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                    placeholder="12H"
-                    maxlength="3"
+                    placeholder="2026"
+                    maxlength="6"
                   />
                 </div>
               </div>
-              <p v-if="plateError" class="text-xs text-red-500">
-                {{ plateError }}
+              <p v-for="msg in plateErrors" :key="msg" class="text-xs text-red-500">
+                {{ msg }}
               </p>
             </div>
 
@@ -386,7 +395,7 @@ async function handleSubmit() {
               <label class="text-sm font-semibold text-black">
                 FIN
                 <span class="text-[10px] font-medium text-gray-500 ml-2">
-                  *(seh. Fahrzeugschein Mitte oben)
+                  * (siehe Fahrzeugschein – Feld E)
                 </span>
               </label>
               <input
@@ -520,35 +529,36 @@ async function handleSubmit() {
             -->
 
             <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black"> Wunschrückgabetag </label>
-              <div
-                class="relative flex h-9 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
-              >
-                <input
-                  v-model="rueckgabestart"
-                  type="date"
-                  class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
-                />
-                <Icon
-                  icon="mdi:calendar-outline"
-                  class="absolute right-4 text-gray-400 pointer-events-none"
-                />
-              </div>
-              <p class="mt-1.5 text-xs font-normal leading-[1.45] text-[#00000099]">
-                Bitte bedenken Sie, dass der Prozess bis zu 10 Tage betragen kann.
-              </p>
-            </div>
-
-            <div class="flex flex-col gap-1">
               <label class="text-sm font-semibold text-black">
                 Leasinggeber
                 <span class="text-[10px] font-medium text-gray-500 ml-2">*</span>
               </label>
               <input
                 v-model="leasinggeber"
-                class="h-9 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
+                :disabled="leasinggeberUnknown"
+                class="h-9 rounded-full border px-4 text-sm outline-none focus:border-emerald-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                :class="leasinggeberUnknown ? 'border-gray-200 bg-gray-100' : 'border-gray-300'"
                 placeholder="Leasinggeber eingeben"
               />
+
+              <!-- Leasinggeber unknown -->
+              <label class="mt-1.5 flex cursor-pointer items-start gap-2">
+                <input v-model="leasinggeberUnknown" type="checkbox" class="peer sr-only" />
+                <span
+                  class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/30"
+                  :class="
+                    leasinggeberUnknown
+                      ? 'border-emerald-500 bg-emerald-500'
+                      : 'border-gray-300 bg-white'
+                  "
+                >
+                  <Icon v-show="leasinggeberUnknown" icon="mdi:check" class="size-3 text-white" />
+                </span>
+                <span class="text-xs font-normal leading-[1.45] text-[#00000099]">
+                  Der Name des Leasinggebers liegt mir aktuell nicht vor. Ich werde Ihnen diese
+                  Information zeitnah nachreichen.
+                </span>
+              </label>
             </div>
           </div>
 

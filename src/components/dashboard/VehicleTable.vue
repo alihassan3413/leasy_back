@@ -87,13 +87,12 @@ function handleCardAction(vehicle: Vehicle, action: string) {
     <Table>
       <TableHeader>
         <TableRow style="background-color: #01b990; height: 44px">
-          <TableHead class="w-[20%] px-4 text-[13px] font-medium text-white">Kennzeichen</TableHead>
-          <TableHead class="w-[24%] px-4 text-[13px] font-medium text-white">Modell</TableHead>
-          <TableHead class="w-[16%] px-4 text-[13px] font-medium text-white">Leasingende</TableHead>
-          <TableHead class="w-[16%] px-4 text-[13px] font-medium text-white"
-            >Rückgabestart</TableHead
+          <TableHead class="w-[22%] px-4 text-[13px] font-medium text-white">Kennzeichen</TableHead>
+          <TableHead class="w-[30%] px-4 text-[13px] font-medium text-white"
+            >Marke / Modell</TableHead
           >
-          <TableHead class="w-[14%] px-4 text-[13px] font-medium text-white">Status</TableHead>
+          <TableHead class="w-[20%] px-4 text-[13px] font-medium text-white">Leasingende</TableHead>
+          <TableHead class="w-[16%] px-4 text-[13px] font-medium text-white">Status</TableHead>
           <!-- Fahrzeugnutzer column hidden for now -->
           <!-- <TableHead class="px-4 text-[13px] font-medium text-white">Fahrzeugnutzer</TableHead> -->
           <TableHead class="w-[10%] px-4 text-[13px] font-medium text-white text-right"
@@ -115,7 +114,7 @@ function handleCardAction(vehicle: Vehicle, action: string) {
           class="border-0 hover:bg-transparent"
           style="background-color: #01b990; height: 44px"
         >
-          <TableCell colspan="6" class="h-[44px] px-4 text-[13px] font-bold text-white">
+          <TableCell colspan="5" class="h-[44px] px-4 text-[13px] font-bold text-white">
             Abgeschlossene Vorgänge
           </TableCell>
         </TableRow>
@@ -170,10 +169,6 @@ function handleCardAction(vehicle: Vehicle, action: string) {
           <div class="flex items-center gap-1">
             <Icon icon="mdi:calendar-outline" class="w-4 h-4" />
             <span>Leasingende: {{ vehicle.leaseEnd }}</span>
-          </div>
-          <div class="flex items-center gap-1">
-            <Icon icon="mdi:calendar-outline" class="w-4 h-4" />
-            <span>Rückgabestart: {{ vehicle.returnStart }}</span>
           </div>
           <!-- Fahrzeugnutzer hidden for now -->
           <!-- <div class="flex items-center gap-1">

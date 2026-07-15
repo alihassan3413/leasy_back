@@ -20,6 +20,7 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import OrderFeeConfirmModal from "./OrderFeeConfirmModal.vue";
 
 const stationPickerRef = ref<HTMLElement | null>(null);
 const bundeslandPickerRef = ref<HTMLElement | null>(null);
@@ -201,12 +202,22 @@ const remarks = ref("");
 //  Submit
 const isSubmitting = ref(false);
 const successDialogOpen = ref(false);
+// Gate shown before booking: the customer must acknowledge the processing fee
+// charged when the process is started but not completed.
+const feeConfirmOpen = ref(false);
 
 const canSubmit = computed(
   () => !!selectedStation.value && !!terminIso.value && !isSubmitting.value,
 );
 
-async function handleSubmit() {
+// First step of "Bestätigen": validate the form, then open the fee
+// acknowledgement gate. The actual booking runs from confirmBooking().
+function requestBooking() {
+  if (!canSubmit.value || !props.vehicle) return;
+  feeConfirmOpen.value = true;
+}
+
+async function confirmBooking() {
   if (!canSubmit.value || !props.vehicle) return;
 
   isSubmitting.value = true;
@@ -236,6 +247,9 @@ async function handleSubmit() {
     toast.error("Auftrag konnte nicht erstellt werden.");
   } finally {
     isSubmitting.value = false;
+    // Close the fee gate once the attempt settles — success/error is surfaced
+    // separately, and the form stays open behind so the user can retry.
+    feeConfirmOpen.value = false;
   }
 }
 
@@ -250,6 +264,7 @@ watch(
     stationOpen.value = false;
     bundeslandOpen.value = false;
     ortOpen.value = false;
+    feeConfirmOpen.value = false;
     fetchStations();
   },
 );
@@ -552,7 +567,7 @@ function closeSuccessDialog() {
                 class="h-8 w-full md:w-auto px-6 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
                 :style="canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'"
                 :disabled="!canSubmit || isSubmitting"
-                @click="handleSubmit"
+                @click="requestBooking"
               >
                 {{ isSubmitting ? "Lädt..." : "Bestätigen" }}
               </button>
@@ -562,6 +577,14 @@ function closeSuccessDialog() {
       </div>
     </DialogContent>
   </Dialog>
+
+  <!-- Fee acknowledgement gate — must be accepted before the booking runs -->
+  <OrderFeeConfirmModal
+    v-model:open="feeConfirmOpen"
+    :fee="200"
+    :loading="isSubmitting"
+    @confirm="confirmBooking"
+  />
 
   <AlertDialog :open="successDialogOpen" @update:open="successDialogOpen = $event">
     <AlertDialogContent>
