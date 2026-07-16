@@ -5,7 +5,7 @@ import { TableRow, TableCell } from "@/components/ui/table";
 import type { AdminVehicle, Offer, OffersListResponse, VehicleStatusResponse } from "@/types";
 import AddVehicleModal from "@/components/dashboard/modals/AddVehicleModal.vue";
 import UploadDocumentModal from "@/components/dashboard/modals/UploadDocumentModal.vue";
-import { vehicleApi, adminVehiclesApi, adminOffersApi } from "@/api";
+import { vehicleApi, adminVehiclesApi, adminOffersApi, adminOrdersApi } from "@/api";
 import { getOrderStatusLabel } from "@/lib/status";
 import { orderProviderLabel } from "@/lib/provider";
 
@@ -43,6 +43,8 @@ onMounted(() => {
   if (firstOrder.value?.auftragsnummer) {
     fetchOffers(firstOrder.value.auftragsnummer);
   }
+  // Opening the expanded view triggers the TÜV SÜD appraisal sync (if eligible).
+  maybeSyncAppraisal();
 });
 
 // Refetch when the parent reloads the list (e.g. after an admin status change,
@@ -50,7 +52,10 @@ onMounted(() => {
 // the update immediately, not only after collapse/re-expand.
 watch(
   () => props.vehicle,
-  () => fetchVehicleDetail(),
+  () => {
+    fetchVehicleDetail();
+    maybeSyncAppraisal();
+  },
 );
 
 const editVehicleOpen = ref(false);
@@ -186,6 +191,52 @@ const firstOrder = computed(() => {
   }
   return null;
 });
+
+// --- TÜV SÜD appraisal (Gutachten) sync ------------------------------------
+// When an order has reached inspection (or a later stage), opening this admin
+// expanded view triggers a one-off sync that pulls the latest appraisal
+// document status from the third-party service (TÜV SÜD). The appraisal number
+// is the order's `response_body`, provided by the order listing API.
+const APPRAISAL_SYNC_STATUSES = new Set([
+  "inspected",
+  "workshop",
+  "reinspection",
+  "reworkshop",
+  "delivered",
+  "completed",
+]);
+
+// Remember the last order/appraisal we synced so re-renders don't re-fire it.
+let lastAppraisalSyncKey = "";
+
+async function maybeSyncAppraisal() {
+  const order = firstOrder.value;
+  if (!order) return;
+
+  // Appraisal XML sync is a TÜV SÜD-only feature — skip DEKRA/other orders.
+  if (orderProviderLabel(order) !== "tuvsud") return;
+
+  const status = order.order_status ?? "";
+  if (!APPRAISAL_SYNC_STATUSES.has(status)) return;
+
+  // `response_body` only exists on real orders (not the current_* pseudo-order).
+  const appraisalNumber = (order as { response_body?: number | string }).response_body;
+  if (appraisalNumber === undefined || appraisalNumber === null || appraisalNumber === "") return;
+
+  const key = `${order.auftragsnummer || order.id}:${appraisalNumber}`;
+  if (key === lastAppraisalSyncKey) return;
+  lastAppraisalSyncKey = key;
+
+  try {
+    await adminOrdersApi.syncAppraisalXml(appraisalNumber);
+    // Reflect any freshly synced appraisal document/status in the UI.
+    await fetchVehicleDetail();
+    emit("refreshDocs");
+  } catch (err) {
+    console.error("Failed to sync TÜV SÜD appraisal XML:", err);
+    lastAppraisalSyncKey = ""; // allow a retry next time the view opens
+  }
+}
 
 // Computed properties with fallback to mock data
 const timelineData = computed(() => {
@@ -775,7 +826,7 @@ async function publishDocument(documentId: string) {
                     <!-- Workshop distance is not available yet — show the offer
                          note when present, otherwise a clean German fallback. -->
                     <p
-                      class="text-[12px] leading-snug line-clamp-2"
+                      class="text-[12px] leading-snug line-clamp-2 whitespace-normal break-words"
                       :class="{ 'cursor-help': offer.note && offer.note.trim() }"
                       :title="offer.note && offer.note.trim() ? offer.note.trim() : undefined"
                       style="color: #8f9ba7"

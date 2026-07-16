@@ -95,7 +95,7 @@ onMounted(() => {
       type="button"
       aria-label="Einführung ansehen"
       title="Einführung ansehen"
-      class="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full py-3 pl-3 pr-4 text-white shadow-lg transition-all duration-200 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#01b990]/40 md:bottom-8 md:right-8"
+      class="fixed bottom-20 right-4 z-[60] flex items-center gap-2 rounded-full py-2.5 pl-2.5 pr-4 text-white shadow-lg transition-all duration-200 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#01b990]/40 md:bottom-8 md:right-8"
       style="background-color: #10393b"
       @click="openOnboarding"
     >
@@ -105,7 +105,7 @@ onMounted(() => {
       >
         <Icon icon="mdi:play" class="w-4 h-4" />
       </span>
-      <span class="hidden text-sm font-medium sm:inline">Einführung</span>
+      <span class="text-sm font-medium">Einführung</span>
     </button>
 
     <!-- Modals -->

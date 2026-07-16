@@ -70,4 +70,11 @@ export const adminOrdersApi = {
       },
     );
   },
+
+  // Sync the TÜV SÜD appraisal (Gutachten) XML for an order and return the
+  // latest third-party document status. `appraisalNumber` is the order's
+  // `response_body` value from the order listing. Admin-only.
+  syncAppraisalXml(appraisalNumber: number | string): Promise<unknown> {
+    return post(`/tim/appraisal/xml/sync/${encodeURIComponent(String(appraisalNumber))}`);
+  },
 };
