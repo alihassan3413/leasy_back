@@ -737,7 +737,12 @@ watch(
                     </div>
                     <!-- Workshop distance is not available yet — show the offer
                          note when present, otherwise a clean German fallback. -->
-                    <p class="text-[12px] leading-snug line-clamp-2" style="color: #8f9ba7">
+                    <p
+                      class="text-[12px] leading-snug line-clamp-2"
+                      :class="{ 'cursor-help': offer.note && offer.note.trim() }"
+                      :title="offer.note && offer.note.trim() ? offer.note.trim() : undefined"
+                      style="color: #8f9ba7"
+                    >
                       {{ (offer.note && offer.note.trim()) || "Weitere Informationen zum Angebot folgen." }}
                     </p>
                   </div>
@@ -757,14 +762,13 @@ watch(
               <!-- Accepted offer box -->
               <div v-if="acceptedOffer" class="px-6 pb-6 pt-5">
                 <div
-                  class="flex items-center justify-between rounded-[50px] px-7 py-2.5"
+                  class="flex items-center justify-between gap-3 rounded-[50px] px-7 py-2.5"
                   style="background: #ef8450"
                 >
-                  <span class="text-[14px] font-normal text-white">
-                    Angenommenes Angebot: {{ acceptedOffer.id }}
-                    {{ acceptedOffer.name }}
+                  <span class="min-w-0 flex-1 text-[13px] font-normal leading-snug text-white">
+                    Angenommenes Angebot: {{ acceptedOffer.id }} {{ acceptedOffer.name }}
                   </span>
-                  <span class="text-[16px] font-normal text-white">
+                  <span class="shrink-0 whitespace-nowrap text-[15px] font-normal text-white">
                     {{ acceptedOffer.cost.toLocaleString("de-DE") }} €
                   </span>
                 </div>
@@ -1121,7 +1125,12 @@ watch(
               </div>
               <!-- Workshop distance is not available yet — show the offer note
                    when present, otherwise a clean German fallback. -->
-              <p class="text-[11px] leading-snug line-clamp-2" style="color: #8f9ba7">
+              <p
+                class="text-[11px] leading-snug line-clamp-2"
+                :class="{ 'cursor-help': offer.note && offer.note.trim() }"
+                :title="offer.note && offer.note.trim() ? offer.note.trim() : undefined"
+                style="color: #8f9ba7"
+              >
                 {{ (offer.note && offer.note.trim()) || "Weitere Informationen zum Angebot folgen." }}
               </p>
             </div>
@@ -1134,10 +1143,10 @@ watch(
             class="flex items-center justify-between rounded-[20px] px-4 py-3"
             style="background: #ef8450"
           >
-            <span class="text-[13px] font-normal text-white flex-1 truncate">
+            <span class="min-w-0 flex-1 text-[12px] font-normal leading-snug text-white">
               Angenommenes Angebot: {{ acceptedOffer.id }} {{ acceptedOffer.name }}
             </span>
-            <span class="text-[14px] font-normal text-white flex-shrink-0">
+            <span class="text-[14px] font-normal text-white flex-shrink-0 whitespace-nowrap">
               {{ acceptedOffer.cost.toLocaleString("de-DE") }} €
             </span>
           </div>

@@ -9,7 +9,7 @@ import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useB2BStore } from "@/stores/b2b.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { VEHICLE_BRANDS } from "@/config/vehicleBrands";
-import { validatePlateParts, normalizePlate } from "@/utils/licensePlate";
+import { validatePlateParts, normalizePlate, sanitizePlateNumber } from "@/utils/licensePlate";
 import {
   Dialog,
   DialogContent,
@@ -168,9 +168,11 @@ watch(district, (v) => {
   const u = v.toUpperCase();
   if (u !== v) district.value = u;
 });
+// Section 3: upper-case AND hard-cap the digit count at 4 (a trailing E for
+// e-plates is still allowed); see sanitizePlateNumber.
 watch(number, (v) => {
-  const u = v.toUpperCase();
-  if (u !== v) number.value = u;
+  const sanitized = sanitizePlateNumber(v);
+  if (sanitized !== v) number.value = sanitized;
 });
 
 // German-plate validation for the three sections + the overall 8-character

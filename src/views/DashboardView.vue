@@ -8,6 +8,7 @@ import OrderCreationModal from "@/components/dashboard/modals/OrderCreationModal
 import { useAuthStore } from "@/stores/auth.store";
 import { useVehicleStore } from "@/stores/vehicle.store";
 import { useOnboarding } from "@/composables/useOnboarding";
+import { ONBOARDING_VIDEO_URL, ONBOARDING_VIDEO_POSTER_URL } from "@/config/onboarding";
 import { Icon } from "@iconify/vue";
 import type { Vehicle } from "@/components/dashboard/vehicle.types";
 
@@ -109,6 +110,11 @@ onMounted(() => {
 
     <!-- Modals -->
     <AddVehicleModal v-model:open="addVehicleOpen" />
-    <OnboardingModal :open="onboardingOpen" @update:open="onOnboardingOpenChange" />
+    <OnboardingModal
+      :open="onboardingOpen"
+      :video-url="ONBOARDING_VIDEO_URL"
+      :poster-url="ONBOARDING_VIDEO_POSTER_URL"
+      @update:open="onOnboardingOpenChange"
+    />
   </div>
 </template>

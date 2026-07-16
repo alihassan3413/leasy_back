@@ -28,6 +28,25 @@ export function toPlateUpperCase(value: string): string {
   return value.toUpperCase();
 }
 
+/**
+ * Live input sanitiser for section 3 (number): upper-cases and hard-caps the
+ * digit count at 4 so the user can never type more than four digits. Non-digit
+ * characters (E, and anything else the user mistypes) are kept in place so the
+ * position/format validation messages still fire.
+ */
+export function sanitizePlateNumber(value: string): string {
+  let digitCount = 0;
+  let result = "";
+  for (const char of value.toUpperCase()) {
+    if (char >= "0" && char <= "9") {
+      if (digitCount >= 4) continue; // ignore any digit beyond the fourth
+      digitCount += 1;
+    }
+    result += char;
+  }
+  return result;
+}
+
 /** Section 1: 1–3 letters only. Returns a German error message, or "" if valid/empty. */
 export function validatePlateCity(value: string): string {
   const v = value.trim().toUpperCase();

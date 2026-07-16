@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { Icon } from "@iconify/vue";
 import {
   DialogClose,
@@ -19,22 +20,36 @@ import {
 // restoration, Escape to close, background scroll lock and click-outside — is
 // still fully handled by reka-ui.
 //
-// The video area is future-proof: pass a `videoUrl` prop later to embed the
-// real player; until then a branded 16:9 placeholder is shown.
-withDefaults(
+// The video area supports three states:
+//   1. no `videoUrl`                 -> branded 16:9 placeholder
+//   2. `videoUrl` = direct file      -> native <video> player (e.g. an .mp4 on
+//                                        S3/CloudFront) — recommended for a
+//                                        self-hosted file
+//   3. `videoUrl` = embed link       -> <iframe> (YouTube/Vimeo, etc.)
+const props = withDefaults(
   defineProps<{
     open: boolean;
-    /** When set, the real video is embedded instead of the placeholder. */
+    /**
+     * Direct file URL (…/intro.mp4) OR an embed URL (YouTube/Vimeo). Leave
+     * empty to keep the placeholder.
+     */
     videoUrl?: string;
+    /** Optional preview image shown before a direct video is played. */
+    posterUrl?: string;
   }>(),
   {
     videoUrl: "",
+    posterUrl: "",
   },
 );
 
 const emit = defineEmits<{
   "update:open": [value: boolean];
 }>();
+
+// A direct media file (mp4/webm/ogg) is played with a native <video> element;
+// anything else non-empty (YouTube/Vimeo links) is embedded via <iframe>.
+const isFileVideo = computed(() => /\.(mp4|webm|ogg)(\?.*)?$/i.test(props.videoUrl));
 
 const highlights = [
   { icon: "mdi:car-outline", label: "Fahrzeuge" },
@@ -54,11 +69,11 @@ function close(): void {
         class="fixed inset-0 z-50 bg-black/40 backdrop-blur-[3px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0"
       />
       <DialogContent
-        class="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[28px] bg-white shadow-[0_24px_70px_-12px_rgba(16,57,59,0.45)] duration-200 focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[state=open]:slide-in-from-bottom-2"
+        class="fixed left-1/2 top-1/2 z-50 max-h-[calc(100dvh_-_2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-x-hidden overflow-y-auto overscroll-contain rounded-[28px] bg-white shadow-[0_24px_70px_-12px_rgba(16,57,59,0.45)] duration-200 focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 data-[state=open]:slide-in-from-bottom-2"
       >
         <!-- Branded hero band -->
         <div
-          class="relative px-6 pt-8 pb-6 text-center sm:px-9"
+          class="relative px-5 pt-7 pb-5 text-center sm:px-9 sm:pt-8 sm:pb-6"
           style="background: linear-gradient(160deg, #10393b 0%, #16514f 55%, #1c6360 100%)"
         >
           <!-- Soft decorative glow -->
@@ -108,7 +123,7 @@ function close(): void {
         </div>
 
         <!-- Body -->
-        <div class="px-6 pb-7 pt-5 sm:px-9">
+        <div class="px-5 pb-6 pt-4 sm:px-9 sm:pb-7 sm:pt-5">
           <p class="text-[13px] leading-relaxed text-[#4a5c5a]">
             In unserem Einführungsvideo erfahren Sie, wie Sie ein Fahrzeug anlegen, wichtige Daten
             hinterlegen und die nächsten Schritte Ihrer Fahrzeugrückgabe planen.
@@ -119,8 +134,22 @@ function close(): void {
           <div
             class="group relative mt-4 aspect-video w-full overflow-hidden rounded-2xl ring-1 ring-black/5"
           >
+            <!-- Self-hosted file (e.g. an .mp4 on S3/CloudFront) -->
+            <video
+              v-if="videoUrl && isFileVideo"
+              :src="videoUrl"
+              :poster="posterUrl || undefined"
+              class="h-full w-full bg-black object-contain"
+              controls
+              controlslist="nodownload"
+              preload="metadata"
+              playsinline
+            >
+              Ihr Browser unterstützt die Videowiedergabe nicht.
+            </video>
+            <!-- Embed link (YouTube/Vimeo, …) -->
             <iframe
-              v-if="videoUrl"
+              v-else-if="videoUrl"
               :src="videoUrl"
               title="LeasyBack Einführungsvideo"
               class="h-full w-full"
