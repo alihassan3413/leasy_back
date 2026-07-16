@@ -37,8 +37,10 @@ async function fetchVehicleDetail() {
   }
 }
 
-onMounted(() => {
-  fetchVehicleDetail();
+onMounted(async () => {
+  // Await the detailed status first: it carries the full order (incl.
+  // response_body) that the vehicle-list row may omit.
+  await fetchVehicleDetail();
   // Fetch offers after component is mounted
   if (firstOrder.value?.auftragsnummer) {
     fetchOffers(firstOrder.value.auftragsnummer);
@@ -52,8 +54,8 @@ onMounted(() => {
 // the update immediately, not only after collapse/re-expand.
 watch(
   () => props.vehicle,
-  () => {
-    fetchVehicleDetail();
+  async () => {
+    await fetchVehicleDetail();
     maybeSyncAppraisal();
   },
 );
@@ -209,19 +211,42 @@ const APPRAISAL_SYNC_STATUSES = new Set([
 // Remember the last order/appraisal we synced so re-renders don't re-fire it.
 let lastAppraisalSyncKey = "";
 
+// The appraisal number (`response_body`) may live on the vehicle-list order OR
+// only on the detailed status order (the `current_*` pseudo-order has none), so
+// prefer whichever order actually carries a response_body.
+function appraisalCandidateOrder(): any {
+  const withNumber =
+    props.vehicle.orders?.find((o) => o?.response_body != null) ??
+    detailedVehicle.value?.orders?.find((o) => o?.response_body != null);
+  return (
+    withNumber ??
+    props.vehicle.orders?.[0] ??
+    detailedVehicle.value?.orders?.[0] ??
+    firstOrder.value ??
+    null
+  );
+}
+
 async function maybeSyncAppraisal() {
-  const order = firstOrder.value;
+  const order = appraisalCandidateOrder();
   if (!order) return;
 
-  // Appraisal XML sync is a TÜV SÜD-only feature — skip DEKRA/other orders.
-  if (orderProviderLabel(order) !== "tuvsud") return;
-
+  const provider = orderProviderLabel(order);
   const status = order.order_status ?? "";
-  if (!APPRAISAL_SYNC_STATUSES.has(status)) return;
+  const appraisalNumber = order.response_body;
 
-  // `response_body` only exists on real orders (not the current_* pseudo-order).
-  const appraisalNumber = (order as { response_body?: number | string }).response_body;
-  if (appraisalNumber === undefined || appraisalNumber === null || appraisalNumber === "") return;
+  // Appraisal XML sync is TÜV SÜD-only, needs an inspected-or-later status and
+  // a response_body (the appraisal number). Log when a condition blocks it.
+  if (
+    provider !== "tuvsud" ||
+    !APPRAISAL_SYNC_STATUSES.has(status) ||
+    appraisalNumber === undefined ||
+    appraisalNumber === null ||
+    appraisalNumber === ""
+  ) {
+    console.debug("[appraisal-sync] skipped:", { provider, status, appraisalNumber });
+    return;
+  }
 
   const key = `${order.auftragsnummer || order.id}:${appraisalNumber}`;
   if (key === lastAppraisalSyncKey) return;
