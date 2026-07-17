@@ -368,7 +368,7 @@ const timelineData = computed(() => {
           date: new Date(dateToUse),
           datetime: fmtDateTime(dateToUse),
           label: "Report hochgeladen",
-          sublabel: doc.document_type || "",
+          sublabel: documentTypeLabel(doc.document_type),
           completed: true,
           docUrl,
           isReport: true,
@@ -480,6 +480,16 @@ function documentTypeLabel(type?: string): string {
   if (mapped) return mapped;
   // Fallback: capitalize the raw backend value so it still reads cleanly.
   return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+// The provider label from orderProviderLabel() is a lowercase key ("dekra" /
+// "tuvsud"). Render it as a proper, capitalized name in the timeline — mirrors
+// the B2C dashboard so admin and client show identical provider names.
+function providerDisplayLabel(label: string): string {
+  const key = label.toLowerCase();
+  if (key === "dekra") return "Dekra";
+  if (key === "tuvsud") return "TÜV SÜD";
+  return label;
 }
 
 // Helper to get the actual document type key for grouping (checks title first)
@@ -622,7 +632,7 @@ async function publishDocument(documentId: string) {
                     "
                   >
                     <p class="text-[16px] font-bold mb-1" style="color: #01b990">
-                      {{ entry.label }}
+                      {{ providerDisplayLabel(entry.label) }}
                     </p>
                     <p
                       v-if="entry.sublabel"

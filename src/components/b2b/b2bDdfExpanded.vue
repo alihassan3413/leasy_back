@@ -33,6 +33,15 @@ function documentTypeLabel(type?: string): string {
   return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
+// The provider label from the mapper is a lowercase key ("dekra" / "tuvsud").
+// Render it as a proper, capitalized name so B2B matches the B2C/admin timelines.
+function providerDisplayLabel(label: string): string {
+  const key = label.toLowerCase();
+  if (key === "dekra") return "Dekra";
+  if (key === "tuvsud") return "TÜV SÜD";
+  return label;
+}
+
 // Group documents by their document_type so each type renders under its own
 // heading. Order of groups follows first appearance in the documents list.
 const groupedDocuments = computed(() => {
@@ -339,7 +348,7 @@ watch(
                     "
                   >
                     <p class="text-[16px] font-bold mb-1" style="color: #01b990">
-                      {{ entry.label }}
+                      {{ providerDisplayLabel(entry.label) }}
                     </p>
                     <p
                       v-if="entry.sublabel"
@@ -722,7 +731,7 @@ watch(
               v-if="entry.label.toLowerCase() === 'dekra' || entry.label.toLowerCase() === 'tuvsud'"
             >
               <p class="text-[16px] font-bold mb-1" style="color: #01b990">
-                {{ entry.label }}
+                {{ providerDisplayLabel(entry.label) }}
               </p>
               <p
                 v-if="entry.sublabel"
