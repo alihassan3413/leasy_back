@@ -6,6 +6,7 @@ import AddVehicleModal from "../dashboard/modals/AddVehicleModal.vue";
 import UploadDocumentModal from "../dashboard/modals/UploadDocumentModal.vue";
 import { vehicleApi, customerOffersApi } from "@/api";
 import { getOrderStatusLabel } from "@/lib/status";
+import { getUpcomingSteps, timelineDotStyle, timelineLineStyle } from "@/lib/timeline";
 
 const props = defineProps<{ vehicle: Vehicle }>();
 
@@ -196,6 +197,26 @@ const latestOrder = computed(() => {
   return lastOrder;
 });
 
+// The rendered timeline: the historical entries from the mapper (all past
+// events, so `completed`) followed by the remaining planned steps
+// (Bestätigt → … → Abgeschlossen). The first upcoming step is flagged as the
+// immediate "Nächster Schritt". Upcoming steps carry no date yet.
+const timelineEntries = computed(() => {
+  const history = (props.vehicle.timeline || []).map((entry: any) => ({
+    ...entry,
+    completed: true,
+  }));
+  const upcoming = getUpcomingSteps(latestOrder.value?.order_status).map((step, idx) => ({
+    datetime: "",
+    label: step.label,
+    sublabel: "",
+    completed: false,
+    isFuture: true,
+    isNext: idx === 0,
+  }));
+  return [...history, ...upcoming];
+});
+
 // Inspection location (Besichtigungsort) comes from the latest order's request payload.
 const besichtigungsort = computed(
   () => latestOrder.value?.request_payload?.besichtigungsort ?? null,
@@ -286,35 +307,27 @@ watch(
             <!-- Timeline rows -->
             <div class="flex-1 px-6 pb-5">
               <div
-                v-for="(entry, i) in vehicle.timeline || []"
+                v-for="(entry, i) in timelineEntries"
                 :key="i"
                 class="relative flex items-start pb-6"
               >
                 <!-- Vertical line -->
                 <div
-                  v-if="i < (vehicle.timeline || []).length - 1"
+                  v-if="i < timelineEntries.length - 1"
                   class="absolute left-2 top-5 w-0.5 h-full"
-                  :style="
-                    i >= (vehicle.timeline || []).length - 1
-                      ? 'background:#01B990'
-                      : 'background:#B7C2C2'
-                  "
+                  :style="timelineLineStyle(entry)"
                 />
 
                 <!-- Dot -->
                 <div
-                  class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
-                  :style="
-                    i >= (vehicle.timeline || []).length - 1
-                      ? 'background:#01B990'
-                      : 'background:#B7C2C2'
-                  "
+                  class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1 border-2"
+                  :style="timelineDotStyle(entry)"
                 />
 
                 <!-- Content -->
                 <div class="min-w-0 flex-1 pl-5">
                   <!-- Date/time -->
-                  <p class="text-[14px] text-[#2e3e3f] font-medium mb-1">
+                  <p v-if="entry.datetime" class="text-[14px] text-[#2e3e3f] font-medium mb-1">
                     {{ entry.datetime }}
                   </p>
 
@@ -336,9 +349,19 @@ watch(
                     </p>
                   </template>
                   <template v-else>
-                    <p class="text-[14px] text-[#2e3e3f] font-normal">
+                    <p
+                      class="text-[14px] font-normal"
+                      :class="entry.isFuture ? 'text-[#8f9ba7]' : 'text-[#2e3e3f]'"
+                    >
                       {{ entry.label }}
                     </p>
+                    <span
+                      v-if="entry.isNext"
+                      class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                      style="background: rgba(1, 185, 144, 0.1); color: #01b990"
+                    >
+                      Nächster Schritt
+                    </span>
                     <p
                       v-if="entry.sublabel"
                       class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
@@ -686,25 +709,21 @@ watch(
       <!-- Timeline rows -->
       <div class="flex-1 px-6 pb-5">
         <div
-          v-for="(entry, i) in vehicle.timeline || []"
+          v-for="(entry, i) in timelineEntries"
           :key="i"
           class="relative flex items-start pb-6"
         >
           <div
-            v-if="i < (vehicle.timeline || []).length - 1"
+            v-if="i < timelineEntries.length - 1"
             class="absolute left-2 top-5 w-0.5 h-full"
-            :style="
-              i >= (vehicle.timeline || []).length - 1 ? 'background:#01B990' : 'background:#B7C2C2'
-            "
+            :style="timelineLineStyle(entry)"
           />
           <div
-            class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
-            :style="
-              i >= (vehicle.timeline || []).length - 1 ? 'background:#01B990' : 'background:#B7C2C2'
-            "
+            class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1 border-2"
+            :style="timelineDotStyle(entry)"
           />
           <div class="min-w-0 flex-1 pl-5">
-            <p class="text-[14px] text-[#2e3e3f] font-medium mb-1">
+            <p v-if="entry.datetime" class="text-[14px] text-[#2e3e3f] font-medium mb-1">
               {{ entry.datetime }}
             </p>
             <template
@@ -721,9 +740,19 @@ watch(
               </p>
             </template>
             <template v-else>
-              <p class="text-[14px] text-[#2e3e3f] font-normal">
+              <p
+                class="text-[14px] font-normal"
+                :class="entry.isFuture ? 'text-[#8f9ba7]' : 'text-[#2e3e3f]'"
+              >
                 {{ entry.label }}
               </p>
+              <span
+                v-if="entry.isNext"
+                class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                style="background: rgba(1, 185, 144, 0.1); color: #01b990"
+              >
+                Nächster Schritt
+              </span>
               <p
                 v-if="entry.sublabel"
                 class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"

@@ -10,6 +10,7 @@ import { useB2BVehicleStore } from "@/stores/b2bVehicle.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { getOrderStatusLabel } from "@/lib/status";
 import { orderProviderLabel } from "@/lib/provider";
+import { getUpcomingSteps, timelineDotStyle, timelineLineStyle } from "@/lib/timeline";
 
 const props = defineProps<{ vehicle: Vehicle }>();
 
@@ -313,10 +314,23 @@ const timelineData = computed(() => {
     itemsWithDates.sort((a, b) => a.date.getTime() - b.date.getTime());
 
     // Build final timeline with status first, then sorted items
-    const timeline = [statusEntry];
+    const timeline: Array<Record<string, any>> = [statusEntry];
     itemsWithDates.forEach((item) => {
       const { date, ...timelineItem } = item;
       timeline.push(timelineItem);
+    });
+
+    // Append the remaining planned steps (Bestätigt → … → Abgeschlossen) so the
+    // user sees what's still coming. These have no date yet; the first one is
+    // flagged as the immediate "Nächster Schritt".
+    getUpcomingSteps(firstOrder.order_status).forEach((step, idx) => {
+      timeline.push({
+        datetime: "",
+        label: step.label,
+        completed: false,
+        isFuture: true,
+        isNext: idx === 0,
+      });
     });
 
     return timeline;
@@ -536,19 +550,19 @@ watch(
                 <div
                   v-if="i < timelineData.slice(1).length - 1"
                   class="absolute left-2 top-5 w-0.5 h-full"
-                  :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
+                  :style="timelineLineStyle(entry)"
                 />
 
                 <!-- Dot -->
                 <div
-                  class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
-                  :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
+                  class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1 border-2"
+                  :style="timelineDotStyle(entry)"
                 />
 
                 <!-- Content -->
                 <div class="min-w-0 flex-1 pl-5">
                   <!-- Date/time -->
-                  <p class="text-[14px] text-[#2e3e3f] font-medium mb-1">
+                  <p v-if="entry.datetime" class="text-[14px] text-[#2e3e3f] font-medium mb-1">
                     {{ entry.datetime.replace("\n", " - ") }}
                   </p>
 
@@ -572,9 +586,19 @@ watch(
                   <template v-else>
                     <div class="flex items-center justify-between">
                       <div>
-                        <p class="text-[14px] text-[#2e3e3f] font-normal">
+                        <p
+                          class="text-[14px] font-normal"
+                          :class="entry.isFuture ? 'text-[#8f9ba7]' : 'text-[#2e3e3f]'"
+                        >
                           {{ entry.label }}
                         </p>
+                        <span
+                          v-if="entry.isNext"
+                          class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                          style="background: rgba(1, 185, 144, 0.1); color: #01b990"
+                        >
+                          Nächster Schritt
+                        </span>
                         <p
                           v-if="entry.sublabel"
                           class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
@@ -934,19 +958,19 @@ watch(
           <div
             v-if="i < timelineData.slice(1).length - 1"
             class="absolute left-2 top-5 w-0.5 h-full"
-            :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
+            :style="timelineLineStyle(entry)"
           />
 
           <!-- Dot -->
           <div
-            class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1"
-            :style="entry.completed ? 'background:#01B990' : 'background:#B7C2C2'"
+            class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1 border-2"
+            :style="timelineDotStyle(entry)"
           />
 
           <!-- Content -->
           <div class="min-w-0 flex-1 pl-5">
             <!-- Date/time -->
-            <p class="text-[14px] text-[#2e3e3f] font-medium mb-1">
+            <p v-if="entry.datetime" class="text-[14px] text-[#2e3e3f] font-medium mb-1">
               {{ entry.datetime.replace("\n", " - ") }}
             </p>
 
@@ -967,9 +991,19 @@ watch(
             <template v-else>
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-[14px] text-[#2e3e3f] font-normal">
+                  <p
+                    class="text-[14px] font-normal"
+                    :class="entry.isFuture ? 'text-[#8f9ba7]' : 'text-[#2e3e3f]'"
+                  >
                     {{ entry.label }}
                   </p>
+                  <span
+                    v-if="entry.isNext"
+                    class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                    style="background: rgba(1, 185, 144, 0.1); color: #01b990"
+                  >
+                    Nächster Schritt
+                  </span>
                   <p
                     v-if="entry.sublabel"
                     class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
