@@ -272,15 +272,15 @@ watch(
   <!-- Desktop: table-row layout -->
   <TableRow class="border-0 hover:bg-transparent hidden md:table-row">
     <TableCell colspan="8" class="max-w-0 p-0 overflow-x-auto whitespace-normal">
-      <!-- Main container with 3 columns -->
-      <div class="flex gap-4 bg-[#EFEFEF] p-4" style="min-width: max-content">
-        <!-- Column 1: Timeline + Vehicle Docs + Return Docs -->
-        <div class="flex flex-col gap-4 2xl:flex-row w-[320px] 2xl:w-full">
-          <!-- Timeline Card -->
-          <div
-            class="flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[280px] max-w-[280px]"
-            style="border-color: #ececec"
-          >
+      <!-- Main container: responsive masonry — cards pack into columns and fill vertical gaps -->
+      <div
+        class="columns-1 md:columns-2 xl:columns-4 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
+      >
+        <!-- Timeline Card -->
+        <div
+          class="flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
+          style="border-color: #ececec"
+        >
             <div class="px-6 py-5 flex flex-col gap-3">
               <div class="flex items-center justify-between w-full">
                 <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
@@ -375,9 +375,9 @@ watch(
           </div>
 
           <!-- Vehicle Docs Card -->
-          <div class="flex flex-col gap-4 2xl:min-w-[350px] max-w-[350px]">
+          <div class="flex flex-col gap-4 w-full">
             <div
-              class="relative flex flex-col rounded-[16px] border bg-white 2xl:h-full"
+              class="relative flex flex-col rounded-[16px] border bg-white"
               style="border-color: #ececec"
             >
               <button
@@ -439,11 +439,8 @@ watch(
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Column 2: Angebote (Offers) -->
-        <div class="flex flex-col gap-4 shrink-0" style="width: 400px">
-          <div class="relative">
+        <!-- Angebote (Offers) -->
+        <div class="relative w-full">
             <div
               class="flex flex-col rounded-[16px] border bg-white"
               :style="
@@ -553,15 +550,11 @@ watch(
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Column 3: Besichtigungsort + Fahrzeug Daten -->
-        <div class="flex flex-col 2xl:flex-row gap-4 w-[325px] 2xl:w-full">
-          <!-- Besichtigungsort Card -->
-          <div
-            class="relative flex flex-col rounded-[24px] border bg-white p-8 min-w-[325px]"
-            style="border-color: #ececec"
-          >
+        <!-- Besichtigungsort Card -->
+        <div
+          class="relative flex flex-col rounded-[24px] border bg-white p-8 w-full"
+          style="border-color: #ececec"
+        >
             <div class="pb-6">
               <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
                 Besichtigungsort
@@ -631,7 +624,7 @@ watch(
 
           <!-- Fahrzeug Daten Card -->
           <div
-            class="relative flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[325px]"
+            class="relative flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
             style="border-color: #ececec"
           >
             <button
@@ -676,7 +669,6 @@ watch(
               </div>
             </div>
           </div>
-        </div>
       </div>
     </TableCell>
   </TableRow>

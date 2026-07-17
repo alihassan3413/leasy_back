@@ -572,15 +572,15 @@ async function publishDocument(documentId: string) {
 <template>
   <TableRow class="border-0 hover:bg-transparent">
     <TableCell colspan="8" class="max-w-0 p-0 overflow-visible">
-      <!-- Main container with 3 columns -->
-      <div class="flex gap-4 bg-[#EFEFEF] p-4" style="min-width: max-content">
-        <!-- Column 1: Timeline + Vehicle Docs + Return Docs -->
-        <div class="flex flex-col gap-4" style="width: 320px">
-          <!-- Timeline Card -->
-          <div
-            class="flex flex-col overflow-hidden rounded-3xl border bg-white"
-            style="border-color: #ececec"
-          >
+      <!-- Main container: responsive masonry — cards pack into columns and fill vertical gaps -->
+      <div
+        class="columns-1 md:columns-2 xl:columns-3 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
+      >
+        <!-- Timeline Card -->
+        <div
+          class="flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
+          style="border-color: #ececec"
+        >
             <div class="px-6 py-5">
               <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
                 {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
@@ -696,7 +696,7 @@ async function publishDocument(documentId: string) {
           </div>
 
           <!-- Fahrzeugdokumente Card -->
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-4 w-full">
             <div
               class="relative flex flex-col rounded-[16px] border bg-white"
               style="border-color: #ececec"
@@ -771,10 +771,8 @@ async function publishDocument(documentId: string) {
               </div>
             </div>
           </div>
-        </div>
-        <!-- Column 2: Angebote (Offers) -->
-        <div class="flex flex-col gap-4" style="width: 400px">
-          <div class="relative">
+        <!-- Angebote (Offers) -->
+        <div class="relative w-full">
             <div
               class="flex flex-col rounded-[16px] border bg-white overflow-visible"
               style="border-color: #ececec"
@@ -991,16 +989,11 @@ async function publishDocument(documentId: string) {
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Column 3: Vehicle Specs (Besichtigungsort is not returned to the admin
-             list endpoint, so that card is intentionally not shown here) -->
-        <div class="flex flex-col 2xl:flex-row gap-4 w-[325px] 2xl:w-full">
-          <!-- Vehicle Specs Card -->
-          <div
-            class="relative flex flex-col overflow-hidden rounded-3xl border bg-white min-w-[325px]"
-            style="border-color: #ececec"
-          >
+        <!-- Vehicle Specs Card (Besichtigungsort is not returned to the admin list endpoint) -->
+        <div
+          class="relative flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
+          style="border-color: #ececec"
+        >
             <button
               @click="editVehicleOpen = true"
               class="absolute right-6 top-6 transition-opacity hover:opacity-60"
@@ -1041,7 +1034,6 @@ async function publishDocument(documentId: string) {
               </div>
             </div>
           </div>
-        </div>
       </div>
     </TableCell>
   </TableRow>
