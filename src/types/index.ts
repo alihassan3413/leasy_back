@@ -241,6 +241,7 @@ export interface AdminVehicle {
       bewertung_id?: string | null;
     }>;
     report_documents?: ReportDocument[];
+    assessment_documents?: AssessmentDocument[];
   }>;
   order_history: AdminVehicleHistoryItem[];
   documents: unknown[];
@@ -280,6 +281,7 @@ export interface AdminOrder {
   b2b_id: string | null;
   company_name: string | null;
   confirmation_date: string | null;
+  assessment_documents?: AssessmentDocument[];
 }
 
 export interface AdminOrderListResponse {
@@ -318,6 +320,18 @@ export interface ReportDocument {
   s3_bucket: string;
   s3_key: string;
   s3_url?: string;
+}
+
+// Raw TÜV SÜD document pulled in by `POST /tim/appraisal/xml/sync/:appraisalNumber`.
+// Lives on the order until transferred into `report_documents` via
+// `POST /admin/vehicle/report/transfer` (see adminOrdersApi.transferAssessmentDocument).
+export interface AssessmentDocument {
+  id: number;
+  document_type?: string;
+  document_title?: string;
+  s3_url?: string;
+  published?: boolean;
+  created_at?: string;
 }
 
 export interface VehicleStatusResponse {
@@ -380,6 +394,7 @@ export interface VehicleStatusResponse {
       bewertung_id?: string | null;
     }>;
     report_documents: ReportDocument[];
+    assessment_documents?: AssessmentDocument[];
   }>;
 }
 

@@ -6,7 +6,7 @@ import { formatGermanDate } from "@/lib/formatting";
 import { orderStatusOptions, orderStatusFilterOptions, orderStatusLabels } from "@/lib/status";
 import { matchesSearch } from "@/lib/search";
 import type { AdminOrder, AdminOrderListResponse } from "@/types";
-import { toast } from "vue-sonner";
+import { toast } from "vue3-toastify";
 import AdminChangeOrderStatusModal from "@/components/admin/AdminChangeOrderStatusModal.vue";
 import AdminConfirmOrderModal from "@/components/admin/AdminConfirmOrderModal.vue";
 import AdminSearchInput from "@/components/admin/AdminSearchInput.vue";

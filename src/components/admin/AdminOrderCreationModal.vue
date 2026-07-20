@@ -2,7 +2,7 @@
 import { ref, watch, computed } from "vue";
 import axios from "axios";
 import { Icon } from "@iconify/vue";
-import { toast } from "vue-sonner";
+import { toast } from "vue3-toastify";
 import { vehicleApi } from "@/api";
 import type { Station } from "@/types";
 import type { AdminVehicle } from "@/types";

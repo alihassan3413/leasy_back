@@ -4,7 +4,7 @@ import { Icon } from "@iconify/vue";
 import type { AdminOrder } from "@/types";
 import { adminOrdersApi } from "@/api/modules/admin-orders.api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { toast } from "vue-sonner";
+import { toast } from "vue3-toastify";
 import { orderStatusLabels } from "@/lib/status";
 
 const props = defineProps<{

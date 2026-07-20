@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onUnmounted } from "vue";
 import { Icon } from "@iconify/vue";
-import { toast } from "vue-sonner";
+import { toast } from "vue3-toastify";
 import { vehicleApi } from "@/api";
 import type { Station } from "@/types";
 import type { Vehicle } from "../vehicle.types";

@@ -5,6 +5,19 @@ import type { AdminOrderListResponse } from "@/types";
 export type AdminOrderSortBy = "license_plate";
 export type SortOrder = "asc" | "desc";
 
+// Body for `POST /admin/vehicle/report/transfer` — copies a TÜV SÜD document
+// already synced into AWS (an `assessment_documents` entry from the order)
+// into the vehicle's regular report document repository.
+export interface TransferAssessmentDocumentPayload {
+  auftragsnummer: string;
+  vehicle_id: string;
+  document_type?: string;
+  document_title?: string;
+  source_s3_url: string;
+  published?: boolean;
+  source_assessment_document_id?: number;
+}
+
 // Builds the optional `&sort_by=…&sort_order=…` suffix. Sorting is handled by
 // the backend; omitting both params falls back to the API's default order.
 function sortParams(sort_by?: AdminOrderSortBy, sort_order?: SortOrder): string {
@@ -76,5 +89,11 @@ export const adminOrdersApi = {
   // `response_body` value from the order listing. Admin-only.
   syncAppraisalXml(appraisalNumber: number | string): Promise<unknown> {
     return post(`/tim/appraisal/xml/sync/${encodeURIComponent(String(appraisalNumber))}`);
+  },
+
+  // Copies a TÜV SÜD document (an `assessment_documents` entry produced by
+  // syncAppraisalXml) into the vehicle's regular report document repository.
+  transferAssessmentDocument(payload: TransferAssessmentDocumentPayload): Promise<unknown> {
+    return post(`/admin/vehicle/report/transfer`, payload);
   },
 };

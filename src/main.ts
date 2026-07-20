@@ -5,6 +5,7 @@ import router from "./router";
 import App from "./App.vue";
 import { useAuthStore } from "@/stores/auth.store";
 import "./style.css";
+import "vue3-toastify/dist/index.css";
 
 // ── Bootstrap ──────────────────────────────────────────────────────────────
 // Pinia must be created and installed before any store is accessed,

@@ -205,8 +205,6 @@ const APPRAISAL_SYNC_STATUSES = new Set([
   "workshop",
   "reinspection",
   "reworkshop",
-  "delivered",
-  "completed",
 ]);
 
 // Remember the last order/appraisal we synced so re-renders don't re-fire it.
@@ -249,19 +247,105 @@ async function maybeSyncAppraisal() {
     return;
   }
 
-  const key = `${order.auftragsnummer || order.id}:${appraisalNumber}`;
-  if (key === lastAppraisalSyncKey) return;
-  lastAppraisalSyncKey = key;
+  // Once the appraisal has already produced assessment documents, don't keep
+  // hitting the third-party sync endpoint automatically on every view — an
+  // admin can force a re-sync manually from the vehicle list's 3-dot menu.
+  const alreadyHasAssessmentDocs = Array.isArray(order.assessment_documents)
+    && order.assessment_documents.length > 0;
 
-  try {
-    await adminOrdersApi.syncAppraisalXml(appraisalNumber);
-    // Reflect any freshly synced appraisal document/status in the UI.
+  if (!alreadyHasAssessmentDocs) {
+    const key = `${order.auftragsnummer || order.id}:${appraisalNumber}`;
+    if (key !== lastAppraisalSyncKey) {
+      lastAppraisalSyncKey = key;
+      try {
+        await adminOrdersApi.syncAppraisalXml(appraisalNumber);
+        // Reflect any freshly synced appraisal document/status in the UI.
+        await fetchVehicleDetail();
+        emit("refreshDocs");
+      } catch (err) {
+        console.error("Failed to sync TÜV SÜD appraisal XML:", err);
+        lastAppraisalSyncKey = ""; // allow a retry next time the view opens
+        return;
+      }
+    }
+  }
+
+  // Transfer any assessment documents (freshly synced or already present)
+  // into the vehicle's regular report documents.
+  await maybeTransferAssessmentDocuments(order.auftragsnummer);
+}
+
+// --- TÜV SÜD assessment document transfer -----------------------------------
+// `assessment_documents` on the order are raw TÜV SÜD documents pulled in by
+// the appraisal sync above. They only become "real" vehicle report documents
+// (downloadable/publishable like any other) once transferred via
+// POST /admin/vehicle/report/transfer. We do this automatically, once per
+// document, right after a sync that produced any.
+const transferredAssessmentDocIds = ref<Set<string>>(new Set());
+const transferringAssessmentDocIds = ref<Set<string>>(new Set());
+
+async function maybeTransferAssessmentDocuments(auftragsnummer: string) {
+  const orders = detailedVehicle.value?.orders ?? props.vehicle.orders ?? [];
+  const order: any = orders.find((o: any) => o.auftragsnummer === auftragsnummer);
+  const assessmentDocs: any[] = order?.assessment_documents ?? [];
+  if (!assessmentDocs.length) return;
+
+  const vehicleId = props.vehicle.vehicle_id;
+  let transferredAny = false;
+
+  for (const doc of assessmentDocs) {
+    const docId = doc?.id ?? doc?.source_assessment_document_id;
+    const sourceUrl = doc?.s3_url ?? doc?.source_s3_url ?? doc?.url;
+    if (docId == null) continue;
+
+    const key = `${auftragsnummer}:${docId}`;
+    if (transferredAssessmentDocIds.value.has(key)) continue;
+    if (!sourceUrl) {
+      console.warn("[assessment-transfer] skipped, no source URL:", doc);
+      continue;
+    }
+
+    transferringAssessmentDocIds.value.add(key);
+    try {
+      await adminOrdersApi.transferAssessmentDocument({
+        auftragsnummer,
+        vehicle_id: vehicleId,
+        document_type: doc.document_type,
+        document_title: doc.document_title,
+        source_s3_url: sourceUrl,
+        // Always transfer as unpublished — the admin publishes it explicitly
+        // afterwards via the same "Publish" action used for other documents.
+        published: false,
+        source_assessment_document_id: docId,
+      });
+      transferredAssessmentDocIds.value.add(key);
+      transferredAny = true;
+    } catch (err) {
+      console.error("Failed to transfer TÜV SÜD assessment document:", doc, err);
+    } finally {
+      transferringAssessmentDocIds.value.delete(key);
+    }
+  }
+
+  if (transferredAny) {
     await fetchVehicleDetail();
     emit("refreshDocs");
-  } catch (err) {
-    console.error("Failed to sync TÜV SÜD appraisal XML:", err);
-    lastAppraisalSyncKey = ""; // allow a retry next time the view opens
   }
+}
+
+// TÜV SÜD assessment documents for the current (tuvsud) order — rendered in
+// their own "TÜV SÜD Dokumente" section, separate from Fahrzeugdokumente.
+const assessmentDocuments = computed(() => {
+  const orders = detailedVehicle.value?.orders ?? props.vehicle.orders ?? [];
+  const order: any =
+    orders.find((o: any) => Array.isArray(o?.assessment_documents) && o.assessment_documents.length) ??
+    orders.find((o: any) => orderProviderLabel(o) === "tuvsud");
+  return (order?.assessment_documents ?? []) as any[];
+});
+
+function assessmentDocKey(auftragsnummer: string | undefined, doc: any): string {
+  const docId = doc?.id ?? doc?.source_assessment_document_id;
+  return `${auftragsnummer ?? ""}:${docId}`;
 }
 
 // Computed properties with fallback to mock data
@@ -777,6 +861,58 @@ async function publishDocument(documentId: string) {
                 </div>
                 <div v-if="groupedDocuments.length === 0" class="text-[14px] text-[#b7c2c2]">
                   Keine Dokumente gefunden
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TÜV SÜD Dokumente Card -->
+          <div v-if="assessmentDocuments.length" class="flex flex-col gap-4 w-full">
+            <div
+              class="relative flex flex-col rounded-[16px] border bg-white"
+              style="border-color: #ececec"
+            >
+              <div class="p-6">
+                <p class="text-[16px] font-semibold uppercase text-[#000000]">TÜV SÜD Dokumente</p>
+                <div class="h-px bg-gray-200 mt-2"></div>
+              </div>
+
+              <div class="flex flex-col gap-3 p-6 pt-0">
+                <div
+                  v-for="doc in assessmentDocuments"
+                  :key="assessmentDocKey(firstOrder?.auftragsnummer, doc)"
+                  class="flex items-center justify-between gap-3"
+                >
+                  <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <span
+                      class="text-[14px] font-normal text-[#475569] truncate"
+                      :title="doc.document_title || documentTypeLabel(doc.document_type)"
+                    >
+                      {{ doc.document_title || documentTypeLabel(doc.document_type) }}
+                    </span>
+                    <span
+                      v-if="transferredAssessmentDocIds.has(assessmentDocKey(firstOrder?.auftragsnummer, doc))"
+                      class="text-[10px] font-bold text-[#01b990] uppercase"
+                    >
+                      Übertragen
+                    </span>
+                    <span
+                      v-else-if="transferringAssessmentDocIds.has(assessmentDocKey(firstOrder?.auftragsnummer, doc))"
+                      class="text-[10px] font-bold text-[#b7c2c2] uppercase"
+                    >
+                      Wird übertragen…
+                    </span>
+                  </div>
+                  <a
+                    v-if="doc.s3_url"
+                    :href="doc.s3_url"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                    title="Download"
+                  >
+                    <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
+                  </a>
                 </div>
               </div>
             </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { Icon } from "@iconify/vue";
-import { toast } from "vue-sonner";
+import { toast } from "vue3-toastify";
 import { vehicleApi } from "@/api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 

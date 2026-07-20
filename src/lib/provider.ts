@@ -10,5 +10,5 @@ export function orderProviderLabel(order: any): string {
   const name = (order?.request_payload?.besichtigungsort?.name ?? "").toLowerCase();
   if (name.includes("dekra")) return "dekra";
   if (name.includes("tüv") || name.includes("tuv")) return "tuvsud";
-  return (order?.leasyback_partner ?? "").toString();
+  return (order?.leasyback_partner ?? "").toString().trim().toLowerCase();
 }

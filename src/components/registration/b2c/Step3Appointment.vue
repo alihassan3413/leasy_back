@@ -2,7 +2,7 @@
 import { ref, watch, computed } from "vue";
 import { Icon } from "@iconify/vue";
 import { useField, useForm } from "vee-validate";
-import { toast } from "vue-sonner";
+import { toast } from "vue3-toastify";
 
 import Button from "@/components/ui/Button.vue";
 import AppModal from "@/components/ui/AppModal.vue";

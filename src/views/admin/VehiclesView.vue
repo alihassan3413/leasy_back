@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { useRoute } from "vue-router";
 import { Icon } from "@iconify/vue";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -8,6 +9,8 @@ import { adminVehiclesApi, vehicleApi, adminOrdersApi, adminOffersApi } from "@/
 import { formatGermanDate } from "@/lib/formatting";
 import { orderStatusOptions, orderStatusFilterOptions, orderStatusLabels } from "@/lib/status";
 import { matchesSearch } from "@/lib/search";
+import { orderProviderLabel } from "@/lib/provider";
+import { toast } from "vue3-toastify";
 import type { AdminVehicle, AdminOrder, AdminVehicleListResponse } from "@/types";
 import AdminOrderCreationModal from "@/components/admin/AdminOrderCreationModal.vue";
 import AdminVehicleOrderHistory from "@/components/admin/AdminVehicleOrderHistory.vue";
@@ -16,6 +19,8 @@ import AdminUploadReportModal from "@/components/admin/AdminUploadReportModal.vu
 import AdminUploadInvoiceModal from "@/components/admin/AdminUploadInvoiceModal.vue";
 import AdminCreateOfferModal from "@/components/admin/AdminCreateOfferModal.vue";
 import AdminSearchInput from "@/components/admin/AdminSearchInput.vue";
+
+const route = useRoute();
 
 // ── List state ────────────────────────────────────────────────────
 const userType = ref<"Firmenkunde" | "Privatkunde" | "all">("all");
@@ -54,6 +59,55 @@ async function toggleExpand(id: string) {
   }
 }
 
+// ── Deep link: jump straight to one order's expanded view ─────────
+// Order-notification emails link to
+// `/admin-panel/fahrzeuge?auftragsnummer=<Auftragsnummer>` (or
+// `?vehicleId=<vehicle id>`) so an admin clicking the email lands directly
+// on that order's accordion, already expanded, instead of the plain
+// vehicle list.
+const rowRefs = ref<Record<string, HTMLElement | null>>({});
+function setRowRef(id: string, el: unknown) {
+  rowRefs.value[id] = (el as HTMLElement) ?? null;
+}
+
+function findVehicleFromQuery(): AdminVehicle | null {
+  const vehicleId = typeof route.query.vehicleId === "string" ? route.query.vehicleId : null;
+  if (vehicleId) {
+    return allVehicles.value.find((v) => v.vehicle_id === vehicleId) ?? null;
+  }
+  const auftragsnummer =
+    typeof route.query.auftragsnummer === "string" ? route.query.auftragsnummer : null;
+  if (!auftragsnummer) return null;
+  return (
+    allVehicles.value.find(
+      (v) =>
+        v.current_auftragsnummer === auftragsnummer ||
+        (v.orders ?? []).some((o) => o.auftragsnummer === auftragsnummer) ||
+        (v.order_history ?? []).some((o) => o.auftragsnummer === auftragsnummer),
+    ) ?? null
+  );
+}
+
+async function openVehicleFromQuery() {
+  const vehicle = findVehicleFromQuery();
+  if (!vehicle) return;
+
+  // Clear filters so an active status/search filter can't hide the target
+  // vehicle, then jump pagination to whichever page it lands on.
+  statusFilter.value = "";
+  search.value = "";
+  await nextTick();
+  const index = filteredVehicles.value.findIndex((v) => v.vehicle_id === vehicle.vehicle_id);
+  if (index >= 0) page.value = Math.floor(index / limit.value) + 1;
+
+  if (expandedId.value !== vehicle.vehicle_id) {
+    await toggleExpand(vehicle.vehicle_id);
+  }
+
+  await nextTick();
+  rowRefs.value[vehicle.vehicle_id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 // Order creation modal
 const orderModalOpen = ref(false);
 const selectedVehicle = ref<AdminVehicle | null>(null);
@@ -70,6 +124,9 @@ const modalStatusOptions = orderStatusOptions;
 // Upload document modals
 const uploadReportOpen = ref(false);
 const uploadInvoiceOpen = ref(false);
+// Manual TÜV SÜD appraisal sync (3-dot menu) — tracks which vehicle is
+// currently syncing so its menu button can show a loading state.
+const syncingVehicleId = ref<string | null>(null);
 
 // An order is considered "already placed" once the vehicle has a current order.
 function hasActiveOrder(vehicle: AdminVehicle) {
@@ -184,6 +241,97 @@ async function openCreateOffer(vehicle: AdminVehicle) {
 
 function onOrderSuccess() {
   loadVehicles();
+}
+
+// The order carrying the appraisal number (`response_body`) the TÜV SÜD sync
+// needs — mirrors the candidate-order logic in AdminVehicleOrderHistory.
+function appraisalOrderForVehicle(vehicle: { orders?: any[] }): any {
+  return (
+    (vehicle.orders ?? []).find((o: any) => o?.response_body != null) ??
+    vehicle.orders?.[0] ??
+    null
+  );
+}
+
+// Manual, on-demand version of the TÜV SÜD appraisal sync + document
+// transfer — triggered from the vehicle row's 3-dot menu regardless of the
+// order's status (the automatic sync only fires for eligible statuses and
+// skips once assessment_documents are already present).
+async function syncTuvSudAppraisal(vehicle: AdminVehicle) {
+  openMenuId.value = null;
+  syncingVehicleId.value = vehicle.vehicle_id;
+
+  let order: any;
+  try {
+    // The plain vehicle list (`allVehicles`) omits `request_payload.besichtigungsort`,
+    // which is what reliably tells TÜV SÜD apart from DEKRA orders — without it
+    // the check falls back to the unreliable `leasyback_partner` field and can
+    // wrongly reject real TÜV SÜD orders. Fetch the fuller vehicle-status list
+    // (same source the expanded order-history view uses) for an accurate check.
+    const statusList = await vehicleApi.getVehicleStatus();
+    const detailedVehicle = (statusList || []).find((v) => v.vehicle_id === vehicle.vehicle_id);
+    order = appraisalOrderForVehicle(detailedVehicle ?? vehicle);
+  } catch (err) {
+    console.error("Failed to load vehicle detail for TÜV SÜD sync check:", err);
+    order = appraisalOrderForVehicle(vehicle);
+  }
+
+  if (!order || orderProviderLabel(order) !== "tuvsud") {
+    toast.error("Synchronisierung nicht möglich: Dies ist kein TÜV SÜD Auftrag.");
+    syncingVehicleId.value = null;
+    return;
+  }
+  const appraisalNumber = order.response_body;
+  if (appraisalNumber === undefined || appraisalNumber === null || appraisalNumber === "") {
+    toast.error(
+      "Synchronisierung nicht möglich: Für diesen Auftrag liegt keine Gutachtennummer vor.",
+    );
+    syncingVehicleId.value = null;
+    return;
+  }
+
+  try {
+    await adminOrdersApi.syncAppraisalXml(appraisalNumber);
+    await loadVehicles();
+
+    const refreshedVehicle = allVehicles.value.find((v) => v.vehicle_id === vehicle.vehicle_id);
+    const refreshedOrder = refreshedVehicle ? appraisalOrderForVehicle(refreshedVehicle) : null;
+    const assessmentDocs: any[] = refreshedOrder?.assessment_documents ?? [];
+
+    let transferredAny = false;
+    for (const doc of assessmentDocs) {
+      const docId = doc?.id ?? doc?.source_assessment_document_id;
+      const sourceUrl = doc?.s3_url ?? doc?.source_s3_url ?? doc?.url;
+      if (docId == null || !sourceUrl) continue;
+      try {
+        await adminOrdersApi.transferAssessmentDocument({
+          auftragsnummer: refreshedOrder.auftragsnummer,
+          vehicle_id: vehicle.vehicle_id,
+          document_type: doc.document_type,
+          document_title: doc.document_title,
+          source_s3_url: sourceUrl,
+          // Always transfer as unpublished — the admin publishes it explicitly
+          // afterwards via the same "Publish" action used for other documents.
+          published: false,
+          source_assessment_document_id: docId,
+        });
+        transferredAny = true;
+      } catch (err) {
+        console.error("Failed to transfer TÜV SÜD assessment document:", doc, err);
+      }
+    }
+
+    if (transferredAny) {
+      await loadVehicles();
+      await loadDocuments(vehicle.vehicle_id);
+    }
+    toast.success("TÜV SÜD Synchronisierung abgeschlossen.");
+  } catch (err) {
+    console.error("Failed to sync TÜV SÜD appraisal XML:", err);
+    toast.error("Synchronisierung fehlgeschlagen. Bitte später erneut versuchen.");
+  } finally {
+    syncingVehicleId.value = null;
+  }
 }
 
 async function refreshDocuments(vehicleId: string) {
@@ -383,9 +531,10 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   document.addEventListener("click", handleClickOutside);
-  void loadVehicles();
+  await loadVehicles();
+  await openVehicleFromQuery();
 });
 
 onBeforeUnmount(() => {
@@ -561,6 +710,7 @@ onBeforeUnmount(() => {
             <!-- Rows — each row + optional accordion for order history -->
             <template v-else v-for="v in pagedVehicles" :key="v.vehicle_id">
               <tr
+                :ref="(el) => setRowRef(v.vehicle_id, el)"
                 class="group cursor-pointer border-b border-[#eef3f2] hover:bg-[#f6f9f8] transition-colors"
                 :class="expandedId === v.vehicle_id ? 'bg-[#f6f9f8]' : ''"
                 @click="toggleExpand(v.vehicle_id)"
@@ -752,6 +902,24 @@ onBeforeUnmount(() => {
                               <path d="M6 16h12" />
                             </svg>
                             Rechnung hochladen
+                          </span>
+                        </button>
+                        <button
+                          class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors disabled:opacity-50 disabled:cursor-wait"
+                          :disabled="syncingVehicleId === v.vehicle_id"
+                          @click.stop="syncTuvSudAppraisal(v)"
+                        >
+                          <span class="flex items-center gap-2">
+                            <Icon
+                              icon="mdi:sync"
+                              class="size-4"
+                              :class="{ 'animate-spin': syncingVehicleId === v.vehicle_id }"
+                            />
+                            {{
+                              syncingVehicleId === v.vehicle_id
+                                ? "Dokumente werden abgerufen…"
+                                : "Dokumente abrufen"
+                            }}
                           </span>
                         </button>
                         <button
