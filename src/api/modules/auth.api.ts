@@ -56,7 +56,11 @@ export const authApi = {
     );
   },
 
-  logout(refreshToken: string) {
-    return post<void, { refreshToken: string }>("/auth/logout", { refreshToken });
+  // No refresh token exists in this app today (login only ever returns a
+  // single access token — see RawLoginResponse) — the session is
+  // identified by the Authorization header the request interceptor already
+  // attaches, so nothing needs to go in the body.
+  logout() {
+    return post<void, Record<string, never>>("/auth/logout", {});
   },
 };

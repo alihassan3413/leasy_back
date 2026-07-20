@@ -34,8 +34,9 @@ export function useAuth() {
   }
 
   async function logout(): Promise<void> {
-    await store.logout();
-    await router.push({ name: "login" });
+    // Navigation to /login now happens inside <LogoutOverlay> once its
+    // animation finishes, not here.
+    await store.logout("manual");
   }
 
   return {

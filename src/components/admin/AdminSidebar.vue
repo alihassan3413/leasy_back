@@ -85,8 +85,9 @@ function navigateTo(name: string) {
 }
 async function logout() {
   emit("close");
-  await auth.logout();
-  void router.push({ name: "login" });
+  // Navigation to /login now happens inside <LogoutOverlay> once its
+  // animation finishes, not here.
+  await auth.logout("manual");
 }
 </script>
 

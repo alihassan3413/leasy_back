@@ -51,6 +51,8 @@ declare module 'vue' {
     AlertDialogTrigger: typeof import('./../components/ui/alert-dialog/AlertDialogTrigger.vue')['default']
     AppMapPicker: typeof import('./../components/ui/AppMapPicker.vue')['default']
     AppModal: typeof import('./../components/ui/AppModal.vue')['default']
+    AuthInactivityWarningModal: typeof import('./../components/auth/InactivityWarningModal.vue')['default']
+    AuthLogoutOverlay: typeof import('./../components/auth/LogoutOverlay.vue')['default']
     Avatar: typeof import('./../components/ui/avatar/Avatar.vue')['default']
     AvatarFallback: typeof import('./../components/ui/avatar/AvatarFallback.vue')['default']
     AvatarImage: typeof import('./../components/ui/avatar/AvatarImage.vue')['default']

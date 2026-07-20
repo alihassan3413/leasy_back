@@ -6,6 +6,11 @@ import { normalizeApiError, type ApiError } from "@/api/client/error";
 import type { AuthResponse, ChangePasswordPayload, LoginPayload, RegisterPayload } from "@/types";
 
 type AuthStatus = "idle" | "loading" | "success" | "error";
+export type LogoutReason = "manual" | "inactivity" | "session-expired";
+
+// Cross-tab sync keys (see useInactivityLogout) — only timestamps live here,
+// never token/user data.
+export const LOGOUT_EVENT_KEY = "leasyback_logout_event";
 
 export const useAuthStore = defineStore(
   "auth",
@@ -15,6 +20,14 @@ export const useAuthStore = defineStore(
 
     const status = ref<AuthStatus>("idle");
     const error = ref("");
+
+    // Logout flow state — deliberately NOT persisted (see `persist.pick`
+    // below): a fresh page load always starts with the overlay hidden.
+    const isLoggingOut = ref(false);
+    const logoutOverlay = ref<{ visible: boolean; reason: LogoutReason }>({
+      visible: false,
+      reason: "manual",
+    });
 
     const isAuthenticated = computed(() => Boolean(accessToken.value));
     const userRole = computed(() => user.value?.role);
@@ -107,14 +120,55 @@ export const useAuthStore = defineStore(
       }
     }
 
-    function logout(): void {
+    // Single logout entry point for every trigger (manual click, inactivity
+    // timeout, warning modal's "Jetzt abmelden", 401/419 interceptor, and a
+    // foreign tab's logout event) — no parallel logout logic anywhere else.
+    async function logout(reason: LogoutReason = "manual"): Promise<void> {
+      // Dedupe: a second trigger firing while we're already tearing down
+      // (e.g. several requests 401 at once) must not re-run this or spam
+      // the backend logout call.
+      if (isLoggingOut.value) return;
+      isLoggingOut.value = true;
+      logoutOverlay.value = { visible: true, reason };
+
+      // Best-effort: tell the backend to end the session. Failures here
+      // (network error, already-expired token, endpoint unavailable) must
+      // never block the local logout — the user still gets logged out of
+      // this browser regardless.
+      try {
+        await authApi.logout();
+      } catch {
+        // Intentionally swallowed — see comment above.
+      }
+
+      // Let other tabs know this session ended.
+      try {
+        localStorage.setItem(LOGOUT_EVENT_KEY, String(Date.now()));
+      } catch {
+        // localStorage can throw in private-browsing/storage-restricted
+        // contexts — cross-tab sync is a nice-to-have, not load-bearing.
+      }
+
       resetState();
+      // `isLoggingOut` stays true (and the overlay stays visible) until
+      // `finishLogoutOverlay()` — called by <LogoutOverlay> once its
+      // animation finishes and it has navigated to the login page. This
+      // keeps the dedupe guard active for the whole visible-overlay window,
+      // not just the network round-trip.
+    }
+
+    function finishLogoutOverlay(): void {
+      logoutOverlay.value = { ...logoutOverlay.value, visible: false };
+      isLoggingOut.value = false;
     }
 
     function initAuthClient(): void {
       configureClientAuth({
         getAccessToken: () => accessToken.value,
-        onAuthFailure: resetState,
+        isLoggingOut: () => isLoggingOut.value,
+        onAuthFailure: () => {
+          void logout("session-expired");
+        },
       });
     }
 
@@ -125,10 +179,13 @@ export const useAuthStore = defineStore(
       status,
       error,
       isAuthenticated,
+      isLoggingOut,
+      logoutOverlay,
       login,
       register,
       changePassword,
       logout,
+      finishLogoutOverlay,
       clearError,
       initAuthClient,
       resetState,

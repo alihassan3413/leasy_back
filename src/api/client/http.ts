@@ -17,6 +17,13 @@ const http: AxiosInstance = axios.create({
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (config.skipAuth) return config;
 
+  // A logout is already in flight (overlay showing) — don't let the
+  // dashboard's own polling/refresh calls pile up more doomed requests
+  // (and more 401s) behind it.
+  if (authConfig().isLoggingOut()) {
+    return Promise.reject(new Error("Request cancelled: user is logging out."));
+  }
+
   const token = authConfig().getAccessToken();
 
   if (token) {
@@ -33,7 +40,8 @@ http.interceptors.response.use(
       throw error;
     }
 
-    if (error.response?.status === 401 && !error.config?.skipAuth) {
+    const status = error.response?.status;
+    if ((status === 401 || status === 419) && !error.config?.skipAuth) {
       authConfig().onAuthFailure();
     }
 
