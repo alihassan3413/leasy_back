@@ -90,7 +90,8 @@ export interface ChangePasswordResponse {
 
 export interface AdminSummaryResponse {
   total_b2c_customers: number;
-  total_b2b_customers: number;
+  total_b2b_users: number;
+  total_b2b_companies: number;
   total_vehicles: number;
   total_orders: number;
   active_orders: number;

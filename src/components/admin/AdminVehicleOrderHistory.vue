@@ -691,7 +691,7 @@ async function publishDocument(documentId: string) {
     <TableCell colspan="8" class="max-w-0 p-0 overflow-visible">
       <!-- Main container: responsive masonry — cards pack into columns and fill vertical gaps -->
       <div
-        class="columns-1 md:columns-2 xl:columns-3 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
+        class="columns-1 md:columns-2 2xl:columns-3 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
       >
         <!-- Timeline Card -->
         <div
@@ -1024,7 +1024,7 @@ async function publishDocument(documentId: string) {
 
                   <!-- Content -->
                   <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
-                    <div class="flex justify-between items-start gap-3">
+                    <div class="flex justify-between items-center gap-3">
                       <p
                         class="text-[14px] font-bold flex-1 min-w-0 truncate"
                         :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
@@ -1052,7 +1052,7 @@ async function publishDocument(documentId: string) {
                   </div>
 
                   <!-- 3-dot menu - only show if no offer is selected OR this is the selected offer -->
-                  <div class="relative" v-if="!acceptedOffer || offer.accepted">
+                  <div class="relative shrink-0" v-if="!acceptedOffer || offer.accepted">
                     <button
                       @click.stop="openOfferMenu = openOfferMenu === offer.id ? null : offer.id"
                       class="text-[#B7C2C2] hover:text-[#2e3e3f] transition-colors"
@@ -1138,7 +1138,7 @@ async function publishDocument(documentId: string) {
                   class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
                   style="background: #e0e0e0; color: #9e9e9e"
                 >
-                  Accept offer (Payment required)
+                  Angebot annehmen (kostenpflichtig)
                 </button>
               </div>
 
@@ -1171,7 +1171,7 @@ async function publishDocument(documentId: string) {
 
             <template v-if="besichtigungsort">
               <!-- Name row -->
-              <div class="flex items-center gap-5 pb-6">
+              <div class="flex items-center gap-5 pb-6 min-w-0">
                 <div
                   class="flex size-[56px] shrink-0 items-center justify-center rounded-full"
                   style="background-color: rgba(1, 185, 144, 0.1)"
@@ -1179,7 +1179,7 @@ async function publishDocument(documentId: string) {
                   <Icon icon="mdi:office-building-outline" class="size-7" style="color: #01b990" />
                 </div>
                 <p
-                  class="text-[18px] font-bold min-w-0 flex-1 wrap-break-word"
+                  class="text-[18px] font-bold min-w-0 flex-1 wrap-anywhere"
                   style="color: #2e3e3f"
                 >
                   {{ besichtigungsort.name }}

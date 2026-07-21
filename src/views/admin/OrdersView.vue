@@ -61,7 +61,7 @@ const statusStyle: Record<string, { bg: string; fg: string; label: string }> = {
     bg: "rgba(234,88,12,0.1)",
     fg: "#c2410c",
   },
-  delivered: { label: "Geliefert", bg: "rgba(16,57,59,0.08)", fg: "#10393b" },
+  delivered: { label: "Geliefert", bg: "rgba(6,182,212,0.1)", fg: "#0e7490" },
   completed: {
     label: "Abgeschlossen",
     bg: "rgba(16,57,59,0.08)",
@@ -303,6 +303,11 @@ async function handleOrderConfirmed() {
             class="text-[11.5px] font-bold px-3 py-1.5 rounded-full bg-[#ef8450]/10 text-[#c0622e]"
           >
             {{ totalInspected }} Geprüft
+          </span>
+          <span
+            class="text-[11.5px] font-bold px-3 py-1.5 rounded-full bg-[#06b6d4]/10 text-[#0e7490]"
+          >
+            {{ totalDelivered }} Geliefert
           </span>
           <span
             class="text-[11.5px] font-bold px-3 py-1.5 rounded-full bg-[#10393b]/[0.08] text-[#10393b]"

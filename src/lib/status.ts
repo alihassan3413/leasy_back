@@ -97,6 +97,7 @@ const settableOrderStatuses = [
   "reinspection",
   "reworkshop",
   "delivered",
+  "completed",
   "discarded",
   "cancelled",
 ] as const;

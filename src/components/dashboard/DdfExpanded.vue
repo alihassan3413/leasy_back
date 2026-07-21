@@ -526,7 +526,7 @@ watch(
     <TableCell colspan="12" class="max-w-0 p-0 overflow-x-auto whitespace-normal">
       <!-- Main container: responsive masonry — cards pack into columns and fill vertical gaps -->
       <div
-        class="columns-1 md:columns-2 xl:columns-4 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
+        class="columns-1 md:columns-2 2xl:columns-4 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
       >
         <!-- Timeline Card -->
         <div

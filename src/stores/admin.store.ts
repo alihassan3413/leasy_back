@@ -31,10 +31,10 @@ export const useAdminStore = defineStore("admin", () => {
 
   // ── Computed KPI values from summary ───────────────────────────
   const totalCustomers = computed(
-    () => (summary.value?.total_b2c_customers ?? 0) + (summary.value?.total_b2b_customers ?? 0),
+    () => (summary.value?.total_b2c_customers ?? 0) + (summary.value?.total_b2b_companies ?? 0),
   );
   const totalB2C = computed(() => summary.value?.total_b2c_customers ?? 0);
-  const totalB2B = computed(() => summary.value?.total_b2b_customers ?? 0);
+  const totalB2B = computed(() => summary.value?.total_b2b_companies ?? 0);
   const totalVehicles = computed(() => summary.value?.total_vehicles ?? 0);
   const totalOrders = computed(() => summary.value?.total_orders ?? 0);
   const activeOrders = computed(() => summary.value?.active_orders ?? 0);

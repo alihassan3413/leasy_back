@@ -42,7 +42,7 @@ const sectionCards = computed(() => [
     id: "users",
     label: "Kunden / Benutzer",
     value: summary.value
-      ? summary.value.total_b2c_customers + summary.value.total_b2b_customers
+      ? summary.value.total_b2c_customers + summary.value.total_b2b_companies
       : 0,
     description: "Privat- und Firmenkunden",
   },
