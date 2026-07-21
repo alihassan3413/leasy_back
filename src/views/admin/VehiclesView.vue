@@ -18,6 +18,7 @@ import AdminChangeOrderStatusModal from "@/components/admin/AdminChangeOrderStat
 import AdminUploadReportModal from "@/components/admin/AdminUploadReportModal.vue";
 import AdminUploadInvoiceModal from "@/components/admin/AdminUploadInvoiceModal.vue";
 import AdminCreateOfferModal from "@/components/admin/AdminCreateOfferModal.vue";
+import AdminPullDocumentsModal from "@/components/admin/AdminPullDocumentsModal.vue";
 import AdminSearchInput from "@/components/admin/AdminSearchInput.vue";
 
 const route = useRoute();
@@ -127,6 +128,10 @@ const uploadInvoiceOpen = ref(false);
 // Manual TÜV SÜD appraisal sync (3-dot menu) — tracks which vehicle is
 // currently syncing so its menu button can show a loading state.
 const syncingVehicleId = ref<string | null>(null);
+// "Dokumente abrufen" confirmation popup — lets the admin optionally switch
+// to test mode and pick a mock Gutachtennummer before the sync is triggered.
+const pullDocumentsModalOpen = ref(false);
+const pullDocumentsVehicle = ref<AdminVehicle | null>(null);
 
 // An order is considered "already placed" once the vehicle has a current order.
 function hasActiveOrder(vehicle: AdminVehicle) {
@@ -253,11 +258,32 @@ function appraisalOrderForVehicle(vehicle: { orders?: any[] }): any {
   );
 }
 
+// Opens the "Dokumente abrufen" confirmation popup for a vehicle instead of
+// triggering the sync directly, so the admin can optionally switch to test
+// mode and pick a mock Gutachtennummer first.
+function openPullDocuments(vehicle: AdminVehicle) {
+  openMenuId.value = null;
+  pullDocumentsVehicle.value = vehicle;
+  pullDocumentsModalOpen.value = true;
+}
+
+async function onPullDocumentsConfirm(mockAppraisalNumber: string | null) {
+  const vehicle = pullDocumentsVehicle.value;
+  if (!vehicle) return;
+  pullDocumentsModalOpen.value = false;
+  await syncTuvSudAppraisal(vehicle, mockAppraisalNumber);
+}
+
 // Manual, on-demand version of the TÜV SÜD appraisal sync + document
 // transfer — triggered from the vehicle row's 3-dot menu regardless of the
 // order's status (the automatic sync only fires for eligible statuses and
 // skips once assessment_documents are already present).
-async function syncTuvSudAppraisal(vehicle: AdminVehicle) {
+//
+// `mockAppraisalNumber` comes from the "Dokumente abrufen" popup's test mode:
+// when set, the real-order/TÜV-SÜD validation is skipped and the sync is run
+// against that test Gutachtennummer instead, so the flow can be exercised
+// without a real completed TÜV SÜD order.
+async function syncTuvSudAppraisal(vehicle: AdminVehicle, mockAppraisalNumber: string | null = null) {
   openMenuId.value = null;
   syncingVehicleId.value = vehicle.vehicle_id;
 
@@ -276,18 +302,30 @@ async function syncTuvSudAppraisal(vehicle: AdminVehicle) {
     order = appraisalOrderForVehicle(vehicle);
   }
 
-  if (!order || orderProviderLabel(order) !== "tuvsud") {
-    toast.error("Synchronisierung nicht möglich: Dies ist kein TÜV SÜD Auftrag.");
-    syncingVehicleId.value = null;
-    return;
-  }
-  const appraisalNumber = order.response_body;
-  if (appraisalNumber === undefined || appraisalNumber === null || appraisalNumber === "") {
-    toast.error(
-      "Synchronisierung nicht möglich: Für diesen Auftrag liegt keine Gutachtennummer vor.",
-    );
-    syncingVehicleId.value = null;
-    return;
+  let appraisalNumber: string | number | null | undefined;
+  if (mockAppraisalNumber) {
+    // Test mode: skip the provider/appraisal-number checks entirely, but we
+    // still need an order to hang the auftragsnummer/transfer off of.
+    if (!order) {
+      toast.error("Kein Auftrag für dieses Fahrzeug gefunden.");
+      syncingVehicleId.value = null;
+      return;
+    }
+    appraisalNumber = mockAppraisalNumber;
+  } else {
+    if (!order || orderProviderLabel(order) !== "tuvsud") {
+      toast.error("Synchronisierung nicht möglich: Dies ist kein TÜV SÜD Auftrag.");
+      syncingVehicleId.value = null;
+      return;
+    }
+    appraisalNumber = order.response_body;
+    if (appraisalNumber === undefined || appraisalNumber === null || appraisalNumber === "") {
+      toast.error(
+        "Synchronisierung nicht möglich: Für diesen Auftrag liegt keine Gutachtennummer vor.",
+      );
+      syncingVehicleId.value = null;
+      return;
+    }
   }
 
   try {
@@ -907,7 +945,7 @@ onBeforeUnmount(() => {
                         <button
                           class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors disabled:opacity-50 disabled:cursor-wait"
                           :disabled="syncingVehicleId === v.vehicle_id"
-                          @click.stop="syncTuvSudAppraisal(v)"
+                          @click.stop="openPullDocuments(v)"
                         >
                           <span class="flex items-center gap-2">
                             <Icon
@@ -923,8 +961,19 @@ onBeforeUnmount(() => {
                           </span>
                         </button>
                         <button
-                          class="w-full text-left px-4 py-2 text-sm text-[#10393b] hover:bg-[#f6f9f8] transition-colors"
-                          @click.stop="openCreateOffer(v)"
+                          class="w-full text-left px-4 py-2 text-sm transition-colors"
+                          :class="
+                            hasActiveOrder(v)
+                              ? 'text-[#10393b] hover:bg-[#f6f9f8]'
+                              : 'text-[#B7C2C2] cursor-not-allowed'
+                          "
+                          :disabled="!hasActiveOrder(v)"
+                          :title="
+                            hasActiveOrder(v)
+                              ? ''
+                              : 'Für dieses Fahrzeug wurde noch kein Auftrag erstellt'
+                          "
+                          @click.stop="hasActiveOrder(v) && openCreateOffer(v)"
                         >
                           <span class="flex items-center gap-2">
                             <svg
@@ -1103,6 +1152,13 @@ onBeforeUnmount(() => {
       :vehicle="selectedVehicle"
       @update:open="offerModalOpen = $event"
       @success="loadVehicles"
+    />
+
+    <AdminPullDocumentsModal
+      :open="pullDocumentsModalOpen"
+      :loading="!!pullDocumentsVehicle && syncingVehicleId === pullDocumentsVehicle.vehicle_id"
+      @update:open="pullDocumentsModalOpen = $event"
+      @confirm="onPullDocumentsConfirm"
     />
 
     <!-- Warning: an offer was already accepted by the client -->

@@ -4,6 +4,7 @@ import { useAdminStore } from "@/stores/admin.store";
 // import { useAuthStore } from "@/stores/auth.store"; // hidden per QA with the floating header
 import { adminOrdersApi, adminUsersApi, adminVehiclesApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
+import { orderStatusFilterOptions } from "@/lib/status";
 import UserDetailModal from "@/components/admin/UserDetail.vue";
 import type { AdminOrder, AdminUser, AdminVehicle } from "@/types";
 
@@ -258,28 +259,44 @@ const panelOrders = ref<AdminOrder[]>([]);
 const panelOrdersPage = ref(1);
 const panelOrdersTotal = ref(0);
 const panelOrdersLoading = ref(false);
-const panelOrdersFilter = ref<"Alle" | "Offen" | "Abgeschlossen">("Alle");
+// Empty string = "Alle" (no filter). A plain Offen/Abgeschlossen split lumped
+// every non-completed status together, which wasn't useful, and very few
+// orders are actually "completed" so that bucket was nearly always empty —
+// filtering by the individual order status (same set used on the vehicles
+// list) is far more useful here.
+const panelOrdersFilter = ref<string>("");
 
-const panelOrdersFilters: Array<"Alle" | "Offen" | "Abgeschlossen"> = [
-  "Alle",
-  "Offen",
-  "Abgeschlossen",
+const panelOrdersFilters: Array<{ value: string; label: string }> = [
+  { value: "", label: "Alle" },
+  ...orderStatusFilterOptions,
 ];
 
 const panelOrdersLimit = 10;
+const PANEL_ORDERS_FETCH_PAGE_SIZE = 100;
 
-const panelOrdersTotalPages = computed(() => {
-  return Math.max(1, Math.ceil(panelOrdersTotal.value / panelOrdersLimit));
-});
-
+// Fetches the full order list (looping through backend pages) so the
+// Alle/Offen/Abgeschlossen filter below can be applied — and paginated —
+// client-side across the whole dataset. Filtering only the single page that
+// happened to be loaded meant "Abgeschlossen" looked broken whenever that
+// page had no completed orders.
 async function loadPanelOrders() {
   panelOrdersLoading.value = true;
 
   try {
-    const response = await adminOrdersApi.listAll(panelOrdersPage.value, panelOrdersLimit);
+    const acc: AdminOrder[] = [];
+    let total = 0;
+    let page = 1;
 
-    panelOrders.value = response.data;
-    panelOrdersTotal.value = response.total;
+    while (page <= 50) {
+      const response = await adminOrdersApi.listAll(page, PANEL_ORDERS_FETCH_PAGE_SIZE);
+      acc.push(...response.data);
+      total = response.total;
+      if (!response.data.length || acc.length >= total) break;
+      page += 1;
+    }
+
+    panelOrders.value = acc;
+    panelOrdersTotal.value = total;
   } catch (error) {
     console.error("Aufträge konnten nicht geladen werden:", error);
 
@@ -289,12 +306,6 @@ async function loadPanelOrders() {
     panelOrdersLoading.value = false;
   }
 }
-
-watch(panelOrdersPage, () => {
-  if (activePanel.value === "orders") {
-    void loadPanelOrders();
-  }
-});
 
 // ─────────────────────────────────────────────────────────────────
 // Local search and filtering
@@ -350,19 +361,14 @@ const filteredPanelVehicles = computed(() => {
   });
 });
 
-const filteredPanelOrders = computed(() => {
+// Status + search filter applied to the whole fetched order list (not just
+// the currently displayed page), so pagination below is computed over the
+// filtered result rather than the unfiltered fetch.
+const filteredPanelOrdersAll = computed(() => {
   let orders = panelOrders.value;
 
-  if (panelOrdersFilter.value === "Offen") {
-    orders = orders.filter((order) => {
-      return order.order_status !== "completed";
-    });
-  }
-
-  if (panelOrdersFilter.value === "Abgeschlossen") {
-    orders = orders.filter((order) => {
-      return order.order_status === "completed";
-    });
+  if (panelOrdersFilter.value) {
+    orders = orders.filter((order) => order.order_status === panelOrdersFilter.value);
   }
 
   if (!normalizedSearch.value) {
@@ -386,6 +392,21 @@ const filteredPanelOrders = computed(() => {
 
     return searchableText.includes(normalizedSearch.value);
   });
+});
+
+const panelOrdersTotalPages = computed(() => {
+  return Math.max(1, Math.ceil(filteredPanelOrdersAll.value.length / panelOrdersLimit));
+});
+
+const filteredPanelOrders = computed(() => {
+  const start = (panelOrdersPage.value - 1) * panelOrdersLimit;
+  return filteredPanelOrdersAll.value.slice(start, start + panelOrdersLimit);
+});
+
+// Filter/search changes re-slice the already-fetched dataset locally, so
+// only the page needs resetting here — no re-fetch required.
+watch([panelOrdersFilter, normalizedSearch], () => {
+  panelOrdersPage.value = 1;
 });
 
 // ─────────────────────────────────────────────────────────────────
@@ -1341,24 +1362,27 @@ onMounted(async () => {
                 </h2>
 
                 <p class="mt-0.5 text-[12px] font-medium text-[#9bb0af]">
-                  {{ panelOrdersTotal }} Aufträge insgesamt
+                  {{ filteredPanelOrdersAll.length }} von {{ panelOrdersTotal }} Aufträgen
                 </p>
               </div>
+            </div>
 
-              <div class="flex gap-0.5 rounded-[12px] bg-[#f4f7f6] p-[3px]">
-                <button
-                  v-for="filter in panelOrdersFilters"
-                  :key="filter"
-                  type="button"
-                  class="segment-button"
-                  :class="{
-                    'segment-button-active': panelOrdersFilter === filter,
-                  }"
-                  @click="panelOrdersFilter = filter"
-                >
-                  {{ filter }}
-                </button>
-              </div>
+            <!-- Status filter pills — one per order status (not just Offen/Abgeschlossen),
+                 since lumping every non-completed status into "Offen" wasn't useful and
+                 "Abgeschlossen" alone is nearly always empty. -->
+            <div class="mb-4 flex flex-wrap gap-1.5">
+              <button
+                v-for="filter in panelOrdersFilters"
+                :key="filter.value"
+                type="button"
+                class="status-pill"
+                :class="{
+                  'status-pill-active': panelOrdersFilter === filter.value,
+                }"
+                @click="panelOrdersFilter = filter.value"
+              >
+                {{ filter.label }}
+              </button>
             </div>
 
             <div class="panel-search">
@@ -1788,6 +1812,30 @@ onMounted(async () => {
   background: #ffffff;
   color: #10393b;
   box-shadow: 0 1px 5px rgba(16, 57, 59, 0.1);
+}
+
+.status-pill {
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: #f4f7f6;
+  color: #6f8585;
+  font-family: Manrope, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.status-pill:hover {
+  background: #eaf0ef;
+  color: #10393b;
+}
+
+.status-pill-active {
+  background: #10393b;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(16, 57, 59, 0.18);
 }
 
 .pagination-row {

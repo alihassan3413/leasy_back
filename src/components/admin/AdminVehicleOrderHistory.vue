@@ -348,21 +348,44 @@ function assessmentDocKey(auftragsnummer: string | undefined, doc: any): string 
   return `${auftragsnummer ?? ""}:${docId}`;
 }
 
+// The most complete order object available for this vehicle: prefers the
+// fresh order that ships inline with the admin vehicle list (reflects the
+// latest action immediately), falls back to the detailed status fetch, then
+// the current_* pseudo-order. Shared by the timeline and the Besichtigungsort
+// card below, both of which need `request_payload`.
+const baseOrder = computed(() => {
+  const detailedOrders = detailedVehicle.value?.orders;
+  const detailOrder = detailedOrders && detailedOrders.length ? detailedOrders[0] : null;
+  const inlineOrder = props.vehicle.orders?.length ? props.vehicle.orders[0] : null;
+  return inlineOrder ?? detailOrder ?? firstOrder.value;
+});
+
+// Inspection location (Besichtigungsort), same source used on the B2B/B2C
+// expanded views — now available to admins too since `baseOrder` carries
+// `request_payload` via the detailed vehicle status fetch.
+const besichtigungsort = computed(() => baseOrder.value?.request_payload?.besichtigungsort ?? null);
+
+const terminFormatted = computed(() => {
+  const termin = besichtigungsort.value?.termin;
+  if (!termin) return "";
+  const d = new Date(termin);
+  return (
+    d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+    " · " +
+    d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) +
+    " Uhr"
+  );
+});
+
 // Computed properties with fallback to mock data
 const timelineData = computed(() => {
   // The full vehicle-status detail (same source as the B2B/B2C views) provides
   // the order status + status_updates for the timeline. Report rows come from
   // currentDocuments; see below.
   const detailedOrders = detailedVehicle.value?.orders;
-  const detailOrder = detailedOrders && detailedOrders.length ? detailedOrders[0] : null;
-  // Prefer the fresh order that ships inline with the admin vehicle list — it
-  // reflects the latest action (e.g. a newly created DEKRA order) immediately.
-  // The detailed status fetch is only a fallback and can be stale, which caused
-  // the partner label (e.g. "tuvsud") to lag behind the actual provider.
-  const inlineOrder = props.vehicle.orders?.length ? props.vehicle.orders[0] : null;
-  const baseOrder = inlineOrder ?? detailOrder ?? firstOrder.value;
+  const order = baseOrder.value;
 
-  if (baseOrder) {
+  if (order) {
     // Same date/time formatting used across all timeline entries.
     const fmtDateTime = (dateStr: string) => {
       const d = new Date(dateStr);
@@ -377,7 +400,7 @@ const timelineData = computed(() => {
     // Status stays as a separate first entry (no date).
     const statusEntry = {
       datetime: "",
-      label: `STATUS: ${baseOrder.order_status ? getOrderStatusLabel(baseOrder.order_status).label.toUpperCase() : "KEINE AUFTRÄGE"}`,
+      label: `STATUS: ${order.order_status ? getOrderStatusLabel(order.order_status).label.toUpperCase() : "KEINE AUFTRÄGE"}`,
       completed: false,
     };
 
@@ -397,24 +420,24 @@ const timelineData = computed(() => {
 
     // Auftrag erstellt — guarded because the pseudo-order built from the
     // current_* fields can carry an empty created_at.
-    if (baseOrder.created_at) {
+    if (order.created_at) {
       itemsWithDates.push({
-        date: new Date(baseOrder.created_at),
-        datetime: fmtDateTime(baseOrder.created_at),
+        date: new Date(order.created_at),
+        datetime: fmtDateTime(order.created_at),
         label: "Auftrag erstellt",
         completed: true,
       });
     }
 
     // Inspection appointment (partner + Besichtigungsort).
-    const besichtigungsort = baseOrder.request_payload?.besichtigungsort;
-    if (besichtigungsort?.termin) {
+    const timelineBesichtigungsort = order.request_payload?.besichtigungsort;
+    if (timelineBesichtigungsort?.termin) {
       itemsWithDates.push({
-        date: new Date(besichtigungsort.termin),
-        datetime: fmtDateTime(besichtigungsort.termin),
-        label: orderProviderLabel(baseOrder),
-        sublabel: `${besichtigungsort.strasse || ""}, ${besichtigungsort.plz || ""} ${besichtigungsort.ort || ""}`,
-        completed: baseOrder.order_status !== "order_placed",
+        date: new Date(timelineBesichtigungsort.termin),
+        datetime: fmtDateTime(timelineBesichtigungsort.termin),
+        label: orderProviderLabel(order),
+        sublabel: `${timelineBesichtigungsort.strasse || ""}, ${timelineBesichtigungsort.plz || ""} ${timelineBesichtigungsort.ort || ""}`,
+        completed: order.order_status !== "order_placed",
       });
     }
 
@@ -487,7 +510,7 @@ const timelineData = computed(() => {
     // Append the remaining planned steps (Bestätigt → … → Abgeschlossen) so the
     // admin sees what's still coming. These have no date yet; the first one is
     // flagged as the immediate "Nächster Schritt".
-    getUpcomingSteps(baseOrder.order_status).forEach((step, idx) => {
+    getUpcomingSteps(order.order_status).forEach((step, idx) => {
       timeline.push({
         datetime: "",
         label: step.label,
@@ -1135,7 +1158,78 @@ async function publishDocument(documentId: string) {
               </div>
             </div>
           </div>
-        <!-- Vehicle Specs Card (Besichtigungsort is not returned to the admin list endpoint) -->
+        <!-- Besichtigungsort Card -->
+        <div
+          class="relative flex flex-col rounded-[24px] border bg-white p-8 w-full"
+          style="border-color: #ececec"
+        >
+            <div class="pb-6">
+              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
+                Besichtigungsort
+              </p>
+            </div>
+
+            <template v-if="besichtigungsort">
+              <!-- Name row -->
+              <div class="flex items-center gap-5 pb-6">
+                <div
+                  class="flex size-[56px] shrink-0 items-center justify-center rounded-full"
+                  style="background-color: rgba(1, 185, 144, 0.1)"
+                >
+                  <Icon icon="mdi:office-building-outline" class="size-7" style="color: #01b990" />
+                </div>
+                <p
+                  class="text-[18px] font-bold min-w-0 flex-1 wrap-break-word"
+                  style="color: #2e3e3f"
+                >
+                  {{ besichtigungsort.name }}
+                </p>
+              </div>
+
+              <!-- Termin -->
+              <div class="pb-5">
+                <p
+                  class="text-[10px] font-medium uppercase"
+                  style="color: #8f9ba7; letter-spacing: 0.5px"
+                >
+                  Termin
+                </p>
+                <div class="flex items-center gap-3 pt-2">
+                  <Icon
+                    icon="mdi:calendar-clock-outline"
+                    class="size-[18px] shrink-0"
+                    style="color: #5a6b7a"
+                  />
+                  <p class="text-[14px] font-bold" style="color: #2e3e3f">
+                    {{ terminFormatted || "Kein Termin" }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Divider -->
+              <div class="h-px bg-gray-200 mb-5"></div>
+
+              <!-- Address -->
+              <div class="flex items-start gap-4">
+                <Icon
+                  icon="mdi:map-marker-outline"
+                  class="size-[18px] shrink-0 mt-0.5"
+                  style="color: #5a6b7a"
+                />
+                <span class="text-[14px] font-normal leading-relaxed" style="color: #2e3e3f">
+                  {{ besichtigungsort.strasse }}<br />
+                  {{ besichtigungsort.plz }} {{ besichtigungsort.ort }}
+                  <template v-if="besichtigungsort.land">
+                    ({{ besichtigungsort.land.toUpperCase() }})
+                  </template>
+                </span>
+              </div>
+            </template>
+            <div v-else class="text-[14px] font-normal" style="color: #b7c2c2">
+              Kein Besichtigungsort verfügbar
+            </div>
+          </div>
+        <!-- Vehicle Specs Card -->
         <div
           class="relative flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
           style="border-color: #ececec"
