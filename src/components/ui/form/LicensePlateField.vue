@@ -75,7 +75,7 @@ watch(numbers, (v) => {
       <input
         v-model="numbers"
         type="text"
-        placeholder="1234"
+        placeholder="1234E"
         maxlength="5"
         class="h-11 w-0 flex-1 border-r border-green-gray bg-transparent px-2 text-black text-center text-base font-extrabold uppercase outline-none"
       />

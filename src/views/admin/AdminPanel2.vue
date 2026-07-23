@@ -189,8 +189,19 @@ async function loadRecentOrders() {
   }
 }
 
-function handleCardClick(id: "users" | "vehicles" | "orders") {
-  activeSection.value = id;
+function handleCardClick(id: "users" | "vehicles" | "orders" | "completed" | "inspections") {
+  // "completed" is a KPI shortcut, not its own section — it lands on the
+  // Orders tab pre-filtered to the "Abgeschlossen" status so the count on the
+  // card actually matches what the list shows.
+  if (id === "completed") {
+    activeSection.value = "orders";
+    orderStatus.value = "completed";
+  } else if (id === "inspections") {
+    activeSection.value = "orders";
+    orderStatus.value = "";
+  } else {
+    activeSection.value = id;
+  }
   page.value = 1;
 }
 
@@ -260,9 +271,7 @@ onMounted(async () => {
             type="button"
             @click="
               handleCardClick(
-                card.id === 'completed' || card.id === 'inspections'
-                  ? 'orders'
-                  : (card.id as 'users' | 'vehicles' | 'orders'),
+                card.id as 'users' | 'vehicles' | 'orders' | 'completed' | 'inspections',
               )
             "
             class="group rounded-[24px] border p-6 text-left transition-all duration-200"

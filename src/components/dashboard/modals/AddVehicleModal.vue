@@ -383,8 +383,8 @@ async function handleSubmit() {
                     v-model="number"
                     :disabled="isEditMode"
                     class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                    placeholder="2026"
-                    maxlength="6"
+                    placeholder="2026E"
+                    maxlength="5"
                   />
                 </div>
               </div>

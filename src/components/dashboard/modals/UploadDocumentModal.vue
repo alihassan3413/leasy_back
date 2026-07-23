@@ -225,7 +225,7 @@ watch([selectedDocType, selectedFile], () => {
       <div class="relative px-3 md:px-0">
         <button
           @click="close"
-          class="absolute -right-1 -top-1 md:-right-1 md:-top-1 z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
+          class="absolute right-2 top-2 md:-right-1 md:-top-1 z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
         >
           <Icon icon="mdi:close" class="size-6 md:size-8" />
         </button>
@@ -234,8 +234,8 @@ watch([selectedDocType, selectedFile], () => {
           class="bg-white border border-[#C6C6CD] p-3 md:p-4 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
-          <div class="px-2 md:px-4 pt-2 md:pt-3 mb-2 md:mb-3">
-            <h2 class="text-[16px] md:text-[18px] font-bold leading-normal text-black pr-8 md:pr-0">
+          <div class="pl-2 md:pl-4 pr-14 md:pr-4 pt-2 md:pt-3 mb-2 md:mb-3">
+            <h2 class="text-[16px] md:text-[18px] font-bold leading-normal text-black">
               Dokumente hochladen
             </h2>
             <p

@@ -342,7 +342,7 @@ function onKeydown(e: KeyboardEvent) {
                 <div
                   v-for="v in vehicles"
                   :key="v.vehicle_id"
-                  class="flex items-center gap-4 p-4 rounded-[16px] transition-all"
+                  class="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 rounded-[16px] transition-all"
                   style="border: 1px solid #eef3f2"
                   @mouseenter="($event.currentTarget as HTMLElement).style.background = '#f6f9f8'"
                   @mouseleave="($event.currentTarget as HTMLElement).style.background = ''"
@@ -400,12 +400,12 @@ function onKeydown(e: KeyboardEvent) {
               <!-- vehicle pagination -->
               <div
                 v-if="vehicleTotalPages > 1 && !vehicleLoading"
-                class="flex items-center justify-between mt-5"
+                class="flex flex-wrap items-center justify-between gap-2 mt-5"
               >
-                <span class="text-[12px] font-medium" style="color: #9bb0af">
+                <span class="text-[12px] font-medium whitespace-nowrap" style="color: #9bb0af">
                   Seite {{ vehiclePage }} von {{ vehicleTotalPages }}
                 </span>
-                <div class="flex gap-1">
+                <div class="flex flex-wrap items-center justify-end gap-1">
                   <button @click="vehiclePage--" :disabled="vehiclePage <= 1" class="pg-btn">
                     ←
                   </button>
@@ -478,7 +478,7 @@ function onKeydown(e: KeyboardEvent) {
                 <div
                   v-for="o in orders"
                   :key="o.id"
-                  class="flex items-center gap-4 p-4 rounded-[16px] transition-all"
+                  class="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 rounded-[16px] transition-all"
                   style="border: 1px solid #eef3f2"
                   @mouseenter="($event.currentTarget as HTMLElement).style.background = '#f6f9f8'"
                   @mouseleave="($event.currentTarget as HTMLElement).style.background = ''"
@@ -534,12 +534,12 @@ function onKeydown(e: KeyboardEvent) {
               <!-- order pagination -->
               <div
                 v-if="orderTotalPages > 1 && !orderLoading"
-                class="flex items-center justify-between mt-5"
+                class="flex flex-wrap items-center justify-between gap-2 mt-5"
               >
-                <span class="text-[12px] font-medium" style="color: #9bb0af">
+                <span class="text-[12px] font-medium whitespace-nowrap" style="color: #9bb0af">
                   Seite {{ orderPage }} von {{ orderTotalPages }}
                 </span>
-                <div class="flex gap-1">
+                <div class="flex flex-wrap items-center justify-end gap-1">
                   <button @click="orderPage--" :disabled="orderPage <= 1" class="pg-btn">←</button>
                   <button
                     v-for="p in pageRange(orderPage, orderTotalPages)"

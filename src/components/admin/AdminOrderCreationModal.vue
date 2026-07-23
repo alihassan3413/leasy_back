@@ -258,26 +258,30 @@ function close() {
       style="width: 920px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
-      <div class="relative">
+      <div class="relative px-3 md:px-0">
         <button
           @click="close"
-          class="absolute -right-1 -top-1 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
+          class="absolute right-2 top-2 md:-right-1 md:-top-1 z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
         >
-          <Icon icon="mdi:close" class="size-8" />
+          <Icon icon="mdi:close" class="size-6 md:size-8" />
         </button>
 
         <div
-          class="bg-white border border-[#C6C6CD] p-4 inverted-corner inverted-corner-top-right"
+          class="bg-white border border-[#C6C6CD] p-3 md:p-4 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
-          <div class="px-3 pt-2 mb-2">
-            <h2 class="text-[20px] font-bold leading-normal text-black">Auftrag erstellen</h2>
-            <p class="mt-1 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]">
+          <div class="pl-2 md:pl-3 pr-14 md:pr-3 pt-1 md:pt-2 mb-2">
+            <h2 class="text-[16px] md:text-[20px] font-bold leading-normal text-black">
+              Auftrag erstellen
+            </h2>
+            <p
+              class="mt-1 pb-2 md:pb-3 text-xs md:text-sm font-light leading-normal not-italic text-[#00000080]"
+            >
               Bitte füllen Sie alle Details im unten stehenden Formular aus.
             </p>
           </div>
 
-          <div class="flex flex-col gap-0 px-4 max-h-[70vh] overflow-y-auto pr-1">
+          <div class="flex flex-col gap-0 px-0 md:px-4 max-h-[70vh] overflow-y-auto pr-1">
             <!-- Fields + map row: stretched to equal height. The map has a
                  fixed height (not aspect-square) so this row never grows
                  taller than that; the button lives outside this row entirely

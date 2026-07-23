@@ -34,9 +34,14 @@ const marke = ref("");
 const modell = ref("");
 const leasingende = ref("");
 const fin = ref("");
-const rueckgabestart = ref("");
 // const status = ref(""); // hidden per QA together with the Status field in the template
 const leasinggeber = ref("");
+// When the admin doesn't know the exact leasing end date yet, they tick this
+// box; the Leasingende field is then cleared/disabled and no longer required.
+const leasingEndUnknown = ref(false);
+// Same pattern for the Leasinggeber: when unknown, the field is cleared/disabled
+// and no longer required.
+const leasinggeberUnknown = ref(false);
 
 const markeOpen = ref(false);
 
@@ -53,11 +58,24 @@ watch(
     if (!opened) {
       city.value = district.value = number.value = "";
       marke.value = modell.value = leasingende.value = "";
-      fin.value = rueckgabestart.value = "";
+      fin.value = "";
       leasinggeber.value = "";
+      leasingEndUnknown.value = false;
+      leasinggeberUnknown.value = false;
     }
   },
 );
+
+// Ticking "date unknown" clears the Leasingende input so we never submit a
+// stale value alongside the flag.
+watch(leasingEndUnknown, (unknown) => {
+  if (unknown) leasingende.value = "";
+});
+
+// Ticking "Leasinggeber unbekannt" clears the field for the same reason.
+watch(leasinggeberUnknown, (unknown) => {
+  if (unknown) leasinggeber.value = "";
+});
 
 // Live-normalise lowercase → uppercase for every plate section as the user
 // types. We only change casing here (never strip/truncate) so invalid content
@@ -98,10 +116,9 @@ const isFormValid = computed(() => {
     number.value.trim() !== "" &&
     marke.value.trim() !== "" &&
     modell.value.trim() !== "" &&
-    leasingende.value !== "" &&
-    rueckgabestart.value !== "" &&
+    (leasingEndUnknown.value || leasingende.value !== "") &&
     fin.value.trim() !== "" &&
-    leasinggeber.value.trim() !== "" &&
+    (leasinggeberUnknown.value || leasinggeber.value.trim() !== "") &&
     plateError.value === "" &&
     finError.value === ""
   );
@@ -116,14 +133,21 @@ function close() {
 }
 
 async function handleSubmit() {
+  // The backend requires both a leasing_end_date and a first_registration_date.
+  // When the admin ticks "date unknown" for the leasing end, we still send
+  // today's date so the request passes validation. There is no dedicated
+  // "return start" field in this form (matching the client-side modal), so
+  // first_registration_date is always today's date, same as the client flow.
+  const todayIso = new Date().toISOString().slice(0, 10);
+
   const payload: any = {
     license_plate: normalizePlate(city.value, district.value, number.value),
     make: marke.value,
     model: modell.value,
-    leasing_end_date: leasingende.value,
+    leasing_end_date: leasingEndUnknown.value ? todayIso : leasingende.value,
     vin: fin.value.trim().toUpperCase(),
-    first_registration_date: rueckgabestart.value,
-    leasinggeber: leasinggeber.value,
+    first_registration_date: todayIso,
+    leasinggeber: leasinggeberUnknown.value ? "" : leasinggeber.value,
   };
 
   if (props.targetUser) {
@@ -154,30 +178,34 @@ async function handleSubmit() {
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
       class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
-      style="width: 720px; max-width: calc(100vw - 2rem)"
+      style="width: 100%; max-width: 720px"
       :show-close-button="false"
     >
-      <div class="relative">
+      <div class="relative px-3 md:px-0">
         <button
           @click="close"
-          class="absolute -right-1 -top-1 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
+          class="absolute -right-1 -top-1 md:-right-1 md:-top-1 z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
         >
-          <Icon icon="mdi:close" class="size-8" />
+          <Icon icon="mdi:close" class="size-6 md:size-8" />
         </button>
 
         <div
-          class="relative p-6 inverted-corner inverted-corner-top-right"
+          class="relative p-3 md:p-5 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
-          <div class="px-2 pt-2 mb-2">
-            <h2 class="text-[24px] font-bold leading-normal text-black">Neues Fahrzeug</h2>
-            <p class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]">
+          <div class="px-2 pt-1 mb-3">
+            <h2 class="text-[18px] md:text-[22px] font-bold leading-normal text-black pr-8 md:pr-0">
+              Neues Fahrzeug
+            </h2>
+            <p
+              class="mt-1 pb-3 text-xs md:text-sm font-light leading-normal not-italic text-[#00000080]"
+            >
               Legen Sie ganz einfach ein neues Fahrzeug an – bitte füllen Sie dafür alle Angaben im
               Formular unten aus
             </p>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-x-6 gap-y-3">
             <div class="flex flex-col gap-1">
               <label class="text-sm font-semibold text-black">
                 Kennzeichen
@@ -186,13 +214,13 @@ async function handleSubmit() {
                 </span>
               </label>
               <div
-                class="flex h-10 items-center overflow-hidden rounded-full border border-gray-300 bg-gray-100"
+                class="flex h-9 items-center overflow-hidden rounded-full border border-gray-300 bg-gray-100"
               >
                 <div
-                  class="ml-1 flex h-7 w-4 shrink-0 flex-col items-center justify-center rounded-[50px] bg-[#00339b]"
+                  class="ml-1 flex h-6 w-4 shrink-0 flex-col items-center justify-center rounded-[50px] bg-[#00339b]"
                 >
-                  <Icon icon="tabler:circle-dotted" class="size-3 text-[#FECD00]" />
-                  <span class="text-[10px] font-bold text-white leading-none">D</span>
+                  <Icon icon="tabler:circle-dotted" class="size-2.5 text-[#FECD00]" />
+                  <span class="text-[9px] font-bold text-white leading-none">D</span>
                 </div>
                 <div class="flex flex-1 h-full py-0.5 items-center px-1.5">
                   <input
@@ -203,8 +231,8 @@ async function handleSubmit() {
                   />
                 </div>
                 <div class="flex flex-col items-center gap-0.5 px-1 text-gray-300">
-                  <Icon icon="cib:circle" class="w-2 h-2" />
-                  <Icon icon="mdi:badge-outline" class="w-2.5 h-2.5" />
+                  <Icon icon="cib:circle" class="w-1.5 h-1.5" />
+                  <Icon icon="mdi:badge-outline" class="w-2 h-2" />
                 </div>
                 <div class="flex flex-1 h-full py-0.5 items-center px-1.5">
                   <input
@@ -237,7 +265,7 @@ async function handleSubmit() {
               </label>
               <input
                 v-model="fin"
-                class="h-10 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
+                class="h-9 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
                 placeholder="FIN eingeben"
                 maxlength="17"
               />
@@ -249,7 +277,7 @@ async function handleSubmit() {
             <div class="relative flex flex-col gap-1">
               <label class="text-sm font-semibold text-black"> Marke </label>
               <div
-                class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                class="flex h-9 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
                 tabindex="0"
                 @click="markeOpen = !markeOpen"
               >
@@ -280,7 +308,7 @@ async function handleSubmit() {
               <label class="text-sm font-semibold text-black"> Modell </label>
               <input
                 v-model="modell"
-                class="h-10 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
+                class="h-9 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
                 placeholder="Modell eingeben"
               />
             </div>
@@ -288,18 +316,39 @@ async function handleSubmit() {
             <div class="flex flex-col gap-1">
               <label class="text-sm font-semibold text-black"> Leasingende </label>
               <div
-                class="relative flex h-10 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
+                class="relative flex h-9 items-center rounded-full border px-4 focus-within:border-emerald-500"
+                :class="leasingEndUnknown ? 'border-gray-200 bg-gray-100' : 'border-gray-300'"
               >
                 <input
                   v-model="leasingende"
                   type="date"
-                  class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
+                  :disabled="leasingEndUnknown"
+                  class="h-full w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed disabled:text-gray-400 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
                 />
                 <Icon
                   icon="mdi:calendar-outline"
                   class="absolute right-4 text-gray-400 pointer-events-none"
                 />
               </div>
+
+              <!-- Leasing end date unknown -->
+              <label class="mt-1.5 flex cursor-pointer items-start gap-2">
+                <input v-model="leasingEndUnknown" type="checkbox" class="peer sr-only" />
+                <span
+                  class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/30"
+                  :class="
+                    leasingEndUnknown
+                      ? 'border-emerald-500 bg-emerald-500'
+                      : 'border-gray-300 bg-white'
+                  "
+                >
+                  <Icon v-show="leasingEndUnknown" icon="mdi:check" class="size-3 text-white" />
+                </span>
+                <span class="text-xs font-normal leading-[1.45] text-[#00000099]">
+                  Das genaue Datum des Leasingendes liegt mir aktuell nicht vor. Ich werde Ihnen
+                  diese Information zeitnah nachreichen.
+                </span>
+              </label>
             </div>
 
             <div class="flex flex-col gap-1">
@@ -309,33 +358,37 @@ async function handleSubmit() {
               </label>
               <input
                 v-model="leasinggeber"
-                class="h-10 rounded-full border border-gray-300 px-4 text-sm outline-none focus:border-emerald-500"
+                :disabled="leasinggeberUnknown"
+                class="h-9 rounded-full border px-4 text-sm outline-none focus:border-emerald-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                :class="leasinggeberUnknown ? 'border-gray-200 bg-gray-100' : 'border-gray-300'"
                 placeholder="Leasinggeber eingeben"
               />
-            </div>
 
-            <div class="flex flex-col gap-1">
-              <label class="text-sm font-semibold text-black"> Rückgabestart </label>
-              <div
-                class="relative flex h-10 items-center rounded-full border border-gray-300 px-4 focus-within:border-emerald-500"
-              >
-                <input
-                  v-model="rueckgabestart"
-                  type="date"
-                  class="h-full w-full bg-transparent text-sm outline-none [&::-webkit-calendar-picker-indicator]:opacity-60"
-                />
-                <Icon
-                  icon="mdi:calendar-outline"
-                  class="absolute right-4 text-gray-400 pointer-events-none"
-                />
-              </div>
+              <!-- Leasinggeber unknown -->
+              <label class="mt-1.5 flex cursor-pointer items-start gap-2">
+                <input v-model="leasinggeberUnknown" type="checkbox" class="peer sr-only" />
+                <span
+                  class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500/30"
+                  :class="
+                    leasinggeberUnknown
+                      ? 'border-emerald-500 bg-emerald-500'
+                      : 'border-gray-300 bg-white'
+                  "
+                >
+                  <Icon v-show="leasinggeberUnknown" icon="mdi:check" class="size-3 text-white" />
+                </span>
+                <span class="text-xs font-normal leading-[1.45] text-[#00000099]">
+                  Der Name des Leasinggebers liegt mir aktuell nicht vor. Ich werde Ihnen diese
+                  Information zeitnah nachreichen.
+                </span>
+              </label>
             </div>
 
             <!-- Hidden per QA: dropdown was never functional and status is not part of the create payload
             <div class="relative flex flex-col gap-1">
               <label class="text-sm font-semibold text-black"> Status </label>
               <div
-                class="flex h-10 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                class="flex h-9 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
               >
                 <span class="text-sm" :class="status ? 'text-gray-800' : 'text-gray-400'">{{
                   status || "Status wählen"
@@ -348,7 +401,7 @@ async function handleSubmit() {
 
           <div class="mt-8 flex justify-center">
             <button
-              class="h-10 px-6 rounded-full text-base font-semibold text-white transition-all duration-200 shadow-lg"
+              class="h-9 w-full md:w-auto px-6 rounded-full text-base font-semibold text-white transition-all duration-200 shadow-lg"
               :style="buttonActive ? 'background: #EF8450;' : 'background: #D9D9D9;'"
               :disabled="!buttonActive || isLoading"
               @click="handleSubmit"
