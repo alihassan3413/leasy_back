@@ -4,6 +4,7 @@ import { Icon } from "@iconify/vue";
 import type { AdminUser } from "@/types";
 import { vehicleApi } from "@/api";
 import { VEHICLE_BRANDS } from "@/config/vehicleBrands";
+import { validatePlateParts, normalizePlate, sanitizePlateNumber } from "@/utils/licensePlate";
 import {
   Dialog,
   DialogContent,
@@ -58,17 +59,30 @@ watch(
   },
 );
 
-const plateText = computed(() =>
-  `${city.value}${district.value}${number.value}`.replace(/\s+/g, ""),
-);
-
-const plateError = computed(() => {
-  if (!city.value && !district.value && !number.value) return "";
-  if (plateText.value.length > 8) {
-    return "Kennzeichen darf höchstens 8 Zeichen lang sein";
-  }
-  return "";
+// Live-normalise lowercase → uppercase for every plate section as the user
+// types. We only change casing here (never strip/truncate) so invalid content
+// still surfaces a validation message instead of silently disappearing.
+watch(city, (v) => {
+  const u = v.toUpperCase();
+  if (u !== v) city.value = u;
 });
+watch(district, (v) => {
+  const u = v.toUpperCase();
+  if (u !== v) district.value = u;
+});
+// Section 3: upper-case AND hard-cap the digit count at 4 (a trailing E for
+// e-plates is still allowed); see sanitizePlateNumber.
+watch(number, (v) => {
+  const sanitized = sanitizePlateNumber(v);
+  if (sanitized !== v) number.value = sanitized;
+});
+
+// German-plate validation for the three sections + the overall 8-character
+// limit (see @/utils/licensePlate). Returns an ordered list of German messages.
+const plateErrors = computed(() =>
+  validatePlateParts(city.value, district.value, number.value),
+);
+const plateError = computed(() => plateErrors.value[0] ?? "");
 
 const finError = computed(() => {
   if (!fin.value.trim()) return "";
@@ -103,7 +117,7 @@ function close() {
 
 async function handleSubmit() {
   const payload: any = {
-    license_plate: `${city.value} ${district.value} ${number.value}`.trim().toUpperCase(),
+    license_plate: normalizePlate(city.value, district.value, number.value),
     make: marke.value,
     model: modell.value,
     leasing_end_date: leasingende.value,
@@ -204,13 +218,13 @@ async function handleSubmit() {
                   <input
                     v-model="number"
                     class="h-full w-full bg-white text-gray-800 rounded-full border border-gray-300 text-center text-sm font-bold uppercase outline-none placeholder:text-gray-400"
-                    placeholder="12H"
-                    maxlength="3"
+                    placeholder="2026E"
+                    maxlength="5"
                   />
                 </div>
               </div>
-              <p v-if="plateError" class="text-xs text-red-500">
-                {{ plateError }}
+              <p v-for="msg in plateErrors" :key="msg" class="text-xs text-red-500">
+                {{ msg }}
               </p>
             </div>
 

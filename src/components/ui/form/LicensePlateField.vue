@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { watch } from "vue";
 import { Icon } from "@iconify/vue";
 import { useField } from "vee-validate";
+import { sanitizePlateNumber, toPlateUpperCase } from "@/utils/licensePlate";
 
 interface Props {
   cityName: string;
@@ -15,6 +17,22 @@ const { value: city, errorMessage: cityError } = useField<string>(props.cityName
 const { value: letters, errorMessage: lettersError } = useField<string>(props.lettersName);
 
 const { value: numbers, errorMessage: numbersError } = useField<string>(props.numbersName);
+
+// Live-normalise lowercase → uppercase for city/letters, and for the number
+// section upper-case plus hard-cap the digit count at 4 and the electric-
+// vehicle "E" to a single occurrence (see @/utils/licensePlate).
+watch(city, (v) => {
+  const u = toPlateUpperCase(v ?? "");
+  if (u !== v) city.value = u;
+});
+watch(letters, (v) => {
+  const u = toPlateUpperCase(v ?? "");
+  if (u !== v) letters.value = u;
+});
+watch(numbers, (v) => {
+  const sanitized = sanitizePlateNumber(v ?? "");
+  if (sanitized !== v) numbers.value = sanitized;
+});
 </script>
 
 <template>

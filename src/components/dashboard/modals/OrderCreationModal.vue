@@ -284,7 +284,7 @@ function closeSuccessDialog() {
   <Dialog :open="open && !successDialogOpen" @update:open="emit('update:open', $event)">
     <DialogContent
       class="p-0 gap-0 overflow-visible bg-transparent border-none shadow-none rounded-none"
-      style="width: 100%; max-width: 720px"
+      style="width: 100%; max-width: 920px"
       :show-close-button="false"
     >
       <div class="relative px-3 md:px-0">
@@ -310,15 +310,20 @@ function closeSuccessDialog() {
             </p>
           </div>
 
-          <div
-            class="grid grid-cols-1 gap-x-4 gap-y-2 px-0 md:px-4 max-h-[70vh] overflow-y-auto pr-1"
-          >
-            <!-- Bundesland / Ort filters -->
-            <div class="col-span-2 grid grid-cols-2 gap-x-3">
+          <div class="flex flex-col gap-0 px-0 md:px-4 max-h-[70vh] overflow-y-auto pr-1">
+            <!-- Fields + map row: stretched to equal height. The map has a
+                 fixed height (not aspect-square) so this row never grows
+                 taller than that; the button lives outside this row entirely
+                 so it can't inflate the map's height. -->
+            <div class="grid grid-cols-1 md:grid-cols-2 md:items-stretch gap-6">
+            <!-- Left: form fields only (no button) -->
+            <div class="h-full flex flex-col gap-3">
+            <!-- Row 1: Bundesland / Ort -->
+            <div class="grid grid-cols-2 gap-x-3">
               <div class="relative flex flex-col gap-1" ref="bundeslandPickerRef">
                 <label class="text-sm font-semibold text-black"> Bundesland </label>
                 <div
-                  class="flex h-8 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                  class="flex h-11 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
                   tabindex="0"
                   @click="
                     bundeslandOpen = !bundeslandOpen;
@@ -386,7 +391,7 @@ function closeSuccessDialog() {
               <div class="relative flex flex-col gap-1" ref="ortPickerRef">
                 <label class="text-sm font-semibold text-black"> Ort </label>
                 <div
-                  class="flex h-8 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                  class="flex h-11 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
                   tabindex="0"
                   @click="
                     ortOpen = !ortOpen;
@@ -449,11 +454,11 @@ function closeSuccessDialog() {
               </div>
             </div>
 
-            <!-- Station dropdown -->
-            <div class="relative flex flex-col gap-1 col-span-2" ref="stationPickerRef">
+            <!-- Row 2: Station (full width) -->
+            <div class="relative flex flex-col gap-1" ref="stationPickerRef">
               <label class="text-sm font-semibold text-black"> Station </label>
               <div
-                class="flex h-8 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
+                class="flex h-11 cursor-pointer items-center justify-between rounded-full border border-gray-300 px-4 outline-none focus:border-emerald-500"
                 tabindex="0"
                 @click="stationOpen = !stationOpen"
               >
@@ -513,15 +518,8 @@ function closeSuccessDialog() {
               </div>
             </div>
 
-            <!-- Map -->
-            <div
-              class="h-[100px] md:h-[140px] shrink-0 w-full overflow-hidden rounded-2xl border border-gray-300 col-span-2"
-            >
-              <AppMapPicker :latitude="mapLat" :longitude="mapLng" :interactive="false" />
-            </div>
-
-            <!-- Termin row -->
-            <div class="flex flex-col gap-1 col-span-2">
+            <!-- Row 3: Datum / Uhrzeit -->
+            <div class="flex flex-col gap-1">
               <div class="grid grid-cols-2 gap-x-3">
                 <div class="flex flex-col gap-1">
                   <label class="text-xs md:text-sm font-semibold text-black"> Datum </label>
@@ -529,7 +527,7 @@ function closeSuccessDialog() {
                     name="terminDate"
                     :minDaysAhead="3"
                     :blockWeekends="true"
-                    inputHeight="h-8"
+                    inputHeight="h-11"
                     inputRounded="rounded-2xl"
                   />
                 </div>
@@ -537,34 +535,45 @@ function closeSuccessDialog() {
                   v-model="terminTime"
                   label="Uhrzeit"
                   placeholder="Uhrzeit wählen"
-                  input-height="h-8"
+                  input-height="h-11"
                   input-rounded="rounded-full"
                 />
               </div>
             </div>
 
-            <!-- Remarks -->
-            <div class="flex flex-col gap-1 col-span-2">
+            <!-- Row 4: Bemerkungen (full width, grows to fill remaining space) -->
+            <div class="flex flex-1 flex-col gap-1">
               <label class="text-xs md:text-sm font-semibold text-black">
                 Bemerkungen
                 <span class="text-xs font-normal text-gray-400 ml-1">(optional)</span>
               </label>
               <div
-                class="relative flex items-start rounded-4xl border border-gray-300 px-3 py-2 focus-within:border-emerald-500"
+                class="relative flex flex-1 min-h-[110px] items-start rounded-[28px] border border-gray-300 px-3 py-2 focus-within:border-emerald-500"
               >
                 <textarea
                   v-model="remarks"
-                  rows="1.5"
-                  class="w-full bg-transparent text-sm outline-none resize-none"
+                  class="h-full w-full bg-transparent text-sm outline-none resize-none"
                   placeholder="Bemerkungen hinzufügen..."
                 />
               </div>
             </div>
 
-            <!-- Submit -->
-            <div class="mt-2 flex justify-center">
+            </div>
+
+            <!-- Right: Map — a controlled, near-square height (not derived
+                 from the button), so it ends level with Bemerkungen. -->
+            <div
+              class="w-full aspect-square md:aspect-auto md:h-[430px] overflow-hidden rounded-2xl border border-gray-300"
+            >
+              <AppMapPicker :latitude="mapLat" :longitude="mapLng" :interactive="false" />
+            </div>
+            </div>
+
+            <!-- Bestätigen — its own row, left column only. Not part of the
+                 fields+map row above, so it can't stretch the map. -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <button
-                class="h-8 w-full md:w-auto px-6 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
+                class="mt-4 h-11 w-full rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
                 :style="canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'"
                 :disabled="!canSubmit || isSubmitting"
                 @click="requestBooking"

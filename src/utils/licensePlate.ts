@@ -29,18 +29,23 @@ export function toPlateUpperCase(value: string): string {
 }
 
 /**
- * Live input sanitiser for section 3 (number): upper-cases and hard-caps the
- * digit count at 4 so the user can never type more than four digits. Non-digit
- * characters (E, and anything else the user mistypes) are kept in place so the
- * position/format validation messages still fire.
+ * Live input sanitiser for section 3 (number): upper-cases, hard-caps the
+ * digit count at 4, and hard-caps the electric-vehicle "E" to a single
+ * occurrence, so the user can never type more than four digits or more than
+ * one E. Any other mistyped letter is kept in place so the position/format
+ * validation messages still fire.
  */
 export function sanitizePlateNumber(value: string): string {
   let digitCount = 0;
+  let eUsed = false;
   let result = "";
   for (const char of value.toUpperCase()) {
     if (char >= "0" && char <= "9") {
       if (digitCount >= 4) continue; // ignore any digit beyond the fourth
       digitCount += 1;
+    } else if (char === "E") {
+      if (eUsed) continue; // ignore any E beyond the first
+      eUsed = true;
     }
     result += char;
   }
