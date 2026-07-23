@@ -825,7 +825,7 @@ async function publishDocument(documentId: string) {
                 <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
               </button>
               <div class="p-6">
-                <p class="text-[16px] font-semibold uppercase" style="color: #2e3e3f">Fahrzeugdokumente</p>
+                <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Fahrzeugdokumente</p>
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
@@ -896,7 +896,7 @@ async function publishDocument(documentId: string) {
               style="border-color: #ececec"
             >
               <div class="p-6">
-                <p class="text-[16px] font-semibold uppercase text-[#000000]">TÜV SÜD Dokumente</p>
+                <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">TÜV SÜD Dokumente</p>
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
@@ -947,7 +947,7 @@ async function publishDocument(documentId: string) {
               style="border-color: #ececec"
             >
               <div class="px-6 py-6">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
+                <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Angebote</p>
               </div>
 
               <!-- Empty state -->
@@ -1164,7 +1164,7 @@ async function publishDocument(documentId: string) {
           style="border-color: #ececec"
         >
             <div class="pb-6">
-              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
+              <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">
                 Besichtigungsort
               </p>
             </div>
@@ -1241,7 +1241,7 @@ async function publishDocument(documentId: string) {
               <Icon icon="mdi:pencil" class="size-5 shrink-0" style="color: #01b990" />
             </button>
             <div class="px-6 pt-6">
-              <p class="text-[18px] font-bold" style="color: #000">FAHRZEUGDATEN</p>
+              <p class="text-[16px] font-bold uppercase" style="color: #000">FAHRZEUGDATEN</p>
             </div>
 
             <div class="flex flex-col gap-0 px-6 pt-4 pb-6">
