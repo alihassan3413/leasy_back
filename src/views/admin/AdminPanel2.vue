@@ -60,9 +60,9 @@ const sectionCards = computed(() => [
   },
   {
     id: "completed",
-    label: "Abgeschlossene Aufträge",
+    label: "Gelieferte Aufträge",
     value: summary.value?.completed_orders ?? 0,
-    description: "Fertiggestellte Abläufe",
+    description: "Ausgelieferte Fahrzeuge",
   },
   {
     id: "inspections",
@@ -151,6 +151,7 @@ async function loadVehicles() {
     vehicles.value = response.data;
     total.value = response.total;
     totalActive.value = response.total_active;
+    // Reused as the "Geliefert" count here (not inactive) — see the badge below.
     totalInactive.value = response.total_completed;
   } catch (err) {
     listError.value = "Fahrzeugliste konnte nicht geladen werden.";
@@ -173,6 +174,7 @@ async function loadOrders() {
     orders.value = response.data;
     total.value = response.total;
     totalActive.value = response.total_active;
+    // Reused as the "Geliefert" count here (not inactive) — see the badge below.
     totalInactive.value = response.total_completed;
   } catch (err) {
     listError.value = "Auftragsliste konnte nicht geladen werden.";
@@ -191,11 +193,13 @@ async function loadRecentOrders() {
 
 function handleCardClick(id: "users" | "vehicles" | "orders" | "completed" | "inspections") {
   // "completed" is a KPI shortcut, not its own section — it lands on the
-  // Orders tab pre-filtered to the "Abgeschlossen" status so the count on the
-  // card actually matches what the list shows.
+  // Orders tab pre-filtered to "Geliefert". The backend's completed-order
+  // aggregate doesn't line up with any order_status="completed" records, so
+  // the card (labelled "Gelieferte Aufträge") is treated as the delivered
+  // count instead — that's the status whose filtered list actually matches.
   if (id === "completed") {
     activeSection.value = "orders";
-    orderStatus.value = "completed";
+    orderStatus.value = "delivered";
   } else if (id === "inspections") {
     activeSection.value = "orders";
     orderStatus.value = "";
@@ -401,7 +405,7 @@ onMounted(async () => {
           >{{ totalActive }} Aktiv</span
         >
         <span class="rounded-full bg-[#ffedde] px-4 py-2 text-sm font-semibold text-[#c2410c]"
-          >{{ totalInactive }} Inaktiv</span
+          >{{ totalInactive }} {{ activeSection === "users" ? "Inaktiv" : "Geliefert" }}</span
         >
 
         <SegmentedToggle

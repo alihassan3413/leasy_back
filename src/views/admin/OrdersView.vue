@@ -18,7 +18,6 @@ const search = ref("");
 const page = ref(1);
 const limit = ref(10); // client-side page size
 const totalActive = ref(0);
-const totalCompleted = ref(0);
 const totalConfirmed = ref(0);
 const totalInspected = ref(0);
 const totalDelivered = ref(0);
@@ -171,7 +170,6 @@ async function loadOrders() {
     }
     allOrders.value = acc;
     totalActive.value = meta?.total_active ?? 0;
-    totalCompleted.value = meta?.total_completed ?? 0;
     totalConfirmed.value = meta?.total_confirmed ?? 0;
     totalInspected.value = meta?.total_inspected ?? 0;
     totalDelivered.value = meta?.total_delivered ?? 0;
@@ -308,11 +306,6 @@ async function handleOrderConfirmed() {
             class="text-[11.5px] font-bold px-3 py-1.5 rounded-full bg-[#06b6d4]/10 text-[#0e7490]"
           >
             {{ totalDelivered }} Geliefert
-          </span>
-          <span
-            class="text-[11.5px] font-bold px-3 py-1.5 rounded-full bg-[#10393b]/[0.08] text-[#10393b]"
-          >
-            {{ totalCompleted }} Abgeschlossen
           </span>
         </div>
       </div>

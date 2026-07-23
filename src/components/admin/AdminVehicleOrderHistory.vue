@@ -825,7 +825,7 @@ async function publishDocument(documentId: string) {
                 <Icon icon="mdi:pencil" class="size-[18.5px] shrink-0" style="color: #01b990" />
               </button>
               <div class="p-6">
-                <p class="text-[16px] font-semibold uppercase text-[#000000]">Fahrzeugdokumente</p>
+                <p class="text-[16px] font-semibold uppercase" style="color: #2e3e3f">Fahrzeugdokumente</p>
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 

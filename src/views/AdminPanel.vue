@@ -764,7 +764,7 @@ onMounted(async () => {
                   class="text-[10px] font-bold uppercase tracking-[0.05em]"
                   :class="activePanel === 'orders' ? 'text-white/55' : 'text-[#9bb0af]'"
                 >
-                  Abgeschlossen
+                  Geliefert
                 </p>
 
                 <p class="mt-1 text-[17px] font-extrabold">

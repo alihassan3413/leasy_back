@@ -662,7 +662,7 @@ onBeforeUnmount(() => {
           <span
             class="text-[11.5px] font-bold px-3 py-1.5 rounded-full bg-[#10393b]/[0.08] text-[#10393b]"
           >
-            {{ totalCompleted }} Abgeschlossen
+            {{ totalCompleted }} Geliefert
           </span>
         </div>
       </div>

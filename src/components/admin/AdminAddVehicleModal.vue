@@ -62,6 +62,7 @@ watch(
       leasinggeber.value = "";
       leasingEndUnknown.value = false;
       leasinggeberUnknown.value = false;
+      markeOpen.value = false;
     }
   },
 );

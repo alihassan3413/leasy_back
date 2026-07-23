@@ -113,6 +113,8 @@ watch(
       leasingEndUnknown.value = false;
       leasinggeberUnknown.value = false;
     }
+    markeOpen.value = false;
+    nutzerOpen.value = false;
     isDirty.value = false;
 
     if (!isEditMode.value && authStore.user?.role === "B2B") {

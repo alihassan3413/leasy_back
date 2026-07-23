@@ -650,7 +650,7 @@ watch(
                 />
               </button>
               <div class="p-6">
-                <p class="text-[16px] font-bold uppercase text-[#000000]">Fahrzeugdokumente</p>
+                <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Fahrzeugdokumente</p>
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
@@ -1047,7 +1047,7 @@ watch(
         />
       </button>
       <div class="p-4">
-        <p class="text-[16px] font-bold uppercase text-[#000000]">Fahrzeugdokumente</p>
+        <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Fahrzeugdokumente</p>
         <div class="h-px bg-gray-200 mt-2"></div>
       </div>
 
