@@ -61,7 +61,7 @@ const sectionCards = computed(() => [
   {
     id: "completed",
     label: "Gelieferte Aufträge",
-    value: summary.value?.completed_orders ?? 0,
+    value: summary.value?.delivered_orders ?? 0,
     description: "Ausgelieferte Fahrzeuge",
   },
   {

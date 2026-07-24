@@ -261,7 +261,7 @@ function close() {
       <div class="relative px-3 md:px-0">
         <button
           @click="close"
-          class="absolute right-2 top-2 md:-right-1 md:-top-1 z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
+          class="absolute right-2 top-2 md:-right-1 md:-top-1 z-10 flex h-11 w-11 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
         >
           <Icon icon="mdi:close" class="size-6 md:size-8" />
         </button>
@@ -553,15 +553,17 @@ function close() {
 
             <!-- Bestätigen — its own row, left column only. Not part of the
                  fields+map row above, so it can't stretch the map. -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <button
-                class="mt-4 h-11 w-full rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
-                :style="canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'"
-                :disabled="!canSubmit || isSubmitting"
-                @click="handleSubmit"
-              >
-                {{ isSubmitting ? "Lädt..." : "Bestätigen" }}
-              </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-2 md:pb-0">
+              <div class="flex justify-center md:block">
+                <button
+                  class="mt-4 h-10 md:h-11 px-8 md:px-0 md:w-full rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
+                  :style="canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'"
+                  :disabled="!canSubmit || isSubmitting"
+                  @click="handleSubmit"
+                >
+                  {{ isSubmitting ? "Lädt..." : "Bestätigen" }}
+                </button>
+              </div>
             </div>
           </div>
         </div>

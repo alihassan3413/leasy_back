@@ -84,20 +84,22 @@ function close() {
       style="width: 500px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
-      <div class="relative">
+      <div class="relative px-3 md:px-0">
         <button
           @click="close"
-          class="absolute -right-1 -top-1 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
+          class="absolute right-2 top-2 md:-right-1 md:-top-1 z-10 flex h-11 w-11 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
         >
-          <Icon icon="mdi:close" class="size-8" />
+          <Icon icon="mdi:close" class="size-6 md:size-8" />
         </button>
 
         <div
-          class="bg-white border border-[#C6C6CD] p-4 inverted-corner inverted-corner-top-right"
+          class="bg-white border border-[#C6C6CD] p-3 md:p-4 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
-          <div class="px-4 pt-4 mb-4">
-            <h2 class="text-[20px] font-bold leading-normal text-black">Station erstellen</h2>
+          <div class="pl-3 pr-14 md:pl-4 md:pr-4 pt-3 md:pt-4 mb-4">
+            <h2 class="text-[16px] md:text-[20px] font-bold leading-normal text-black">
+              Station erstellen
+            </h2>
           </div>
 
           <div class="grid grid-cols-1 gap-y-3 px-4 max-h-[70vh] overflow-y-auto pr-1">
@@ -203,9 +205,9 @@ function close() {
             </div>
 
             <!-- Submit -->
-            <div class="mt-2 flex justify-center">
+            <div class="mt-4 md:mt-2 flex justify-center pb-2 md:pb-0">
               <button
-                class="h-9 px-6 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
+                class="h-10 px-8 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
                 :style="canSubmit ? 'background: #EF8450;' : 'background: #D9D9D9;'"
                 :disabled="!canSubmit || isSubmitting"
                 @click="handleSubmit"

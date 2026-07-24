@@ -185,17 +185,17 @@ async function handleSubmit() {
       <div class="relative px-3 md:px-0">
         <button
           @click="close"
-          class="absolute -right-1 -top-1 md:-right-1 md:-top-1 z-10 flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
+          class="absolute right-2 top-2 md:-right-1 md:-top-1 z-10 flex h-11 w-11 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
         >
           <Icon icon="mdi:close" class="size-6 md:size-8" />
         </button>
 
         <div
-          class="relative p-3 md:p-5 inverted-corner inverted-corner-top-right"
+          class="relative p-3 pb-4 md:p-5 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
-          <div class="px-2 pt-1 mb-3">
-            <h2 class="text-[18px] md:text-[22px] font-bold leading-normal text-black pr-8 md:pr-0">
+          <div class="pl-2 pr-14 md:pr-2 pt-1 mb-3">
+            <h2 class="text-[16px] md:text-[22px] font-bold leading-normal text-black">
               Neues Fahrzeug
             </h2>
             <p
@@ -400,9 +400,9 @@ async function handleSubmit() {
             -->
           </div>
 
-          <div class="mt-8 flex justify-center">
+          <div class="mt-6 md:mt-8 flex justify-center pb-2 md:pb-0">
             <button
-              class="h-9 w-full md:w-auto px-6 rounded-full text-base font-semibold text-white transition-all duration-200 shadow-lg"
+              class="h-10 px-8 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
               :style="buttonActive ? 'background: #EF8450;' : 'background: #D9D9D9;'"
               :disabled="!buttonActive || isLoading"
               @click="handleSubmit"

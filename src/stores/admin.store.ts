@@ -38,7 +38,7 @@ export const useAdminStore = defineStore("admin", () => {
   const totalVehicles = computed(() => summary.value?.total_vehicles ?? 0);
   const totalOrders = computed(() => summary.value?.total_orders ?? 0);
   const activeOrders = computed(() => summary.value?.active_orders ?? 0);
-  const completedOrders = computed(() => summary.value?.completed_orders ?? 0);
+  const completedOrders = computed(() => summary.value?.delivered_orders ?? 0);
   const pendingInspections = computed(() => summary.value?.pending_inspections ?? 0);
 
   // ── Users ──────────────────────────────────────────────────────

@@ -526,14 +526,14 @@ watch(
     <TableCell colspan="12" class="max-w-0 p-0 overflow-x-auto whitespace-normal">
       <!-- Main container: responsive masonry — cards pack into columns and fill vertical gaps -->
       <div
-        class="columns-1 md:columns-2 2xl:columns-4 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
+        class="columns-1 md:columns-2 2xl:columns-3 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
       >
         <!-- Timeline Card -->
         <div
           class="flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
           style="border-color: #ececec"
         >
-            <div class="px-6 py-5 flex items-center justify-between">
+            <div class="px-6 pt-6 pb-5 flex items-center justify-between">
               <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
                 {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
               </p>
@@ -808,7 +808,7 @@ watch(
           </div>
         <!-- Besichtigungsort Card -->
         <div
-          class="relative flex flex-col rounded-[24px] border bg-white p-8 w-full"
+          class="relative flex flex-col rounded-[24px] border bg-white p-6 w-full"
           style="border-color: #ececec"
         >
             <div class="pb-6">
@@ -1269,7 +1269,7 @@ watch(
         <Icon icon="mdi:pencil" class="size-4 shrink-0" style="color: #01b990" />
       </button>
       <div class="px-4 pt-4">
-        <p class="text-[16px] font-bold" style="color: #000">FAHRZEUGDATEN</p>
+        <p class="text-[16px] font-bold uppercase" style="color: #000">FAHRZEUGDATEN</p>
       </div>
 
       <div class="flex flex-col gap-0 px-4 pt-3 pb-4">

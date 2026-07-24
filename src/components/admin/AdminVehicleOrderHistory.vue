@@ -698,7 +698,7 @@ async function publishDocument(documentId: string) {
           class="flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
           style="border-color: #ececec"
         >
-            <div class="px-6 py-5">
+            <div class="px-6 pt-6 pb-5">
               <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
                 {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
               </p>
@@ -1160,7 +1160,7 @@ async function publishDocument(documentId: string) {
           </div>
         <!-- Besichtigungsort Card -->
         <div
-          class="relative flex flex-col rounded-[24px] border bg-white p-8 w-full"
+          class="relative flex flex-col rounded-[24px] border bg-white p-6 w-full"
           style="border-color: #ececec"
         >
             <div class="pb-6">

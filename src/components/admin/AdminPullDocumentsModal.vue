@@ -48,22 +48,24 @@ function confirm() {
       style="width: 560px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
-      <div class="relative">
+      <div class="relative px-3 md:px-0">
         <button
           @click="close"
-          class="absolute -right-1 -top-1 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600 disabled:opacity-60"
+          class="absolute right-2 top-2 md:-right-1 md:-top-1 z-10 flex h-11 w-11 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600 disabled:opacity-60"
           :disabled="loading"
         >
-          <Icon icon="mdi:close" class="size-8" />
+          <Icon icon="mdi:close" class="size-6 md:size-8" />
         </button>
 
         <div
-          class="bg-white border border-[#C6C6CD] p-6 inverted-corner inverted-corner-top-right"
+          class="bg-white border border-[#C6C6CD] p-4 md:p-6 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
-          <div class="px-2 pt-2 mb-2">
-            <h2 class="text-[24px] font-bold leading-normal text-black">Dokumente abrufen</h2>
-            <p class="mt-1 pb-4 text-base font-light leading-normal not-italic text-[#00000080]">
+          <div class="pl-2 pr-14 md:pr-2 pt-2 mb-2">
+            <h2 class="text-[16px] md:text-[24px] font-bold leading-normal text-black">
+              Dokumente abrufen
+            </h2>
+            <p class="mt-1 pb-4 text-xs md:text-base font-light leading-normal not-italic text-[#00000080]">
               Rufen Sie die TÜV SÜD Dokumente für diesen Auftrag ab und übertragen Sie sie in die
               Fahrzeugdokumente.
             </p>
@@ -123,9 +125,9 @@ function confirm() {
             </div>
           </div>
 
-          <div class="mt-8 flex justify-center">
+          <div class="mt-6 md:mt-8 flex justify-center pb-2 md:pb-0">
             <button
-              class="h-10 px-6 rounded-full text-base font-semibold text-white transition-all duration-200 shadow-lg disabled:opacity-60 disabled:cursor-wait"
+              class="h-10 px-8 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg disabled:opacity-60 disabled:cursor-wait"
               style="background: #ef8450"
               :disabled="loading"
               @click="confirm"

@@ -283,14 +283,14 @@ watch(
     <TableCell colspan="8" class="max-w-0 p-0 overflow-x-auto whitespace-normal">
       <!-- Main container: responsive masonry — cards pack into columns and fill vertical gaps -->
       <div
-        class="columns-1 md:columns-2 2xl:columns-4 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
+        class="columns-1 md:columns-2 2xl:columns-3 gap-4 bg-[#EFEFEF] p-4 *:mb-4 *:break-inside-avoid"
       >
         <!-- Timeline Card -->
         <div
           class="flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
           style="border-color: #ececec"
         >
-            <div class="px-6 py-5 flex flex-col gap-3">
+            <div class="px-6 pt-6 pb-5 flex flex-col gap-3">
               <div class="flex items-center justify-between w-full">
                 <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
                   Status:
@@ -400,7 +400,7 @@ watch(
                 />
               </button>
               <div class="px-6 pt-6">
-                <p class="text-[16px] font-semibold uppercase" style="color: #2e3e3f">Fahrzeug Dokumente</p>
+                <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Fahrzeug Dokumente</p>
                 <div class="h-px bg-gray-200 mt-2"></div>
               </div>
 
@@ -457,7 +457,7 @@ watch(
               "
             >
               <div class="px-6 py-6">
-                <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
+                <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Angebote</p>
               </div>
 
               <!-- Offer rows -->
@@ -561,11 +561,11 @@ watch(
           </div>
         <!-- Besichtigungsort Card -->
         <div
-          class="relative flex flex-col rounded-[24px] border bg-white p-8 w-full"
+          class="relative flex flex-col rounded-[24px] border bg-white p-6 w-full"
           style="border-color: #ececec"
         >
             <div class="pb-6">
-              <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">
+              <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">
                 Besichtigungsort
               </p>
             </div>
@@ -643,7 +643,7 @@ watch(
               <Icon icon="mdi:pencil" class="size-5 shrink-0" style="color: #01b990" />
             </button>
             <div class="px-6 pt-6">
-              <p class="text-[18px] font-bold" style="color: #000">FAHRZEUG DATEN</p>
+              <p class="text-[16px] font-bold uppercase" style="color: #000">FAHRZEUG DATEN</p>
             </div>
 
             <div class="flex flex-col gap-0 px-6 pt-4 pb-6">
@@ -782,7 +782,7 @@ watch(
         />
       </button>
       <div class="px-6 pt-6">
-        <p class="text-[16px] font-semibold uppercase" style="color: #2e3e3f">Fahrzeug Dokumente</p>
+        <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Fahrzeug Dokumente</p>
         <div class="h-px bg-gray-200 mt-2"></div>
       </div>
       <div class="flex flex-col gap-4 px-6 pt-4 pb-4">
@@ -836,7 +836,7 @@ watch(
         :style="hasRealOffers ? 'border-color: #ececec' : 'border-color: #ececec; opacity: 0.5'"
       >
         <div class="px-6 py-6">
-          <p class="text-[16px] font-bold" style="color: #2e3e3f">Angebote</p>
+          <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Angebote</p>
         </div>
         <div class="flex flex-col gap-5 px-6">
           <div
@@ -932,7 +932,7 @@ watch(
       style="border-color: #ececec"
     >
       <div class="pb-6">
-        <p class="text-[16px] font-normal uppercase" style="color: #2e3e3f">Besichtigungsort</p>
+        <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Besichtigungsort</p>
       </div>
 
       <template v-if="besichtigungsort">
@@ -1005,7 +1005,7 @@ watch(
         <Icon icon="mdi:pencil" class="size-5 shrink-0" style="color: #01b990" />
       </button>
       <div class="px-6 pt-6">
-        <p class="text-[18px] font-bold" style="color: #000">FAHRZEUG DATEN</p>
+        <p class="text-[16px] font-bold uppercase" style="color: #000">FAHRZEUG DATEN</p>
       </div>
       <div class="flex flex-col gap-0 px-6 pt-4 pb-6">
         <div class="flex items-center justify-between py-4">

@@ -274,21 +274,23 @@ async function handleSubmit() {
       style="width: 720px; max-width: calc(100vw - 2rem)"
       :show-close-button="false"
     >
-      <div class="relative">
+      <div class="relative px-3 md:px-0">
         <button
           @click="close"
-          class="absolute -right-1 -top-1 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
+          class="absolute right-2 top-2 md:-right-1 md:-top-1 z-10 flex h-11 w-11 md:h-14 md:w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md transition-colors hover:bg-emerald-600"
         >
-          <Icon icon="mdi:close" class="size-8" />
+          <Icon icon="mdi:close" class="size-6 md:size-8" />
         </button>
 
         <div
-          class="bg-white border border-[#C6C6CD] p-6 inverted-corner inverted-corner-top-right"
+          class="bg-white border border-[#C6C6CD] p-4 md:p-6 inverted-corner inverted-corner-top-right"
           style="filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.15))"
         >
-          <div class="px-6 pt-6 mb-6">
-            <h2 class="text-[20px] font-bold leading-normal text-black">Angebot erstellen</h2>
-            <p class="mt-1 mx-2 pb-3 text-sm font-light leading-normal not-italic text-[#00000080]">
+          <div class="pl-4 pr-14 md:pl-6 md:pr-6 pt-4 md:pt-6 mb-6">
+            <h2 class="text-[16px] md:text-[20px] font-bold leading-normal text-black">
+              Angebot erstellen
+            </h2>
+            <p class="mt-1 md:mx-2 pb-3 text-xs md:text-sm font-light leading-normal not-italic text-[#00000080]">
               Bitte füllen Sie die Details für das Angebot aus.
             </p>
           </div>
@@ -511,9 +513,9 @@ async function handleSubmit() {
             </div>
 
             <!-- Submit -->
-            <div class="mt-2 flex justify-center col-span-2">
+            <div class="mt-4 sm:mt-2 flex justify-center col-span-2 pb-2 sm:pb-0">
               <button
-                class="h-9 px-6 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
+                class="h-10 px-8 rounded-full text-sm font-semibold text-white transition-all duration-200 shadow-lg"
                 style="background: #ef8450"
                 :disabled="isLoading"
                 @click="handleSubmit"

@@ -95,7 +95,7 @@ export interface AdminSummaryResponse {
   total_vehicles: number;
   total_orders: number;
   active_orders: number;
-  completed_orders: number;
+  delivered_orders: number;
   pending_inspections: number;
 }
 
