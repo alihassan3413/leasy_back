@@ -5,7 +5,7 @@ import type { AdminOrder } from "@/types";
 import { adminOrdersApi } from "@/api/modules/admin-orders.api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "vue3-toastify";
-import { orderStatusLabels } from "@/lib/status";
+import { getOrderStatusLabelOrDash } from "@/lib/status";
 
 const props = defineProps<{
   open: boolean;
@@ -18,10 +18,6 @@ const emit = defineEmits<{
 }>();
 
 const isLoading = ref(false);
-
-function getStatus(s: string | null | undefined) {
-  return { label: orderStatusLabels[s ?? ""] ?? s ?? "—" };
-}
 
 function close() {
   emit("update:open", false);
@@ -87,7 +83,7 @@ async function handleSubmit() {
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Aktueller Status</span>
                 <span class="text-sm font-semibold text-gray-800">{{
-                  getStatus(order.order_status).label
+                  getOrderStatusLabelOrDash(order.order_status)
                 }}</span>
               </div>
             </div>

@@ -8,7 +8,10 @@ import UploadDocumentModal from "@/components/dashboard/modals/UploadDocumentMod
 import { vehicleApi, adminVehiclesApi, adminOffersApi, adminOrdersApi } from "@/api";
 import { getOrderStatusLabel } from "@/lib/status";
 import { orderProviderLabel } from "@/lib/provider";
-import { getUpcomingSteps, timelineDotStyle, timelineLineStyle } from "@/lib/timeline";
+import { getUpcomingSteps } from "@/lib/timeline";
+import OrderStatusTimeline, {
+  type OrderTimelineEntry,
+} from "@/components/shared/OrderStatusTimeline.vue";
 
 const props = defineProps<{
   vehicle: AdminVehicle;
@@ -533,6 +536,33 @@ const timelineData = computed(() => {
   ];
 });
 
+// Card title (the timeline's first entry) and the remaining rows, formatted
+// for the shared <OrderStatusTimeline> component. `datetime` gets its "\n"
+// replaced with " - " here (moved out of the template, same substitution the
+// original markup already applied).
+const timelineHeaderLabel = computed(
+  () => timelineData.value[0]?.label || "STATUS: KEINE AUFTRÄGE",
+);
+const timelineEntries = computed(() =>
+  timelineData.value.slice(1).map((entry) => ({
+    ...entry,
+    datetime: entry.datetime ? entry.datetime.replace("\n", " - ") : entry.datetime,
+  })),
+);
+
+// Report rows on the admin timeline carry the source document (for the
+// publish/delete actions below) as an opaque `doc` field — narrow it here
+// rather than typing it into the shared timeline component.
+interface TimelineReportDoc {
+  id: string;
+  is_report?: boolean;
+  published?: boolean;
+}
+
+function timelineReportDoc(entry: OrderTimelineEntry): TimelineReportDoc | undefined {
+  return entry.doc as TimelineReportDoc | undefined;
+}
+
 const offersData = computed(() => {
   if (realOffers.value.length > 0) {
     return realOffers.value.map((offer) => ({
@@ -587,16 +617,6 @@ function documentTypeLabel(type?: string): string {
   if (mapped) return mapped;
   // Fallback: capitalize the raw backend value so it still reads cleanly.
   return key.charAt(0).toUpperCase() + key.slice(1);
-}
-
-// The provider label from orderProviderLabel() is a lowercase key ("dekra" /
-// "tuvsud"). Render it as a proper, capitalized name in the timeline — mirrors
-// the B2C dashboard so admin and client show identical provider names.
-function providerDisplayLabel(label: string): string {
-  const key = label.toLowerCase();
-  if (key === "dekra") return "Dekra";
-  if (key === "tuvsud") return "TÜV SÜD";
-  return label;
 }
 
 // Helper to get the actual document type key for grouping (checks title first)
@@ -698,118 +718,42 @@ async function publishDocument(documentId: string) {
           class="flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
           style="border-color: #ececec"
         >
-            <div class="px-6 pt-6 pb-5">
-              <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
-                {{ timelineData[0]?.label || "STATUS: KEINE AUFTRÄGE" }}
-              </p>
-            </div>
-
-            <!-- Timeline rows -->
-            <div class="flex-1 px-6 pb-5">
-              <div
-                v-for="(entry, i) in timelineData.slice(1)"
-                :key="i"
-                class="relative flex items-start pb-6"
-              >
-                <!-- Vertical line -->
-                <div
-                  v-if="i < timelineData.slice(1).length - 1"
-                  class="absolute left-2 top-5 w-0.5 h-full"
-                  :style="timelineLineStyle(entry)"
-                />
-
-                <!-- Dot -->
-                <div
-                  class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1 border-2"
-                  :style="timelineDotStyle(entry)"
-                />
-
-                <!-- Content -->
-                <div class="min-w-0 flex-1 pl-5">
-                  <!-- Date/time -->
-                  <p v-if="entry.datetime" class="text-[14px] text-[#2e3e3f] font-medium mb-1">
-                    {{ entry.datetime.replace("\n", " - ") }}
-                  </p>
-
-                  <!-- Label -->
-                  <template
-                    v-if="
-                      entry.label.toLowerCase() === 'dekra' ||
-                      entry.label.toLowerCase() === 'tuvsud'
-                    "
-                  >
-                    <p class="text-[16px] font-bold mb-1" style="color: #01b990">
-                      {{ providerDisplayLabel(entry.label) }}
-                    </p>
-                    <p
-                      v-if="entry.sublabel"
-                      class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
-                    >
-                      {{ entry.sublabel }}
-                    </p>
-                  </template>
-                  <template v-else>
-                    <div class="flex items-center justify-between">
-                      <div>
-                        <p
-                          class="text-[14px] font-normal"
-                          :class="entry.isFuture ? 'text-[#8f9ba7]' : 'text-[#2e3e3f]'"
-                        >
-                          {{ entry.label }}
-                        </p>
-                        <span
-                          v-if="entry.isNext"
-                          class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                          style="background: rgba(1, 185, 144, 0.1); color: #01b990"
-                        >
-                          Nächster Schritt
-                        </span>
-                        <p
-                          v-if="entry.sublabel"
-                          class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
-                        >
-                          {{ entry.sublabel }}
-                        </p>
-                      </div>
-                      <div v-if="entry.isReport && entry.docUrl" class="flex items-center gap-2">
-                        <a
-                          :href="entry.docUrl"
-                          target="_blank"
-                          rel="noopener"
-                          class="text-[#01b990] hover:opacity-70"
-                          title="Download"
-                        >
-                          <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
-                        </a>
-                        <a
-                          :href="entry.docUrl"
-                          target="_blank"
-                          rel="noopener"
-                          class="text-[#01b990] hover:opacity-70"
-                          title="Open"
-                        >
-                          <Icon icon="mdi:open-in-new" class="size-[18.5px] shrink-0" />
-                        </a>
-                        <button
-                          v-if="entry.doc?.is_report && !entry.doc?.published"
-                          @click="entry.doc && publishDocument(entry.doc.id)"
-                          class="text-[#01b990] hover:opacity-70 flex-shrink-0"
-                          title="Publish"
-                        >
-                          <Icon icon="mdi:eye-outline" class="size-[18.5px] shrink-0" />
-                        </button>
-                        <button
-                          @click="entry.doc && deleteDocument(entry.doc)"
-                          class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
-                        >
-                          <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
-                        </button>
-                      </div>
-                    </div>
-                  </template>
-                </div>
-              </div>
-            </div>
+            <OrderStatusTimeline :entries="timelineEntries" :header-label="timelineHeaderLabel">
+              <template #actions="{ entry }">
+                <a
+                  :href="entry.docUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="text-[#01b990] hover:opacity-70"
+                  title="Download"
+                >
+                  <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
+                </a>
+                <a
+                  :href="entry.docUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="text-[#01b990] hover:opacity-70"
+                  title="Open"
+                >
+                  <Icon icon="mdi:open-in-new" class="size-[18.5px] shrink-0" />
+                </a>
+                <button
+                  v-if="timelineReportDoc(entry)?.is_report && !timelineReportDoc(entry)?.published"
+                  @click="timelineReportDoc(entry) && publishDocument(timelineReportDoc(entry)!.id)"
+                  class="text-[#01b990] hover:opacity-70 flex-shrink-0"
+                  title="Publish"
+                >
+                  <Icon icon="mdi:eye-outline" class="size-[18.5px] shrink-0" />
+                </button>
+                <button
+                  @click="timelineReportDoc(entry) && deleteDocument(timelineReportDoc(entry))"
+                  class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+                >
+                  <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
+                </button>
+              </template>
+            </OrderStatusTimeline>
           </div>
 
           <!-- Fahrzeugdokumente Card -->

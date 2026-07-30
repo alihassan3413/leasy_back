@@ -4,7 +4,7 @@ import { useAdminStore } from "@/stores/admin.store";
 // import { useAuthStore } from "@/stores/auth.store"; // hidden per QA with the floating header
 import { adminOrdersApi, adminUsersApi, adminVehiclesApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
-import { orderStatusFilterOptions } from "@/lib/status";
+import { orderStatusFilterOptions, getAdminDashboardStatus as getStatus } from "@/lib/status";
 import UserDetailModal from "@/components/admin/UserDetail.vue";
 import type { AdminOrder, AdminUser, AdminVehicle } from "@/types";
 
@@ -77,88 +77,6 @@ function activatePanel(type: PanelType) {
     panelVehiclesPage.value = 1;
     void loadPanelVehicles();
   }
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Status helpers
-// ─────────────────────────────────────────────────────────────────
-
-const statusStyles: Record<
-  string,
-  {
-    label: string;
-    background: string;
-    color: string;
-  }
-> = {
-  order_placed: {
-    label: "Angefragt",
-    background: "rgba(239, 132, 80, 0.12)",
-    color: "#c0622e",
-  },
-  confirmed: {
-    label: "Bestätigt",
-    background: "rgba(99, 102, 241, 0.12)",
-    color: "#4f46e5",
-  },
-  inspected: {
-    label: "Geprüft",
-    background: "rgba(1, 185, 144, 0.12)",
-    color: "#00856a",
-  },
-  workshop: {
-    label: "In Werkstatt",
-    background: "rgba(245, 158, 11, 0.12)",
-    color: "#b45309",
-  },
-  reinspection: {
-    label: "Nachprüfung",
-    background: "rgba(124, 58, 237, 0.12)",
-    color: "#6d28d9",
-  },
-  reworkshop: {
-    label: "Erneut in Werkstatt",
-    background: "rgba(234, 88, 12, 0.12)",
-    color: "#c2410c",
-  },
-  delivered: {
-    label: "Geliefert",
-    background: "rgba(16, 57, 59, 0.09)",
-    color: "#10393b",
-  },
-  completed: {
-    label: "Abgeschlossen",
-    background: "rgba(1, 185, 144, 0.12)",
-    color: "#00856a",
-  },
-  discarded: {
-    label: "Verworfen",
-    background: "rgba(107, 114, 128, 0.12)",
-    color: "#374151",
-  },
-  cancelled: {
-    label: "Storniert",
-    background: "rgba(220, 38, 38, 0.10)",
-    color: "#991b1b",
-  },
-};
-
-function getStatus(status: string | null | undefined) {
-  if (!status) {
-    return {
-      label: "Kein Status",
-      background: "rgba(0, 0, 0, 0.05)",
-      color: "#6f8585",
-    };
-  }
-
-  return (
-    statusStyles[status] ?? {
-      label: status,
-      background: "rgba(0, 0, 0, 0.05)",
-      color: "#6f8585",
-    }
-  );
 }
 
 // ─────────────────────────────────────────────────────────────────

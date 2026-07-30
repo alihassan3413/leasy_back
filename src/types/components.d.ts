@@ -171,6 +171,8 @@ declare module 'vue' {
     SelectTrigger: typeof import('./../components/ui/select/SelectTrigger.vue')['default']
     SelectValue: typeof import('./../components/ui/select/SelectValue.vue')['default']
     SettingGeneralSetting: typeof import('./../components/setting/GeneralSetting.vue')['default']
+    SharedOrderStatusTimeline: typeof import('./../components/shared/OrderStatusTimeline.vue')['default']
+    SharedStatusHelpTooltip: typeof import('./../components/shared/StatusHelpTooltip.vue')['default']
     StatusBadge: typeof import('./../components/ui/StatusBadge.vue')['default']
     Switch: typeof import('./../components/ui/switch/Switch.vue')['default']
     Table: typeof import('./../components/ui/table/Table.vue')['default']

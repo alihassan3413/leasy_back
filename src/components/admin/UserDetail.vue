@@ -2,6 +2,7 @@
 import { ref, watch, computed } from "vue";
 import { adminVehiclesApi, adminOrdersApi } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
+import { getUserDetailStatus as getStatus } from "@/lib/status";
 import type { AdminUser, AdminVehicle, AdminOrder } from "@/types";
 
 // ── Props / Emits ────────────────────────────────────────────────
@@ -41,19 +42,6 @@ function pageRange(current: number, last: number): (number | "…")[] {
     }
   }
   return out;
-}
-
-// ── Status map ───────────────────────────────────────────────────
-const statusMap: Record<string, { label: string; bg: string; fg: string }> = {
-  order_placed: { label: "Angefragt", bg: "rgba(239,132,80,0.1)", fg: "#c0622e" },
-  confirmed: { label: "Bestätigt", bg: "rgba(99,102,241,0.1)", fg: "#4f46e5" },
-  inspected: { label: "Geprüft", bg: "rgba(1,185,144,0.1)", fg: "#00856a" },
-  delivered: { label: "Geliefert", bg: "rgba(16,57,59,0.08)", fg: "#10393b" },
-  completed: { label: "Abgeschlossen", bg: "rgba(16,57,59,0.08)", fg: "#10393b" },
-};
-
-function getStatus(s: string | null | undefined) {
-  return statusMap[s ?? ""] ?? { label: s ?? "—", bg: "rgba(0,0,0,0.05)", fg: "#6b7280" };
 }
 
 // ── User helpers ─────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { Icon } from "@iconify/vue";
 import type { AdminOrder } from "@/types";
 import { adminOrdersApi } from "@/api/modules/admin-orders.api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { orderStatusOptions, orderStatusLabels } from "@/lib/status";
+import { orderStatusOptions, getOrderStatusLabelOrDash } from "@/lib/status";
 
 const props = defineProps<{
   open: boolean;
@@ -23,10 +23,6 @@ const isLoading = ref(false);
 const newStatus = ref("");
 const statusOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
-
-function getStatus(s: string | null | undefined) {
-  return { label: orderStatusLabels[s ?? ""] ?? s ?? "—" };
-}
 
 function handleClickOutside(event: MouseEvent) {
   if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
@@ -128,7 +124,7 @@ async function handleSubmit() {
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Aktueller Status</span>
                 <span class="text-sm font-semibold text-gray-800">{{
-                  getStatus(order.order_status).label
+                  getOrderStatusLabelOrDash(order.order_status)
                 }}</span>
               </div>
             </div>

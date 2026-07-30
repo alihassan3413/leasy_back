@@ -3,7 +3,12 @@ import { computed, ref, watch, onMounted } from "vue";
 import { adminOrdersApi } from "@/api";
 import type { AdminOrderSortBy, SortOrder } from "@/api";
 import { formatGermanDate } from "@/lib/formatting";
-import { orderStatusOptions, orderStatusFilterOptions, orderStatusLabels } from "@/lib/status";
+import {
+  orderStatusOptions,
+  orderStatusFilterOptions,
+  orderStatusLabels,
+  getOrdersViewStatus as getStatus,
+} from "@/lib/status";
 import { matchesSearch } from "@/lib/search";
 import type { AdminOrder, AdminOrderListResponse } from "@/types";
 import { toast } from "vue3-toastify";
@@ -35,50 +40,6 @@ const selectedConfirmOrder = ref<AdminOrder | null>(null);
 const statusFilterOptions = [{ label: "Alle", value: "" }, ...orderStatusFilterOptions];
 
 const modalStatusOptions = orderStatusOptions;
-
-const statusStyle: Record<string, { bg: string; fg: string; label: string }> = {
-  order_requested: {
-    label: "Anfrage gesendet",
-    bg: "rgba(59,130,246,0.1)",
-    fg: "#3b82f6",
-  },
-  order_placed: {
-    label: "Angefragt",
-    bg: "rgba(239,132,80,0.1)",
-    fg: "#c0622e",
-  },
-  confirmed: { label: "Bestätigt", bg: "rgba(99,102,241,0.1)", fg: "#4f46e5" },
-  inspected: { label: "Geprüft", bg: "rgba(1,185,144,0.1)", fg: "#00856a" },
-  workshop: { label: "In Werkstatt", bg: "rgba(245,158,11,0.12)", fg: "#b45309" },
-  reinspection: {
-    label: "Nachprüfung",
-    bg: "rgba(124,58,237,0.1)",
-    fg: "#6d28d9",
-  },
-  reworkshop: {
-    label: "Erneut in Werkstatt",
-    bg: "rgba(234,88,12,0.1)",
-    fg: "#c2410c",
-  },
-  delivered: { label: "Geliefert", bg: "rgba(6,182,212,0.1)", fg: "#0e7490" },
-  completed: {
-    label: "Abgeschlossen",
-    bg: "rgba(16,57,59,0.08)",
-    fg: "#10393b",
-  },
-  discarded: { label: "Verworfen", bg: "rgba(107,114,128,0.12)", fg: "#374151" },
-  cancelled: { label: "Storniert", bg: "rgba(220,38,38,0.1)", fg: "#991b1b" },
-};
-
-function getStatus(s: string | null | undefined) {
-  return (
-    statusStyle[s ?? ""] ?? {
-      label: s ?? "—",
-      bg: "rgba(0,0,0,0.05)",
-      fg: "#6b7280",
-    }
-  );
-}
 
 // ── Response status helper ────────────────────────────────────────
 function responseStatusStyle(code: number | null) {

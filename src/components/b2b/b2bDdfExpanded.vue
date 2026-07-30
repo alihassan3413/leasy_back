@@ -6,7 +6,16 @@ import AddVehicleModal from "../dashboard/modals/AddVehicleModal.vue";
 import UploadDocumentModal from "../dashboard/modals/UploadDocumentModal.vue";
 import { vehicleApi, customerOffersApi } from "@/api";
 import { getOrderStatusLabel } from "@/lib/status";
-import { getUpcomingSteps, timelineDotStyle, timelineLineStyle } from "@/lib/timeline";
+import { getUpcomingSteps } from "@/lib/timeline";
+import {
+  getCustomerOrderFlowSteps,
+  getCustomerOrderHeadline,
+  formatGermanDateTime,
+  CUSTOMER_PAYMENT_FEATURE_ENABLED,
+  type CustomerOrderOffer,
+} from "@/lib/customerOrderFlow";
+import OrderStatusTimeline from "@/components/shared/OrderStatusTimeline.vue";
+import StatusHelpTooltip from "@/components/shared/StatusHelpTooltip.vue";
 
 const props = defineProps<{ vehicle: Vehicle }>();
 
@@ -31,15 +40,6 @@ function documentTypeLabel(type?: string): string {
   if (mapped) return mapped;
   // Fallback: capitalize the raw backend value so it still reads cleanly.
   return key.charAt(0).toUpperCase() + key.slice(1);
-}
-
-// The provider label from the mapper is a lowercase key ("dekra" / "tuvsud").
-// Render it as a proper, capitalized name so B2B matches the B2C/admin timelines.
-function providerDisplayLabel(label: string): string {
-  const key = label.toLowerCase();
-  if (key === "dekra") return "Dekra";
-  if (key === "tuvsud") return "TÜV SÜD";
-  return label;
 }
 
 // Group documents by their document_type so each type renders under its own
@@ -130,7 +130,11 @@ const mockOffers: Offer[] = [
   },
 ];
 
-// Published offers fetched from the customer offers endpoint
+// Published offers fetched from the customer offers endpoint — kept in their
+// raw API shape (status/published_at/selected_at) so the flow below can
+// resolve stages 4/5 with real dates, alongside a display-mapped copy for
+// the "Angebote" card.
+const rawOffers = ref<CustomerOrderOffer[]>([]);
 const realOffers = ref<Offer[]>([]);
 const selectingOfferId = ref<string | null>(null);
 const hasRealOffers = computed(() => realOffers.value.length > 0);
@@ -139,27 +143,29 @@ async function loadOffers() {
   const auftragsnummer = props.vehicle.orders?.[0]?.auftragsnummer;
   if (!auftragsnummer) {
     realOffers.value = [];
+    rawOffers.value = [];
     return;
   }
   try {
     const res = await customerOffersApi.list(auftragsnummer);
-    realOffers.value = (res.offers || [])
-      .filter((offer) => offer.offer_status !== "cancelled")
-      .map((offer) => ({
-        id: offer.offer_sequence.toString().padStart(2, "0"),
-        name: `Angebot ${offer.offer_sequence}`,
-        cost: parseFloat(offer.final_total_gross),
-        saving: 0,
-        address: "",
-        distance: "",
-        recommended: false,
-        accepted: offer.offer_status === "selected",
-        offer_id: offer.offer_id,
-        status: offer.offer_status,
-      }));
+    const nonCancelled = (res.offers || []).filter((offer) => offer.offer_status !== "cancelled");
+    rawOffers.value = nonCancelled;
+    realOffers.value = nonCancelled.map((offer) => ({
+      id: offer.offer_sequence.toString().padStart(2, "0"),
+      name: `Angebot ${offer.offer_sequence}`,
+      cost: parseFloat(offer.final_total_gross),
+      saving: 0,
+      address: "",
+      distance: "",
+      recommended: false,
+      accepted: offer.offer_status === "selected",
+      offer_id: offer.offer_id,
+      status: offer.offer_status,
+    }));
   } catch (err) {
     console.error("Failed to load customer offers:", err);
     realOffers.value = [];
+    rawOffers.value = [];
   }
 }
 
@@ -206,16 +212,66 @@ const latestOrder = computed(() => {
   return lastOrder;
 });
 
-// The rendered timeline: the historical entries from the mapper (all past
-// events, so `completed`) followed by the remaining planned steps
-// (Bestätigt → … → Abgeschlossen). The first upcoming step is flagged as the
-// immediate "Nächster Schritt". Upcoming steps carry no date yet.
+// Report documents live on every order the vehicle has ever had (mirrors the
+// B2C dashboard, which also scans all orders rather than just the current one).
+const allReportDocuments = computed(() =>
+  (props.vehicle.orders ?? []).flatMap((order) => order.report_documents ?? []),
+);
+
+// The 8-step customer flow (completed/current/future), or `null` when there's
+// no order / the order_status is entirely unrecognized — in which case
+// `timelineEntries` below falls back to the legacy `getUpcomingSteps` tail.
+const customerFlowSteps = computed(() => {
+  const order = latestOrder.value;
+  if (!order) return null;
+  return getCustomerOrderFlowSteps({
+    orderStatus: order.order_status,
+    orderCreatedAt: order.created_at,
+    statusHistory: order.status_updates ?? [],
+    besichtigungsort: order.request_payload?.besichtigungsort,
+    reportDocuments: allReportDocuments.value,
+    offers: rawOffers.value,
+  });
+});
+
+const customerHeadline = computed(() => getCustomerOrderHeadline(customerFlowSteps.value));
+
+// Headline "Status: ..." text shown above the timeline (desktop + mobile).
+// Prefers the mapped customer stage; falls back to the raw order_status
+// label unchanged for statuses the mapper doesn't cover.
+const currentStatusLabel = computed(() => {
+  if (!latestOrder.value) return "Kein Auftrag";
+  return (
+    customerHeadline.value?.label ?? getOrderStatusLabel(latestOrder.value.order_status).label
+  );
+});
+const currentStatusTooltip = computed(() => customerHeadline.value?.tooltipDescription);
+
+// The rendered timeline: the pure 8-step customer-facing flow when the
+// mapper resolves a stage, otherwise the legacy upcoming-steps tail
+// (unchanged, for order_status values the mapper doesn't cover).
 const timelineEntries = computed(() => {
-  const history = (props.vehicle.timeline || []).map((entry: any) => ({
-    ...entry,
-    completed: true,
-  }));
-  const upcoming = getUpcomingSteps(latestOrder.value?.order_status).map((step, idx) => ({
+  const flowSteps = customerFlowSteps.value;
+  if (flowSteps) {
+    return flowSteps.map((step) => ({
+      datetime: step.datetime ? formatGermanDateTime(step.datetime) : "",
+      label: step.label,
+      sublabel: step.subtitle || undefined,
+      tooltipDescription: step.tooltipDescription,
+      completed: step.completed || step.isCurrent,
+      isFuture: !(step.completed || step.isCurrent) && !step.isCancelled && !step.isRejected,
+      isNext: step.isNext,
+      isCurrent: step.isCurrent,
+      isCancelled: step.isCancelled,
+      isRejected: step.isRejected,
+      isReport: !!(step.reportDocUrl || step.invoiceDocUrl || step.showPaymentAction),
+      docUrl: step.reportDocUrl,
+      invoiceUrl: step.invoiceDocUrl,
+      showPaymentAction: step.showPaymentAction,
+    }));
+  }
+
+  return getUpcomingSteps(latestOrder.value?.order_status).map((step, idx) => ({
     datetime: "",
     label: step.label,
     sublabel: "",
@@ -223,7 +279,6 @@ const timelineEntries = computed(() => {
     isFuture: true,
     isNext: idx === 0,
   }));
-  return [...history, ...upcoming];
 });
 
 // Inspection location (Besichtigungsort) comes from the latest order's request payload.
@@ -290,394 +345,367 @@ watch(
           class="flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
           style="border-color: #ececec"
         >
-            <div class="px-6 pt-6 pb-5 flex flex-col gap-3">
-              <div class="flex items-center justify-between w-full">
-                <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
-                  Status:
-                  {{
-                    latestOrder
-                      ? getOrderStatusLabel(latestOrder.order_status).label
-                      : "Kein Auftrag"
-                  }}
-                </p>
-                <button class="text-[#01b990] hover:opacity-70">
-                  <Icon icon="mdi:dots-vertical" class="size-4.5" />
-                </button>
-              </div>
-              <div
-                v-if="latestOrder && latestOrder.order_status === 'order_requested'"
-                class="w-full rounded-[50px] bg-red-100 px-4 py-2"
-                @click="console.log('Red box clicked, order status:', latestOrder.order_status)"
+          <div class="px-6 pt-6 pb-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between w-full">
+              <p
+                class="flex items-center gap-1.5 text-[16px] font-bold text-[#000000] leading-tight uppercase"
               >
-                <p class="text-[12px] font-bold text-red-700">Auftrag ist nicht bestätigt</p>
-              </div>
-            </div>
-
-            <!-- Timeline rows -->
-            <div class="flex-1 px-6 pb-5">
-              <div
-                v-for="(entry, i) in timelineEntries"
-                :key="i"
-                class="relative flex items-start pb-6"
-              >
-                <!-- Vertical line -->
-                <div
-                  v-if="i < timelineEntries.length - 1"
-                  class="absolute left-2 top-5 w-0.5 h-full"
-                  :style="timelineLineStyle(entry)"
-                />
-
-                <!-- Dot -->
-                <div
-                  class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1 border-2"
-                  :style="timelineDotStyle(entry)"
-                />
-
-                <!-- Content -->
-                <div class="min-w-0 flex-1 pl-5">
-                  <!-- Date/time -->
-                  <p v-if="entry.datetime" class="text-[14px] text-[#2e3e3f] font-medium mb-1">
-                    {{ entry.datetime }}
-                  </p>
-
-                  <!-- Label -->
-                  <template
-                    v-if="
-                      entry.label.toLowerCase() === 'dekra' ||
-                      entry.label.toLowerCase() === 'tuvsud'
-                    "
-                  >
-                    <p class="text-[16px] font-bold mb-1" style="color: #01b990">
-                      {{ providerDisplayLabel(entry.label) }}
-                    </p>
-                    <p
-                      v-if="entry.sublabel"
-                      class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
-                    >
-                      {{ entry.sublabel }}
-                    </p>
-                  </template>
-                  <template v-else>
-                    <p
-                      class="text-[14px] font-normal"
-                      :class="entry.isFuture ? 'text-[#8f9ba7]' : 'text-[#2e3e3f]'"
-                    >
-                      {{ entry.label }}
-                    </p>
-                    <span
-                      v-if="entry.isNext"
-                      class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                      style="background: rgba(1, 185, 144, 0.1); color: #01b990"
-                    >
-                      Nächster Schritt
-                    </span>
-                    <p
-                      v-if="entry.sublabel"
-                      class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
-                    >
-                      {{ entry.sublabel }}
-                    </p>
-                  </template>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Vehicle Docs Card -->
-          <div class="flex flex-col gap-4 w-full">
-            <div
-              class="relative flex flex-col rounded-[16px] border bg-white"
-              style="border-color: #ececec"
-            >
-              <button
-                @click="uploadDocsOpen = true"
-                class="absolute right-5 top-5 transition-opacity hover:opacity-60"
-              >
-                <Icon
-                  icon="mdi:file-upload-outline"
-                  class="size-[18.5px] shrink-0"
-                  style="color: #01b990"
-                />
+                Status:
+                {{ currentStatusLabel }}
+                <StatusHelpTooltip v-if="currentStatusTooltip" :text="currentStatusTooltip" />
+              </p>
+              <button class="text-[#01b990] hover:opacity-70">
+                <Icon icon="mdi:dots-vertical" class="size-4.5" />
               </button>
-              <div class="px-6 pt-6">
-                <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Fahrzeug Dokumente</p>
-                <div class="h-px bg-gray-200 mt-2"></div>
-              </div>
+            </div>
+            <div
+              v-if="latestOrder && latestOrder.order_status === 'order_requested'"
+              class="w-full rounded-[50px] bg-red-100 px-4 py-2"
+              @click="console.log('Red box clicked, order status:', latestOrder.order_status)"
+            >
+              <p class="text-[12px] font-bold text-red-700">Auftrag ist nicht bestätigt</p>
+            </div>
+          </div>
 
-              <div class="flex flex-col gap-4 px-6 pt-4 pb-4">
-                <div v-for="group in groupedDocuments" :key="group.key" class="flex flex-col gap-3">
-                  <div v-if="group.key !== 'gutachten'">
-                    <p class="text-[16px] font-semibold uppercase text-[#000000]">
-                      {{ group.title }}
-                    </p>
-                    <div class="h-px bg-gray-200 mt-2"></div>
-                  </div>
-                  <div
-                    v-for="(doc, i) in group.items"
-                    :key="doc.id || i"
-                    class="flex items-center justify-between gap-3"
+          <!-- Timeline rows -->
+          <OrderStatusTimeline :entries="timelineEntries">
+            <template #actions="{ entry }">
+              <template v-if="entry.docUrl">
+                <a
+                  :href="entry.docUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="text-[#01b990] hover:opacity-70"
+                  title="Gutachten herunterladen"
+                >
+                  <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
+                </a>
+                <a
+                  :href="entry.docUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="text-[#01b990] hover:opacity-70"
+                  title="Gutachten öffnen"
+                >
+                  <Icon icon="mdi:open-in-new" class="size-[18.5px] shrink-0" />
+                </a>
+              </template>
+              <a
+                v-if="entry.invoiceUrl"
+                :href="entry.invoiceUrl"
+                target="_blank"
+                rel="noopener"
+                class="text-[#01b990] hover:opacity-70"
+                title="Rechnung ansehen"
+              >
+                <Icon icon="mdi:receipt-text-outline" class="size-[18.5px] shrink-0" />
+              </a>
+              <button
+                v-if="entry.showPaymentAction"
+                type="button"
+                :disabled="!CUSTOMER_PAYMENT_FEATURE_ENABLED"
+                class="text-[#01b990] hover:opacity-70 disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Bezahlen (bald verfügbar)"
+              >
+                <Icon icon="mdi:credit-card-outline" class="size-[18.5px] shrink-0" />
+              </button>
+            </template>
+          </OrderStatusTimeline>
+        </div>
+
+        <!-- Vehicle Docs Card -->
+        <div class="flex flex-col gap-4 w-full">
+          <div
+            class="relative flex flex-col rounded-[16px] border bg-white"
+            style="border-color: #ececec"
+          >
+            <button
+              @click="uploadDocsOpen = true"
+              class="absolute right-5 top-5 transition-opacity hover:opacity-60"
+            >
+              <Icon
+                icon="mdi:file-upload-outline"
+                class="size-[18.5px] shrink-0"
+                style="color: #01b990"
+              />
+            </button>
+            <div class="px-6 pt-6">
+              <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">
+                Fahrzeug Dokumente
+              </p>
+              <div class="h-px bg-gray-200 mt-2"></div>
+            </div>
+
+            <div class="flex flex-col gap-4 px-6 pt-4 pb-4">
+              <div v-for="group in groupedDocuments" :key="group.key" class="flex flex-col gap-3">
+                <div v-if="group.key !== 'gutachten'">
+                  <p class="text-[16px] font-semibold uppercase text-[#000000]">
+                    {{ group.title }}
+                  </p>
+                  <div class="h-px bg-gray-200 mt-2"></div>
+                </div>
+                <div
+                  v-for="(doc, i) in group.items"
+                  :key="doc.id || i"
+                  class="flex items-center justify-between gap-3"
+                >
+                  <span
+                    class="text-[14px] font-normal text-[#475569] flex-1 truncate"
+                    :title="doc.file_name || doc.document_type || 'Dokument'"
                   >
-                    <span
-                      class="text-[14px] font-normal text-[#475569] flex-1 truncate"
-                      :title="doc.file_name || doc.document_type || 'Dokument'"
+                    {{ doc.file_name || doc.document_type || "Dokument" }}
+                  </span>
+                  <div class="flex items-center gap-2">
+                    <a
+                      v-if="doc.url"
+                      :href="doc.url"
+                      target="_blank"
+                      class="text-[#01b990] hover:opacity-70 flex-shrink-0"
                     >
-                      {{ doc.file_name || doc.document_type || "Dokument" }}
-                    </span>
-                    <div class="flex items-center gap-2">
-                      <a
-                        v-if="doc.url"
-                        :href="doc.url"
-                        target="_blank"
-                        class="text-[#01b990] hover:opacity-70 flex-shrink-0"
-                      >
-                        <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
-                      </a>
-                      <button
-                        v-if="canDeleteDocument(doc)"
-                        @click="deleteDocument(doc.id)"
-                        class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
-                      >
-                        <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
-                      </button>
-                    </div>
+                      <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
+                    </a>
+                    <button
+                      v-if="canDeleteDocument(doc)"
+                      @click="deleteDocument(doc.id)"
+                      class="text-[#EF4444] hover:opacity-70 flex-shrink-0"
+                    >
+                      <Icon icon="mdi:delete-outline" class="size-[18.5px] shrink-0" />
+                    </button>
                   </div>
                 </div>
-                <div v-if="documents.length === 0" class="text-[14px] text-[#b7c2c2]">
-                  Keine Dokumente gefunden
-                </div>
+              </div>
+              <div v-if="documents.length === 0" class="text-[14px] text-[#b7c2c2]">
+                Keine Dokumente gefunden
               </div>
             </div>
           </div>
+        </div>
         <!-- Angebote (Offers) -->
         <div class="relative w-full">
-            <div
-              class="flex flex-col rounded-[16px] border bg-white"
-              :style="
-                hasRealOffers ? 'border-color: #ececec' : 'border-color: #ececec; opacity: 0.5'
-              "
-            >
-              <div class="px-6 py-6">
-                <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Angebote</p>
-              </div>
+          <div
+            class="flex flex-col rounded-[16px] border bg-white"
+            :style="hasRealOffers ? 'border-color: #ececec' : 'border-color: #ececec; opacity: 0.5'"
+          >
+            <div class="px-6 py-6">
+              <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Angebote</p>
+            </div>
 
-              <!-- Offer rows -->
-              <div class="flex flex-col gap-5 px-6">
-                <div
-                  v-for="offer in offersData"
-                  :key="offer.id"
-                  class="flex items-center gap-4 rounded-[50px] border py-2 px-4"
+            <!-- Offer rows -->
+            <div class="flex flex-col gap-5 px-6">
+              <div
+                v-for="offer in offersData"
+                :key="offer.id"
+                class="flex items-center gap-4 rounded-[50px] border py-2 px-4"
+                :style="
+                  offer.accepted
+                    ? 'border-color: #EF8450; background: rgba(239, 132, 80, 0.08)'
+                    : 'border-color: #ECECEC; background: white'
+                "
+              >
+                <!-- Radio circle / select offer -->
+                <button
+                  type="button"
+                  @click.stop="hasRealOffers && requestSelect(offer.offer_id)"
+                  :disabled="
+                    !hasRealOffers || !!acceptedOffer || selectingOfferId === offer.offer_id
+                  "
+                  class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
                   :style="
                     offer.accepted
-                      ? 'border-color: #EF8450; background: rgba(239, 132, 80, 0.08)'
-                      : 'border-color: #ECECEC; background: white'
+                      ? 'border-color: #EF8450; background: #EF8450'
+                      : 'border-color: #B7C2C2; background: white'
                   "
+                  title="Angebot auswählen"
                 >
-                  <!-- Radio circle / select offer -->
-                  <button
-                    type="button"
-                    @click.stop="hasRealOffers && requestSelect(offer.offer_id)"
-                    :disabled="
-                      !hasRealOffers || !!acceptedOffer || selectingOfferId === offer.offer_id
-                    "
-                    class="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 disabled:cursor-default"
-                    :style="
-                      offer.accepted
-                        ? 'border-color: #EF8450; background: #EF8450'
-                        : 'border-color: #B7C2C2; background: white'
-                    "
-                    title="Angebot auswählen"
-                  >
-                    <div v-if="offer.accepted" class="w-4.5 h-4.5 rounded-full bg-white"></div>
-                  </button>
+                  <div v-if="offer.accepted" class="w-4.5 h-4.5 rounded-full bg-white"></div>
+                </button>
 
-                  <!-- Content -->
-                  <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
-                    <div class="flex justify-between items-start gap-3">
-                      <p
-                        class="text-[14px] font-bold flex-1 min-w-0 truncate"
-                        :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
-                        :title="`${offer.id} - ${offer.name}`"
-                      >
-                        {{ offer.id }} - {{ offer.name }}
-                      </p>
-                      <p
-                        class="text-[16px] font-normal flex-shrink-0"
-                        :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
-                      >
-                        {{ offer.cost.toLocaleString("de-DE") }} €
-                      </p>
-                    </div>
-                    <div class="flex justify-between items-center gap-3">
-                      <p class="text-[12px] flex-1 truncate" style="color: #b7c2c2">
-                        {{ offer.address || offer.distance || "227km distance" }}
-                      </p>
-                      <p
-                        v-if="offer.saving > 0"
-                        class="text-[16px] font-normal flex-shrink-0"
-                        style="color: #ef8450"
-                      >
-                        Ersparnis: {{ offer.saving }} €
-                      </p>
-                    </div>
+                <!-- Content -->
+                <div class="flex flex-col gap-1 flex-1 min-w-0 overflow-hidden">
+                  <div class="flex justify-between items-start gap-3">
+                    <p
+                      class="text-[14px] font-bold flex-1 min-w-0 truncate"
+                      :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
+                      :title="`${offer.id} - ${offer.name}`"
+                    >
+                      {{ offer.id }} - {{ offer.name }}
+                    </p>
+                    <p
+                      class="text-[16px] font-normal flex-shrink-0"
+                      :style="offer.accepted ? 'color: #2e3e3f' : 'color: #B7C2C2'"
+                    >
+                      {{ offer.cost.toLocaleString("de-DE") }} €
+                    </p>
+                  </div>
+                  <div class="flex justify-between items-center gap-3">
+                    <p class="text-[12px] flex-1 truncate" style="color: #b7c2c2">
+                      {{ offer.address || offer.distance || "227km distance" }}
+                    </p>
+                    <p
+                      v-if="offer.saving > 0"
+                      class="text-[16px] font-normal flex-shrink-0"
+                      style="color: #ef8450"
+                    >
+                      Ersparnis: {{ offer.saving }} €
+                    </p>
                   </div>
                 </div>
               </div>
-
-              <!-- Accept button -->
-              <div class="mt-6 px-6 pb-6">
-                <button
-                  class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
-                  style="background: #e0e0e0; color: #9e9e9e"
-                >
-                  Kostenpflichtig Annehmen
-                </button>
-              </div>
-
-              <!-- Accepted offer box -->
-              <div v-if="acceptedOffer" class="px-6 pb-6 pt-5">
-                <div
-                  class="flex items-center justify-between rounded-[50px] px-7 py-2.5"
-                  style="background: #ef8450"
-                >
-                  <span class="text-[14px] font-normal text-white">
-                    Angenommenes Angebot: {{ acceptedOffer.id }}
-                    {{ acceptedOffer.name }}
-                  </span>
-                  <span class="text-[16px] font-normal text-white">
-                    {{ acceptedOffer.cost.toLocaleString("de-DE") }} €
-                  </span>
-                </div>
-              </div>
             </div>
-            <!-- Overlay: shown only when there are no published offers -->
-            <div
-              v-if="!hasRealOffers"
-              class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
-            >
-              <div class="bg-white/80 px-6 py-3 rounded-full shadow-lg">
-                <p class="text-[18px] font-bold" style="color: #ef8450">Keine Angebote</p>
+
+            <!-- Accept button -->
+            <div class="mt-6 px-6 pb-6">
+              <button
+                class="w-full rounded-[50px] py-4 text-[12px] font-normal uppercase"
+                style="background: #e0e0e0; color: #9e9e9e"
+              >
+                Kostenpflichtig Annehmen
+              </button>
+            </div>
+
+            <!-- Accepted offer box -->
+            <div v-if="acceptedOffer" class="px-6 pb-6 pt-5">
+              <div
+                class="flex items-center justify-between rounded-[50px] px-7 py-2.5"
+                style="background: #ef8450"
+              >
+                <span class="text-[14px] font-normal text-white">
+                  Angenommenes Angebot: {{ acceptedOffer.id }}
+                  {{ acceptedOffer.name }}
+                </span>
+                <span class="text-[16px] font-normal text-white">
+                  {{ acceptedOffer.cost.toLocaleString("de-DE") }} €
+                </span>
               </div>
             </div>
           </div>
+          <!-- Overlay: shown only when there are no published offers -->
+          <div
+            v-if="!hasRealOffers"
+            class="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
+          >
+            <div class="bg-white/80 px-6 py-3 rounded-full shadow-lg">
+              <p class="text-[18px] font-bold" style="color: #ef8450">Keine Angebote</p>
+            </div>
+          </div>
+        </div>
         <!-- Besichtigungsort Card -->
         <div
           class="relative flex flex-col rounded-[24px] border bg-white p-6 w-full"
           style="border-color: #ececec"
         >
-            <div class="pb-6">
-              <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">
-                Besichtigungsort
+          <div class="pb-6">
+            <p class="text-[16px] font-bold uppercase" style="color: #2e3e3f">Besichtigungsort</p>
+          </div>
+
+          <template v-if="besichtigungsort">
+            <!-- Name row -->
+            <div class="flex items-center gap-5 pb-6">
+              <div
+                class="flex size-[56px] shrink-0 items-center justify-center rounded-full"
+                style="background-color: rgba(1, 185, 144, 0.1)"
+              >
+                <Icon icon="mdi:office-building-outline" class="size-7" style="color: #01b990" />
+              </div>
+              <p
+                class="text-[18px] font-bold min-w-0 flex-1 wrap-break-word"
+                style="color: #2e3e3f"
+              >
+                {{ besichtigungsort.name }}
               </p>
             </div>
 
-            <template v-if="besichtigungsort">
-              <!-- Name row -->
-              <div class="flex items-center gap-5 pb-6">
-                <div
-                  class="flex size-[56px] shrink-0 items-center justify-center rounded-full"
-                  style="background-color: rgba(1, 185, 144, 0.1)"
-                >
-                  <Icon icon="mdi:office-building-outline" class="size-7" style="color: #01b990" />
-                </div>
-                <p
-                  class="text-[18px] font-bold min-w-0 flex-1 wrap-break-word"
-                  style="color: #2e3e3f"
-                >
-                  {{ besichtigungsort.name }}
-                </p>
-              </div>
-
-              <!-- Termin -->
-              <div class="pb-5">
-                <p
-                  class="text-[10px] font-medium uppercase"
-                  style="color: #8f9ba7; letter-spacing: 0.5px"
-                >
-                  Termin
-                </p>
-                <div class="flex items-center gap-3 pt-2">
-                  <Icon
-                    icon="mdi:calendar-clock-outline"
-                    class="size-[18px] shrink-0"
-                    style="color: #5a6b7a"
-                  />
-                  <p class="text-[14px] font-bold" style="color: #2e3e3f">
-                    {{ terminFormatted || "Kein Termin" }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Divider -->
-              <div class="h-px bg-gray-200 mb-5"></div>
-
-              <!-- Address -->
-              <div class="flex items-start gap-4">
+            <!-- Termin -->
+            <div class="pb-5">
+              <p
+                class="text-[10px] font-medium uppercase"
+                style="color: #8f9ba7; letter-spacing: 0.5px"
+              >
+                Termin
+              </p>
+              <div class="flex items-center gap-3 pt-2">
                 <Icon
-                  icon="mdi:map-marker-outline"
-                  class="size-[18px] shrink-0 mt-0.5"
+                  icon="mdi:calendar-clock-outline"
+                  class="size-[18px] shrink-0"
                   style="color: #5a6b7a"
                 />
-                <span class="text-[14px] font-normal leading-relaxed" style="color: #2e3e3f">
-                  {{ besichtigungsort.strasse }}<br />
-                  {{ besichtigungsort.plz }} {{ besichtigungsort.ort }}
-                  <template v-if="besichtigungsort.land">
-                    ({{ besichtigungsort.land.toUpperCase() }})
-                  </template>
-                </span>
+                <p class="text-[14px] font-bold" style="color: #2e3e3f">
+                  {{ terminFormatted || "Kein Termin" }}
+                </p>
               </div>
-            </template>
-            <div v-else class="text-[14px] font-normal" style="color: #b7c2c2">
-              Kein Besichtigungsort verfügbar
             </div>
-          </div>
 
-          <!-- Fahrzeug Daten Card -->
-          <div
-            class="relative flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
-            style="border-color: #ececec"
+            <!-- Divider -->
+            <div class="h-px bg-gray-200 mb-5"></div>
+
+            <!-- Address -->
+            <div class="flex items-start gap-4">
+              <Icon
+                icon="mdi:map-marker-outline"
+                class="size-[18px] shrink-0 mt-0.5"
+                style="color: #5a6b7a"
+              />
+              <span class="text-[14px] font-normal leading-relaxed" style="color: #2e3e3f">
+                {{ besichtigungsort.strasse }}<br />
+                {{ besichtigungsort.plz }} {{ besichtigungsort.ort }}
+                <template v-if="besichtigungsort.land">
+                  ({{ besichtigungsort.land.toUpperCase() }})
+                </template>
+              </span>
+            </div>
+          </template>
+          <div v-else class="text-[14px] font-normal" style="color: #b7c2c2">
+            Kein Besichtigungsort verfügbar
+          </div>
+        </div>
+
+        <!-- Fahrzeug Daten Card -->
+        <div
+          class="relative flex flex-col overflow-hidden rounded-3xl border bg-white w-full"
+          style="border-color: #ececec"
+        >
+          <button
+            @click="editVehicleOpen = true"
+            class="absolute right-6 top-6 transition-opacity hover:opacity-60"
           >
-            <button
-              @click="editVehicleOpen = true"
-              class="absolute right-6 top-6 transition-opacity hover:opacity-60"
-            >
-              <Icon icon="mdi:pencil" class="size-5 shrink-0" style="color: #01b990" />
-            </button>
-            <div class="px-6 pt-6">
-              <p class="text-[16px] font-bold uppercase" style="color: #000">FAHRZEUG DATEN</p>
-            </div>
+            <Icon icon="mdi:pencil" class="size-5 shrink-0" style="color: #01b990" />
+          </button>
+          <div class="px-6 pt-6">
+            <p class="text-[16px] font-bold uppercase" style="color: #000">FAHRZEUG DATEN</p>
+          </div>
 
-            <div class="flex flex-col gap-0 px-6 pt-4 pb-6">
-              <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b"> Kennzeichen </span>
-                <span class="text-[16px] font-semibold" style="color: #000">
-                  {{ vehicle.licensePlate }}
-                </span>
-              </div>
-              <div class="h-px bg-gray-200"></div>
-              <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b"> Modell </span>
-                <span class="text-[16px] font-semibold" style="color: #000">
-                  {{ vehicle.brand }} {{ vehicle.model }}
-                </span>
-              </div>
-              <div class="h-px bg-gray-200"></div>
-              <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b"> Leasinggeber </span>
-                <span class="text-[16px] font-semibold" style="color: #000">
-                  {{ vehicle.leasinggeber || "N/A" }}
-                </span>
-              </div>
-              <div class="h-px bg-gray-200"></div>
-              <div class="flex items-center justify-between py-4">
-                <span class="text-[16px] font-normal" style="color: #64748b">
-                  Leasing Abgabetermin
-                </span>
-                <span class="text-[16px] font-semibold" style="color: #000">
-                  {{ vehicle.leasingAbgabetermin || vehicle.leaseEnd }}
-                </span>
-              </div>
+          <div class="flex flex-col gap-0 px-6 pt-4 pb-6">
+            <div class="flex items-center justify-between py-4">
+              <span class="text-[16px] font-normal" style="color: #64748b"> Kennzeichen </span>
+              <span class="text-[16px] font-semibold" style="color: #000">
+                {{ vehicle.licensePlate }}
+              </span>
+            </div>
+            <div class="h-px bg-gray-200"></div>
+            <div class="flex items-center justify-between py-4">
+              <span class="text-[16px] font-normal" style="color: #64748b"> Modell </span>
+              <span class="text-[16px] font-semibold" style="color: #000">
+                {{ vehicle.brand }} {{ vehicle.model }}
+              </span>
+            </div>
+            <div class="h-px bg-gray-200"></div>
+            <div class="flex items-center justify-between py-4">
+              <span class="text-[16px] font-normal" style="color: #64748b"> Leasinggeber </span>
+              <span class="text-[16px] font-semibold" style="color: #000">
+                {{ vehicle.leasinggeber || "N/A" }}
+              </span>
+            </div>
+            <div class="h-px bg-gray-200"></div>
+            <div class="flex items-center justify-between py-4">
+              <span class="text-[16px] font-normal" style="color: #64748b">
+                Leasing Abgabetermin
+              </span>
+              <span class="text-[16px] font-semibold" style="color: #000">
+                {{ vehicle.leasingAbgabetermin || vehicle.leaseEnd }}
+              </span>
             </div>
           </div>
+        </div>
       </div>
     </TableCell>
   </TableRow>
@@ -691,9 +719,12 @@ watch(
     >
       <div class="px-6 py-5 flex flex-col gap-3">
         <div class="flex items-center justify-between w-full">
-          <p class="text-[16px] font-bold text-[#000000] leading-tight uppercase">
+          <p
+            class="flex items-center gap-1.5 text-[16px] font-bold text-[#000000] leading-tight uppercase"
+          >
             Status:
-            {{ latestOrder ? getOrderStatusLabel(latestOrder.order_status).label : "Kein Auftrag" }}
+            {{ currentStatusLabel }}
+            <StatusHelpTooltip v-if="currentStatusTooltip" :text="currentStatusTooltip" />
           </p>
           <button class="text-[#01b990] hover:opacity-70">
             <Icon icon="mdi:dots-vertical" class="size-4.5" />
@@ -708,62 +739,49 @@ watch(
       </div>
 
       <!-- Timeline rows -->
-      <div class="flex-1 px-6 pb-5">
-        <div
-          v-for="(entry, i) in timelineEntries"
-          :key="i"
-          class="relative flex items-start pb-6"
-        >
-          <div
-            v-if="i < timelineEntries.length - 1"
-            class="absolute left-2 top-5 w-0.5 h-full"
-            :style="timelineLineStyle(entry)"
-          />
-          <div
-            class="relative z-10 w-4 h-4 shrink-0 rounded-full mt-1 border-2"
-            :style="timelineDotStyle(entry)"
-          />
-          <div class="min-w-0 flex-1 pl-5">
-            <p v-if="entry.datetime" class="text-[14px] text-[#2e3e3f] font-medium mb-1">
-              {{ entry.datetime }}
-            </p>
-            <template
-              v-if="entry.label.toLowerCase() === 'dekra' || entry.label.toLowerCase() === 'tuvsud'"
+      <OrderStatusTimeline :entries="timelineEntries">
+        <template #actions="{ entry }">
+          <template v-if="entry.docUrl">
+            <a
+              :href="entry.docUrl"
+              target="_blank"
+              rel="noopener"
+              class="text-[#01b990] hover:opacity-70"
+              title="Gutachten herunterladen"
             >
-              <p class="text-[16px] font-bold mb-1" style="color: #01b990">
-                {{ providerDisplayLabel(entry.label) }}
-              </p>
-              <p
-                v-if="entry.sublabel"
-                class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
-              >
-                {{ entry.sublabel }}
-              </p>
-            </template>
-            <template v-else>
-              <p
-                class="text-[14px] font-normal"
-                :class="entry.isFuture ? 'text-[#8f9ba7]' : 'text-[#2e3e3f]'"
-              >
-                {{ entry.label }}
-              </p>
-              <span
-                v-if="entry.isNext"
-                class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                style="background: rgba(1, 185, 144, 0.1); color: #01b990"
-              >
-                Nächster Schritt
-              </span>
-              <p
-                v-if="entry.sublabel"
-                class="whitespace-pre-line text-[14px] text-[#2e3e3f] font-normal"
-              >
-                {{ entry.sublabel }}
-              </p>
-            </template>
-          </div>
-        </div>
-      </div>
+              <Icon icon="material-symbols:download" class="size-[18.5px] shrink-0" />
+            </a>
+            <a
+              :href="entry.docUrl"
+              target="_blank"
+              rel="noopener"
+              class="text-[#01b990] hover:opacity-70"
+              title="Gutachten öffnen"
+            >
+              <Icon icon="mdi:open-in-new" class="size-[18.5px] shrink-0" />
+            </a>
+          </template>
+          <a
+            v-if="entry.invoiceUrl"
+            :href="entry.invoiceUrl"
+            target="_blank"
+            rel="noopener"
+            class="text-[#01b990] hover:opacity-70"
+            title="Rechnung ansehen"
+          >
+            <Icon icon="mdi:receipt-text-outline" class="size-[18.5px] shrink-0" />
+          </a>
+          <button
+            v-if="entry.showPaymentAction"
+            type="button"
+            :disabled="!CUSTOMER_PAYMENT_FEATURE_ENABLED"
+            class="text-[#01b990] hover:opacity-70 disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Bezahlen (bald verfügbar)"
+          >
+            <Icon icon="mdi:credit-card-outline" class="size-[18.5px] shrink-0" />
+          </button>
+        </template>
+      </OrderStatusTimeline>
     </div>
 
     <!-- Vehicle Docs Card -->

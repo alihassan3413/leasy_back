@@ -54,15 +54,21 @@ export function getUpcomingSteps(currentStatus?: string | null): UpcomingStep[] 
 interface TimelineMarker {
   completed?: boolean;
   isNext?: boolean;
+  /** Cancelled terminal state — only the customer (B2C/B2B) timelines set this. */
+  isCancelled?: boolean;
+  /** Rejected appointment (stage 2) terminal state — only the customer (B2C/B2B) timelines set this. */
+  isRejected?: boolean;
 }
 
 /**
  * Inline style for a timeline dot, shared by the B2C / B2B / admin timelines:
- * completed (past) steps are solid green; the immediate next step is a hollow
- * green ring; later upcoming steps are a hollow grey ring. Pair with a
- * `border-2` class on the dot so the ring is visible.
+ * a cancelled/rejected step is solid red; completed (past) steps are solid
+ * green; the immediate next step is a hollow green ring; later upcoming
+ * steps are a hollow grey ring. Pair with a `border-2` class on the dot so
+ * the ring is visible.
  */
 export function timelineDotStyle(entry: TimelineMarker): string {
+  if (entry.isCancelled || entry.isRejected) return "background:#dc2626;border-color:#dc2626";
   if (entry.completed) return "background:#01B990;border-color:#01B990";
   if (entry.isNext) return "background:#fff;border-color:#01B990";
   return "background:#fff;border-color:#B7C2C2";
@@ -70,5 +76,19 @@ export function timelineDotStyle(entry: TimelineMarker): string {
 
 /** Inline style for the vertical connector line between two dots. */
 export function timelineLineStyle(entry: TimelineMarker): string {
+  if (entry.isCancelled || entry.isRejected) return "background:#dc2626";
   return entry.completed ? "background:#01B990" : "background:#B7C2C2";
+}
+
+/**
+ * Display name for a timeline "provider" row. The raw label from the mapper
+ * is a lowercase key ("dekra" / "tuvsud"); render it as a proper capitalized
+ * name. Previously duplicated identically across the B2C, B2B and admin
+ * timeline components.
+ */
+export function providerDisplayLabel(label: string): string {
+  const key = label.toLowerCase();
+  if (key === "dekra") return "Dekra";
+  if (key === "tuvsud") return "TÜV SÜD";
+  return label;
 }
